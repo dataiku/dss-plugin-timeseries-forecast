@@ -2,15 +2,19 @@
     "id": "time-series-forecast-python",
     "version": "1.0.0",
     "meta": {
-        "label": "Time Series Forecast (Python)",
+        "label": "Forecast (Python)",
         "category": "Time Series",
-        "description": "Forecast time series using Python GluonTS models. This plugin covers the full cycle of model training, evaluation and prediction.",
+        "description": "Forecast time series using Python GluonTS. This plugin covers the full cycle of model training, evaluation and prediction.",
         "author": "Dataiku",
         "icon": "icon-calendar",
         "licenseInfo": "Apache Software License",
         "url": "https://www.dataiku.com/product/plugins/time-series-forecast-python/",
         "supported": true,
         "supportLevel": "SUPPORTED",
-        "tags": ["Time Series", "Forecasting", "Machine Learning"]
+        "tags": [
+            "Time Series",
+            "Forecasting",
+            "Machine Learning"
+        ]
     }
 }
