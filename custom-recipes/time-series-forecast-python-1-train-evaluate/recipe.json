@@ -1,0 +1,376 @@
+{
+    "meta": {
+        "label": "Train and evaluate models on historical data",
+        "description": "Train forecasting models and evaluate their performance on historical data",
+        "icon": "icon-calendar",
+        "displayOrderRank": 1
+    },
+    "kind": "PYTHON",
+    "selectableFromDataset": "input_dataset",
+    "inputRoles": [
+        {
+            "name": "input_dataset",
+            "label": "Input dataset",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsFolder": false
+        }
+    ],
+    "outputRoles": [
+        {
+            "name": "evaluation_dataset",
+            "label": "Evaluation results",
+            "description": "Dataset with performance evaluation results on historical data",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsFolder": false
+        },
+        {
+            "name": "model_folder",
+            "label": "Trained model folder",
+            "description": "Folder to save trained models",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": false,
+            "acceptsManagedFolder": true
+        }
+    ],
+    "params": [
+        {
+            "type": "SEPARATOR",
+            "name": "separator_input",
+            "label": "Input parameters"
+        },
+        {
+            "name": "time_column",
+            "label": "Time column",
+            "allowedColumnTypes": [
+                "date"
+            ],
+            "type": "COLUMN",
+            "columnRole": "input_dataset",
+            "mandatory": true
+        },
+        {
+            "name": "target_column",
+            "label": "Target column",
+            "type": "COLUMN",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": true
+        },
+        {
+            "name": "external_feature_columns",
+            "label": "External features (optional)",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double",
+                "boolean",
+                "string"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false
+        },
+        {
+            "name": "time_granularity_step",
+            "label": "Time granularity step",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": true,
+            "minI": 1
+        },
+        {
+            "name": "time_granularity_unit",
+            "label": "Time granularity unit",
+            "type": "SELECT",
+            "mandatory": true,
+            "selectChoices": [
+                {
+                    "value": "Y",
+                    "label": "Year"
+                },
+                {
+                    "value": "M",
+                    "label": "Month"
+                },
+                {
+                    "value": "W",
+                    "label": "Week"
+                },
+                {
+                    "value": "D",
+                    "label": "Day"
+                },
+                {
+                    "value": "H",
+                    "label": "Hour"
+                },
+                {
+                    "value": "min",
+                    "label": "Minute"
+                }
+            ],
+            "defaultValue": "D"
+        },
+        {
+            "name": "separator_modeling",
+            "label": "Modeling",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "forecasting_style",
+            "label": "Forecasting style",
+            "type": "SELECT",
+            "mandatory": true,
+            "selectChoices": [
+                {
+                    "value": "auto",
+                    "label": "AutoML"
+                },
+                {
+                    "value": "expert",
+                    "label": "Expert"
+                }
+            ],
+            "defaultValue": "auto"
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "naive_model_activated",
+            "label": "- Baseline",
+            "description": "Based on the trivial/seasonal_naive/naive_2 GluonTS models",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "naive_model_method",
+            "label": "  ↳ method",
+            "type": "SELECT",
+            "mandatory": true,
+            "defaultValue": "trivial",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.NAIVE_MODEL_ACTIVATED",
+            "selectChoices": [
+                {
+                    "value": "trivial",
+                    "label": "Forecast preceding value"
+                },
+                {
+                    "value": "seasonal_naive",
+                    "label": "Forecast value at previous period"
+                },
+                {
+                    "value": "naive_2",
+                    "label": "Forecast value at previous period with seasonal decomposition"
+                }
+            ]
+        },
+        {
+            "name": "naive_model_kwargs",
+            "type": "MAP",
+            "label": "↳ additional parameters",
+            "visibilityCondition": "false",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "simplefeedforward_model_activated",
+            "label": "- FeedForward",
+            "description": "Based on the SimpleFeedForwardEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "simplefeedforward_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.simple_feedforward.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.simplefeedforward_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "deepfactor_model_activated",
+            "label": "- DeepFactor",
+            "description": "Based on the DeepFactorEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "deepfactor_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deep_factor.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.deepfactor_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "deepar_model_activated",
+            "label": "- DeepAR",
+            "description": "Based on the DeepAREstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "deepar_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deepar.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.deepar_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "lstnet_model_activated",
+            "label": "- LSTNet",
+            "description": "Based on the LSTNetEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "lstnet_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.lstnet.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.lstnet_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "nbeats_model_activated",
+            "label": "- NBEATS",
+            "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "nbeats_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.n_beats.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.nbeats_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "npts_model_activated",
+            "label": "- NPTS",
+            "description": "Based on the NPTSPredictor GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "npts_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.npts.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.npts_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "transformer_model_activated",
+            "label": "- Transformer",
+            "description": "Based on the TransformerEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
+        },
+        {
+            "name": "transformer_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.transformer.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.transformer_model_activated",
+            "mandatory": false
+        },
+        {
+            "name": "separator_evaluation",
+            "label": "Performance Evaluation",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "forecasting_horizon",
+            "label": "Forecasting horizon",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": true,
+            "minI": 1
+        },
+        {
+            "name": "evaluation_strategy",
+            "label": "Evaluation strategy",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Time-based split or backtesting based on GluonTS method (slower)",
+            "selectChoices": [
+                {
+                    "value": "split",
+                    "label": "Train/Test Split"
+                },
+                {
+                    "value": "backtest",
+                    "label": "Backtesting"
+                }
+            ],
+            "defaultValue": "split"
+        },
+        {
+            "name": "num_samples",
+            "label": "Backtesting samples",
+            "description": "Number of sample sequences to generate for evaluation",
+            "type": "INT",
+            "defaultValue": 100,
+            "mandatory": true,
+            "minI": 10,
+            "maxI": 1000000,
+            "visibilityCondition": "model.evaluation_strategy == 'backtest'"
+        }
+    ],
+    "resourceKeys": []
+}

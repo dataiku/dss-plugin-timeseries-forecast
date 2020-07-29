@@ -1,0 +1,157 @@
+{
+    "meta": {
+        "label": "Forecast future values",
+        "description": "Use previously trained models to predict future values",
+        "icon": "icon-signal",
+        "displayOrderRank": 2
+    },
+    "kind": "PYTHON",
+    "selectableFromDataset": "evaluation_dataset",
+    "selectableFromFolder": "model_folder",
+    "inputRoles": [
+        {
+            "name": "evaluation_dataset",
+            "label": "Evaluation results",
+            "description": "Dataset with the evaluation results computed by the \"Train and evaluate\" recipe",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsFolder": false
+        },
+        {
+            "name": "model_folder",
+            "label": "Trained model folder",
+            "description": "Folder with trained models saved by the \"Train and evaluate\" recipe",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": false,
+            "acceptsManagedFolder": true,
+            "mustBeStrictlyType": "Filesystem"
+        },
+        {
+            "name": "external_features_future_dataset",
+            "label": "Future values of external features (optional)",
+            "description": "Dataset with the date column and future values of external features if used in the previous \"Train and evaluate\" recipe",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsFolder": false
+        }
+    ],
+    "outputRoles": [
+        {
+            "name": "output_dataset",
+            "label": "Forecast dataset",
+            "description": "Output dataset with future values",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsFolder": false
+        }
+    ],
+    "paramsPythonSetup": "select_model_version.py",
+    "params": [
+        {
+            "name": "separator_model_selection",
+            "label": "Model selection",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "model_selection_mode",
+            "label": "Selection mode",
+            "type": "SELECT",
+            "mandatory": true,
+            "defaultValue": "auto",
+            "description": "Manually select a model or use the best model from the last session",
+            "selectChoices": [
+                {
+                    "value": "auto",
+                    "label": "Automatic"
+                },
+                {
+                    "value": "manual",
+                    "label": "Manual"
+                }
+            ]
+        },
+        {
+            "name": "performance_metric",
+            "label": "Performance metric",
+            "type": "SELECT",
+            "mandatory": false,
+            "defaultValue": "MASE",
+            "visibilityCondition": "model.model_selection_mode == 'auto'",
+            "selectChoices": [
+                {
+                    "value": "MSE",
+                    "label": "Mean Squared Error"
+                },
+                {
+                    "value": "MASE",
+                    "label": "Mean Absolute Scaled Error"
+                },
+                {
+                    "value": "MAPE",
+                    "label": "Mean Absolute Percentage Error"
+                },
+                {
+                    "value": "sMAPE",
+                    "label": "Mean Absolute Percentage Error (symmetric)"
+                },
+                {
+                    "value": "MSIS",
+                    "label": "Mean Scaled Interval Score"
+                }
+            ]
+        },
+        {
+            "name": "manually_selected_session",
+            "type": "SELECT",
+            "label": "Training session",
+            "getChoicesFromPython": true,
+            "visibilityCondition": "model.model_selection_mode == 'manual'"
+        },
+        {
+            "name": "manually_selected_model_type",
+            "type": "SELECT",
+            "label": "Model type",
+            "getChoicesFromPython": true,
+            "visibilityCondition": "model.model_selection_mode == 'manual'"
+        },
+        {
+            "name": "separator_forecasting",
+            "label": "Prediction",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "forecasting_horizon",
+            "label": "Forecasting horizon",
+            "type": "INT",
+            "mandatory": true,
+            "defaultValue": 1,
+            "description": "In number of time steps",
+            "minI": 1
+        },
+        {
+            "name": "confidence_interval_1",
+            "label": "Confidence interval 1",
+            "type": "INT",
+            "minI": 50,
+            "maxI": 99,
+            "mandatory": true,
+            "defaultValue": 50,
+            "description": "%"
+        },
+        {
+            "name": "confidence_interval_2",
+            "label": "Confidence interval 2",
+            "type": "INT",
+            "minI": 50,
+            "maxI": 99,
+            "mandatory": true,
+            "defaultValue": 95,
+            "description": "%"
+        }
+    ],
+    "resourceKeys": []
+}

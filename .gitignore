@@ -142,3 +142,5 @@ dmypy.json
 __pycache__
 .python-version
 .pyc
+
+.DS_Store
