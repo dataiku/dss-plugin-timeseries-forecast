@@ -6,7 +6,7 @@ from gluonts.model.deepar import DeepAREstimator
 from gluonts.trainer import Trainer
 from datetime import datetime
 import os
-from utils import get_models_parameters, get_estimator, save_forecasting_objects, evaluate_models
+from plugin_io_utils import get_models_parameters, get_estimator, save_forecasting_objects, evaluate_models
 import pandas as pd
 
 
@@ -27,6 +27,100 @@ time_granularity_step = config.get('time_granularity_step', 1)
 frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
 
 models_parameters = get_models_parameters(config)
+
+
+
+
+glutonts_dataset = GlutonTSDataset(recipe_config, input_dataset)
+
+eval_params = EvalParams(recipe_config) # backtest, forecasting horizon, num_samples, ...
+
+global_params = GlobalParams(recipe_config)
+
+global_models = GlobalModels(global_params)
+global_models.init_all_models()
+
+global_models.fit_all(glutonts_dataset)
+
+global_models.eval_all(eval_params, glutonts_dataset)
+
+global_models.save_all(path)
+
+
+
+class GlobalParams():
+    # see tools in plugin_io_utils
+    models_names = ["naive", "simplefeedforward", "deepfactor", "deepar", "lstnet"]
+    models_params_map = {"model_name":["param1", "param2"]}
+    global_params
+    def __init__(config):
+        self.model_param = {"model_name": "model_param"}
+
+        self._check():
+
+    def get_model_params(self, model_name):
+        ret = global_params
+        ret.update(self.model_param.get(model_name))
+        return ret
+    
+    def get_global_model_params(self):
+
+    def _check(self):
+        
+        
+class GlobalModels():
+    def __init__(global_params):
+        self.global_params = global_params
+
+        self.model_names = []
+
+    def init_all_models(self):
+        self.models = []
+        for model_name in self.global_params.models_names:
+            self.models.append(SingleModel(model_name, self.global_params.get_model_params(model_name), self.global_params.get_global_model_params()))
+
+
+    def fit_all(self, gluonts_dataset):
+        for model in self.models:
+            model.fit(gluonts_dataset)
+
+    def evaluate_all(self, eval_params, glutonts_dataset):
+        for model in self.models:
+            model.evaluate(eval_params, glutonts_dataset)
+
+    def save_all(path):
+        for model in self.models:
+            model.save(path="{}/{}".format(path, model_name))
+        save(dataset) # csv with results
+
+    def prediction(model_name):
+        
+    def load(path):
+        dataset = load(dataset)
+        best_model = find_best_model(dataset)
+        model = SingleModel()
+        model.load(path, best_model)
+        
+
+
+# In prediction recipe
+results_dataset = load_dataset(input_folder)
+best_model_name = find_best_model(results_dataset)
+model = load_model(best_model_name) # => SingleModel()
+
+
+    
+class SingleModel():
+    def __init__(model_name, model_params, global_models_params):
+
+    def fit(self, gluonts_dataset):
+
+    def evaluate(self, eval_params, glutonts_dataset):
+
+    def save(self):
+
+
+
 
 print("ALX:config={}".format(config))
 
@@ -103,4 +197,9 @@ normalement, output vide
 
 python: 
 interogation du model : même horizon qu'a l'entrainement pour la version python (!= que R)
+"""
+
+"""
+objet instancié par model, avec fonction create json
+model sauvé par repertoire 
 """
