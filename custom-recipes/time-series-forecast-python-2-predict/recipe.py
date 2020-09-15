@@ -25,6 +25,38 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 with open(os.path.join(last_model_path, "models.pk"), 'rb') as forecasting_file:
     forecasting_object = pickle.load(forecasting_file)
 print("ALX:tadaaa")
+
+# In prediction recipe
+results_dataset = load_dataset(input_folder)
+best_model_name = find_best_model(results_dataset)
+model = load_model(best_model_name) # => Predictor()
+
+# glutonts_dataset = dataset of timesteps to predict (with external features or not)
+glutonts_dataset = GlutonTSDataset(recipe_config, input_dataset)
+
+prediction_params = PredictionParams(recipe_config)
+
+prediction = Prediction(model, prediction_params)
+
+prediction.make_evaluation_predictions(glutonts_dataset)
+
+output_df = prediction.get_results_dataframe()
+
+output_dataset.write_with_schema(output_df)
+
+
+
+
+class Prediction():
+    def __init__(self, model, config):
+
+# file structure:
+# Subfolder per timestamp (each time the recipe is run)
+# -> CSV with all model results (same as output dataset)
+# -> 1 subfolder per model
+#   -> model.pk (Predictor object = estimator.train output)
+#   -> params.json (local and global params, including external features)
+# 
 """
 forecasting_object = {
     "models": predictor_objects,

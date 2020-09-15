@@ -19,3 +19,5 @@ class GlobalParams():
 
     def _check(self):
         return
+
+# turn this into GlobalTrainParams

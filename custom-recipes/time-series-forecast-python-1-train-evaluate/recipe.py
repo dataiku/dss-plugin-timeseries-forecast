@@ -33,7 +33,6 @@ models_parameters = get_models_parameters(config)
 
 
 
-
 glutonts_dataset = GlutonTSDataset(recipe_config, input_dataset)
 
 eval_params = EvalParams(recipe_config) # backtest, forecasting horizon, num_samples, ...
@@ -117,6 +116,7 @@ model = load_model(best_model_name) # => SingleModel()
 """
 class SingleModel():
     def __init__(model_name, model_params, global_models_params):
+        
 
     def fit(self, gluonts_dataset):
 
