@@ -144,3 +144,5 @@ __pycache__
 .pyc
 
 .DS_Store
+setup.cfg
+.vscode

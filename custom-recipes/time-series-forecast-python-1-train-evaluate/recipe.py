@@ -9,6 +9,9 @@ import os
 from plugin_io_utils import get_models_parameters, get_estimator, save_forecasting_objects, evaluate_models
 import pandas as pd
 
+from eval_parameters import EvalParams
+from global_params import GlobalParams
+from global_models import GlobalModels
 
 # TODO
 config = get_recipe_config()
@@ -48,6 +51,7 @@ global_models.save_all(path)
 
 
 
+"""
 class GlobalParams():
     # see tools in plugin_io_utils
     models_names = ["naive", "simplefeedforward", "deepfactor", "deepar", "lstnet"]
@@ -100,7 +104,7 @@ class GlobalModels():
         best_model = find_best_model(dataset)
         model = SingleModel()
         model.load(path, best_model)
-        
+"""
 
 
 # In prediction recipe
@@ -110,6 +114,7 @@ model = load_model(best_model_name) # => SingleModel()
 
 
     
+"""
 class SingleModel():
     def __init__(model_name, model_params, global_models_params):
 
@@ -118,7 +123,7 @@ class SingleModel():
     def evaluate(self, eval_params, glutonts_dataset):
 
     def save(self):
-
+"""
 
 
 
