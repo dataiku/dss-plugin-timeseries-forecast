@@ -10,7 +10,9 @@ from gluonts.model.transformer import TransformerEstimator
 #from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 #from gluonts.model.naive_2 import Naive2Predictor
 import os
-import dill as pickle
+# import dill as pickle
+import pickle
+import io
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
@@ -20,6 +22,33 @@ AVAILABLE_MODELS = [
     "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
     "npts", "transformer"
 ]
+
+
+def read_pickle_from_folder(path, folder):
+    with folder.get_download_stream(path) as stream:
+        data = stream.read()
+        return pickle.loads(data)
+
+
+def write_object_as_pickle_to_folder(obj, path, folder):
+    with folder.get_writer(path) as writer:
+        pickled = pickle.dumps(obj)
+        writer.write(pickled)
+
+
+def write_dataframe_as_csv_to_folder(df, path, folder):
+    with folder.get_writer(path=path) as writer:
+        string_buf = df.to_csv(sep=',', na_rep='', header=True, index=False)
+        writer.write(string_buf.encode())
+
+
+def read_csv_from_folder(path, folder):
+    """ return dataframe from local path in folder """
+    with folder.get_download_stream(path) as stream:
+        data = stream.read()
+        data = io.StringIO(data.decode())
+    return pd.read_csv(data, sep=",", compression='infer')
+
 
 
 def get_models_parameters(config):
