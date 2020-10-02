@@ -1,5 +1,4 @@
 import re
-from gluonts.dataset.common import ListDataset
 from plugin_io_utils import read_csv_from_folder, read_pickle_from_folder
 
 
@@ -26,11 +25,10 @@ class ModelSelection():
         model = read_pickle_from_folder(model_path, self.folder)  # TODO implement load_model
         return model
 
-    def get_context_dataset(self):
-        # TODO implement it
-        context_dataset_path = "{}/context_csv".format(self.session)
+    def get_context_dataframe(self):
+        context_dataset_path = "{}/training_time_series.csv".format(self.session)
         df = read_csv_from_folder(context_dataset_path, self.folder)
-        return ListDataset(df)
+        return df
 
     def _get_last_session(self):
         session_timestamps = []
@@ -42,6 +40,6 @@ class ModelSelection():
 
     def _get_best_model(self):
         # TODO make it work
-        df = read_csv_from_folder("{}/results.csv".format(self.session), self.folder)  # TODO implement load_csv
+        df = read_csv_from_folder("{}/model_results.csv".format(self.session), self.folder)  # TODO implement load_csv
         model_type = df.loc[df[self.performance_metric].idxmax()].to_dict()['model']  # or idxmin() if minimize metric
         return model_type

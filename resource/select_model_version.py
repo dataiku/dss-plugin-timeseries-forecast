@@ -26,7 +26,7 @@ def do(payload, config, plugin_config, inputs):
     elif payload.get('parameterName') == 'manually_selected_model_type':
         model_types = set()
         for session in sessions:
-            for child in input_folder.get_path_details(path='/{}'.format('2020-09-30-16-57-30'))['children']:
+            for child in input_folder.get_path_details(path='/{}'.format(session))['children']:
                 if child['directory'] and child['name'] in AVAILABLE_MODELS:
                     model_types.add(child['name'])
 

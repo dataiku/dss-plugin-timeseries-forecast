@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import dataiku
-from dataiku.customrecipe import get_recipe_config, get_input_names_for_role, get_output_names_for_role
-import os
+# import dataiku
+# from dataiku.customrecipe import get_recipe_config, get_input_names_for_role, get_output_names_for_role
 
 # TODO
 # config = get_recipe_config()
@@ -27,11 +26,13 @@ import os
 # print("ALX:tadaaa")
 
 from plugin_config_loading import load_predict_config
+from dku_timeseries.model_selection import ModelSelection
+from dku_timeseries.prediction import Prediction
 
 params = load_predict_config()
 
 model_selection = ModelSelection(
-    params['input_folder']
+    params['model_folder']
 )
 
 if params['manual_selection']:
@@ -45,10 +46,11 @@ else:
     )
 
 predictor = model_selection.get_model()  # => Predictor()
-context_dataset = model_selection.get_context_dataset()  # => ListDataset()
 
 
-# results_dataset = load_dataset(input_folder, results_path)
+context_df = model_selection.get_context_dataframe()  # => DataFrame()
+
+# results_dataset = load_dataset(model_folder, results_path)
 # best_model_name = find_best_model(results_dataset)
 # model = load_model(best_model_name) # => Predictor()
 
@@ -63,64 +65,67 @@ prediction = Prediction(
     confidence_intervals=(params['confidence_interval_1'], params['confidence_interval_2'])
 )
 
-prediction.predict(context_dataset)
+if params['external_features_future']:
+    external_features_future_df = params['external_features_future'].get_dataframe()
+    prediction.predict(context_df, external_features_future_df)
+else:
+    prediction.predict(context_df)
 
 output_df = prediction.get_results_dataframe()
 
+output_dataset = params['output_dataset']
 output_dataset.write_with_schema(output_df)
 
 
+# class Prediction():
+#     def __init__(self, model, config):
 
+# # file structure:
+# # Subfolder per timestamp (each time the recipe is run)
+# # -> CSV with all model results (same as output dataset) -> model_results.csv
+# # -> CSV with last context_length values of training time series -> training_time_series.csv
+# # -> 1 subfolder per model -> model_name ('naive_30_D_targetCol')
+# #   -> model.pk (Predictor object = estimator.train output)
+# #   -> params.json (local and global params, including external features)
+# #
+# """
+# forecasting_object = {
+#     "models": predictor_objects,
+#     "training_data": training_data,
+#     "target_column_name": target_column_name
+# }
+# """
+# predictor_objects = forecasting_object.get("models")
+# target_column_name = forecasting_object.get("target_column_name")
+# training_data = forecasting_object.get("training_data")
+# print("ALX:training_data={}".format(training_data))
 
-class Prediction():
-    def __init__(self, model, config):
+# for predictor in predictor_objects:
+#     forecast_it, ts_it = make_evaluation_predictions(
+#         dataset=training_data,  # test dataset
+#         predictor=predictor_objects[predictor],  # predictor
+#         num_samples=forecasting_horizon,  # number of sample paths we want for evaluation
+#     )
+#     forecasts = list(forecast_it)
+#     tss = list(ts_it)
+#     print("ALX:tss[0].head()={}".format(tss[0].head()))  # <- contains the 5 first values, starting at epoch 0 + 4 days
 
-# file structure:
-# Subfolder per timestamp (each time the recipe is run)
-# -> CSV with all model results (same as output dataset)
-# -> CSV with last context_length values of training time series
-# -> 1 subfolder per model
-#   -> model.pk (Predictor object = estimator.train output)
-#   -> params.json (local and global params, including external features)
-# 
-"""
-forecasting_object = {
-    "models": predictor_objects,
-    "training_data": training_data,
-    "target_column_name": target_column_name
-}
-"""
-predictor_objects = forecasting_object.get("models")
-target_column_name = forecasting_object.get("target_column_name")
-training_data = forecasting_object.get("training_data")
-print("ALX:training_data={}".format(training_data))
+#     print(f"Number of sample paths: {forecasts[0].num_samples}")  # 4 sample path... = forecasting_horizon
+#     print(f"Dimension of samples: {forecasts[0].samples.shape}")  # 4 x 12 forecasting_horizon x estimators' prediction_length
+#     print(f"Start date of the forecast window: {forecasts[0].start_date}")
+#     print(f"Frequency of the time series: {forecasts[0].freq}")
 
-for predictor in predictor_objects:
-    forecast_it, ts_it = make_evaluation_predictions(
-        dataset=training_data,  # test dataset
-        predictor=predictor_objects[predictor],  # predictor
-        num_samples=forecasting_horizon,  # number of sample paths we want for evaluation
-    )
-    forecasts = list(forecast_it)
-    tss = list(ts_it)
-    print("ALX:tss[0].head()={}".format(tss[0].head()))  # <- contains the 5 first values, starting at epoch 0 + 4 days
+#     print("ALX:dir(forecasts)={}".format(dir(forecasts)))
+#     print("ALX:forecasts={}".format(forecasts))
+#     print("ALX:mean={}".format(forecasts[0].mean))  # <- 12 samples = estimators' prediction_length
+#     print("ALX:dir={}".format(dir(forecasts[0])))
+#     print("ALX:forecast_it={}".format(list(forecast_it)))
+#     for forecast in forecast_it:
+#         print("ALX:forecast={}".format(forecast))
+#     # training_data["orgin"] = "history"
 
-    print(f"Number of sample paths: {forecasts[0].num_samples}")  # 4 sample path... = forecasting_horizon
-    print(f"Dimension of samples: {forecasts[0].samples.shape}")  # 4 x 12 forecasting_horizon x estimators' prediction_length
-    print(f"Start date of the forecast window: {forecasts[0].start_date}")
-    print(f"Frequency of the time series: {forecasts[0].freq}")
-
-    print("ALX:dir(forecasts)={}".format(dir(forecasts)))
-    print("ALX:forecasts={}".format(forecasts))
-    print("ALX:mean={}".format(forecasts[0].mean))  # <- 12 samples = estimators' prediction_length
-    print("ALX:dir={}".format(dir(forecasts[0])))
-    print("ALX:forecast_it={}".format(list(forecast_it)))
-    for forecast in forecast_it:
-        print("ALX:forecast={}".format(forecast))
-    # training_data["orgin"] = "history"
-
-print("ALX:training_data={}".format(list(training_data)[0].get("target")))
-#df = training_data.assign(origin=['history'])
-#output_dataset.write_schema_from_dataframe(df)
-#writer = output_dataset.get_writer()
-#writer.write_dataframe(df)
+# print("ALX:training_data={}".format(list(training_data)[0].get("target")))
+# #df = training_data.assign(origin=['history'])
+# #output_dataset.write_schema_from_dataframe(df)
+# #writer = output_dataset.get_writer()
+# #writer.write_dataframe(df)

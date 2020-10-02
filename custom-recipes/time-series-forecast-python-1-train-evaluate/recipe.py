@@ -39,7 +39,8 @@ eval_params = EvalParams(recipe_config) # backtest, forecasting horizon, num_sam
 
 global_params = GlobalParams(recipe_config)
 
-global_models = GlobalModels(global_params)
+global_models = GlobalModels(
+    first=params['fir'])
 global_models.init_all_models()
 
 global_models.fit_all(glutonts_dataset)
