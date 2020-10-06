@@ -25,9 +25,9 @@ class ModelSelection():
         model = read_pickle_from_folder(model_path, self.folder)  # TODO implement load_model
         return model
 
-    def get_context_dataframe(self):
-        context_dataset_path = "{}/training_time_series.csv".format(self.session)
-        df = read_csv_from_folder(context_dataset_path, self.folder)
+    def get_training_dataframe(self):
+        training_dataset_path = "{}/training_time_series.csv".format(self.session)
+        df = read_csv_from_folder(training_dataset_path, self.folder)
         return df
 
     def _get_last_session(self):
@@ -41,5 +41,5 @@ class ModelSelection():
     def _get_best_model(self):
         # TODO make it work
         df = read_csv_from_folder("{}/model_results.csv".format(self.session), self.folder)  # TODO implement load_csv
-        model_type = df.loc[df[self.performance_metric].idxmax()].to_dict()['model']  # or idxmin() if minimize metric
+        model_type = df.loc[df[self.performance_metric].idxmin()]['model']  # or idxmin() if minimize metric
         return model_type

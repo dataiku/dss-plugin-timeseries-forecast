@@ -47,8 +47,7 @@ else:
 
 predictor = model_selection.get_model()  # => Predictor()
 
-
-context_df = model_selection.get_context_dataframe()  # => DataFrame()
+training_df = model_selection.get_training_dataframe()  # => DataFrame()
 
 # results_dataset = load_dataset(model_folder, results_path)
 # best_model_name = find_best_model(results_dataset)
@@ -67,9 +66,9 @@ prediction = Prediction(
 
 if params['external_features_future']:
     external_features_future_df = params['external_features_future'].get_dataframe()
-    prediction.predict(context_df, external_features_future_df)
+    prediction.predict(training_df, external_features_future_df)
 else:
-    prediction.predict(context_df)
+    prediction.predict(training_df)
 
 output_df = prediction.get_results_dataframe()
 
