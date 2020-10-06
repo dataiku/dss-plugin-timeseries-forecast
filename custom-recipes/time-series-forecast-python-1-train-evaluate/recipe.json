@@ -54,9 +54,9 @@
             "mandatory": true
         },
         {
-            "name": "target_column",
-            "label": "Target column",
-            "type": "COLUMN",
+            "name": "target_columns",
+            "label": "Target columns",
+            "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
                 "smallint",

@@ -12,16 +12,18 @@ from json import dumps
 
 
 class SingleModel():
-    def __init__(self, model_name, model_params, global_models_params):
+    def __init__(self, model_name, model_parameters, frequency, prediction_length, epoch):
         self.model_name = model_name
-        self.model_params = model_params
-        self.global_models_params = global_models_params
+        self.model_parameters = model_parameters
+        self.frequency = frequency
+        self.prediction_length = prediction_length
+        self.epoch = epoch
         self.estimator = get_estimator(
             self.model_name,
-            self.model_params,
-            freq=global_models_params['frequency'],
-            prediction_length=global_models_params['prediction_length'],  # 10,
-            trainer=Trainer(epochs=global_models_params['epoch'])  # 10
+            self.model_parameters,
+            freq=self.frequency,
+            prediction_length=self.prediction_length,  # 10,
+            trainer=Trainer(epochs=self.epoch)  # 10
         )
         self.predictor = None
         if self.estimator is None:
@@ -49,33 +51,8 @@ class SingleModel():
 
         agg_metrics.update({
             "predictor": self.model_name
-        }) 
+        })
         return agg_metrics
-
-
-
-    # def evaluate(self, eval_params, test_dataset):
-    #     forecast_it, ts_it = make_evaluation_predictions(
-    #         dataset=test_dataset,  # test dataset
-    #         predictor=self.predictor,  # predictor
-    #         num_samples=100,  # number of sample paths we want for evaluation. Todo: from eval_params
-    #     )
-    #     evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])  # todo : quantiles from eval_params
-    #     if eval_params['evaluation_strategy'] == "split":
-    #         agg_metrics, item_metrics = evaluator(iter(ts_it), iter(forecast_it), num_series=len(test_dataset))
-    #     else:
-    #         # Todo: backtest configuration
-    #         agg_metrics, item_metrics = backtest_metrics(
-    #             test_dataset=test_dataset,
-    #             train_dataset=test_dataset,
-    #             predictor=self.predictor,
-    #             evaluator=evaluator,
-    #             forecaster=self.predictor
-    #         )
-    #     agg_metrics.update({
-    #         "predictor": self.model_name
-    #     })# time series cross validation in timeseries R
-    #     return agg_metrics
 
     def save(self, model_folder, version_name): # todo: review how folder/paths are handled
         bytes_io = BytesIO()
@@ -84,7 +61,7 @@ class SingleModel():
         pickle_file_path = "{}/{}/model.pk".format(version_name, self.model_name)
         parameters_file_path = "{}/{}/params.json".format(version_name, self.model_name)
         model_folder.upload_stream(pickle_file_path, bytes_io)
-        json_dump = dumps(self.model_params)
+        json_dump = dumps(self.model_parameters)
         model_folder.upload_stream(parameters_file_path, json_dump)
 
 # file structure:

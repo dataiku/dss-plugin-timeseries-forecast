@@ -15,8 +15,6 @@ class GlutonTSDataset():
             freq=frequency
         )# todo: add external feature
         self.target_column_name = target_column_name
-        for row in self.list_dataset:
-            print("ALX:row={}".format(row))
 
     def get_list_dataset(self):
         return self.list_dataset

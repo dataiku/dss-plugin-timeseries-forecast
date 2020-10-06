@@ -15,7 +15,6 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
-import io
 
 import dataiku
 try:
@@ -92,9 +91,7 @@ def get_estimator(model, model_parameters, **kwargs):
     # "npts", "transformer"
     # SeasonalNaivePredictor
     # Naive2Predictor
-    print("ALX:model={}, model_parameters={}, kwargs={}".format(model, model_parameters, kwargs))
     kwargs.update(model_parameters.get("kwargs", {}))
-    print("ALX:updated kwargs={}".format(kwargs))
     if model == "simplefeedforward":
         return SimpleFeedForwardEstimator(**kwargs)
     if model == "deepfactor":
@@ -139,7 +136,6 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
                 evaluator=evaluator,
                 forecaster=predictor_objects[predictor]
             )
-        print("ALX:agg_metrics={}, item_metrics={}".format(agg_metrics, item_metrics))
         agg_metrics.update({
             "predictor": predictor
         })
@@ -147,12 +143,15 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
     return models_error
 
 
-def save_dataset(dataset_name, time_column_name, target_column_name, model_folder, version_name):
+def save_dataset(dataset_name, time_column_name, target_columns_names, model_folder, version_name):
     dataset = dataiku.Dataset(dataset_name)
     dataset_df = dataset.get_dataframe()
     virtual_fs = BytesIO()
     virtual_fs.seek(0)
-    dataset_df.to_csv(virtual_fs, columns=[time_column_name, target_column_name])
+    columns_to_save = []
+    columns_to_save.append(time_column_name)
+    columns_to_save.extend(target_columns_names)
+    dataset_df.to_csv(virtual_fs, columns=columns_to_save)
     virtual_fs.seek(0)
     dataset_file_path = "{}/train_dataset.csv".format(version_name)
     model_folder.upload_stream(dataset_file_path, virtual_fs)
