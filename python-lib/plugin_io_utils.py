@@ -10,46 +10,22 @@ from gluonts.model.transformer import TransformerEstimator
 #from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 #from gluonts.model.naive_2 import Naive2Predictor
 import os
-# import dill as pickle
-import pandas as pd
-import pickle
-import io
+import dill as pickle
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
+
+import dataiku
+try:
+    from io import StringIO as BytesIO  # for Python 2
+except ImportError:
+    from io import BytesIO  # for Python 3
 
 
 AVAILABLE_MODELS = [
     "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
     "npts", "transformer"
 ]
-
-
-def read_pickle_from_folder(path, folder):
-    with folder.get_download_stream(path) as stream:
-        data = stream.read()
-        return pickle.loads(data)
-
-
-def write_object_as_pickle_to_folder(obj, path, folder):
-    with folder.get_writer(path) as writer:
-        pickled = pickle.dumps(obj)
-        writer.write(pickled)
-
-
-def write_dataframe_as_csv_to_folder(df, path, folder):
-    with folder.get_writer(path=path) as writer:
-        string_buf = df.to_csv(sep=',', na_rep='', header=True, index=False)
-        writer.write(string_buf.encode())
-
-
-def read_csv_from_folder(path, folder):
-    """ return dataframe from local path in folder """
-    with folder.get_download_stream(path) as stream:
-        data = stream.read()
-        data = io.StringIO(data.decode())
-    return pd.read_csv(data, sep=",", compression='infer')
-
 
 
 def get_models_parameters(config):
@@ -141,3 +117,14 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
         })
         models_error.append(agg_metrics)
     return models_error
+
+
+def save_dataset(dataset_name, time_column_name, target_column_name, model_folder, version_name):
+    dataset = dataiku.Dataset(dataset_name)
+    dataset_df = dataset.get_dataframe()
+    virtual_fs = BytesIO()
+    virtual_fs.seek(0)
+    dataset_df.to_csv(virtual_fs, columns=[time_column_name, target_column_name])
+    virtual_fs.seek(0)
+    dataset_file_path = "{}/{}/train_dataset.csv".format("versions", version_name)
+    model_folder.upload_stream(dataset_file_path, virtual_fs)
