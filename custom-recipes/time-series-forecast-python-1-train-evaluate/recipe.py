@@ -10,7 +10,7 @@ from plugin_config_loading import load_training_config, load_evaluation_config
 config = get_recipe_config()
 
 global_params = load_training_config(config)
-eval_params = load_evaluation_config(config)
+eval_params = load_evaluation_config(config) # merge these two
 version_name = datetime.now().strftime('%Y-%m-%dT%H-%M-%S-%f')[:-3]
 
 models_parameters = get_models_parameters(config)
@@ -20,7 +20,7 @@ glutonts_training_dataset = GlutonTSDataset(
     time_column_name=global_params['time_column_name'],
     target_column_name=global_params['target_column_name'],
     frequency=global_params['frequency']
-)
+)# todo modify that one to integrate extra columns and multiple target columns
 save_dataset(
     dataset_name=global_params['input_dataset_name'],
     time_column_name=global_params['time_column_name'],
@@ -29,11 +29,16 @@ save_dataset(
     version_name=version_name
 )
 
-global_models = GlobalModels(global_params, models_parameters)
-global_models.init_all_models()
-global_models.fit_all(glutonts_training_dataset)
+training_df = 
 
-predictors_error = global_models.evaluate_all(eval_params, glutonts_training_dataset)
+global_models = GlobalModels(global_params, models_parameters, training_df)
+global_models.init_all_models()
+
+global_models.evaluate_all(params['evaluation_strategy'])
+
+global_models.fit_all()
+
+# predictors_error = global_models.evaluate_all(eval_params, glutonts_training_dataset)
 df = pd.json_normalize(predictors_error)
 eval_params['evaluation_dataset'].write_schema_from_dataframe(df)
 writer = eval_params['evaluation_dataset'].get_writer()

@@ -30,41 +30,59 @@ class SingleModel():
     def get_name(self):
         return self.model_name
 
-    def fit(self, training_data):
+    def fit(self, train_ds):
         if self.estimator is None:
             print("No training: {} model not implemented yet".format(self.model_name))
             return
-        self.predictor = self.estimator.train(training_data=training_data.get_list_dataset())
+        self.predictor = self.estimator.train(train_ds)
 
-    def evaluate(self, eval_params, test_dataset):
-        forecast_it, ts_it = make_evaluation_predictions(
-            dataset=test_dataset,  # test dataset
-            predictor=self.predictor,  # predictor
-            num_samples=100,  # number of sample paths we want for evaluation. Todo: from eval_params
+    def evaluate(self, train_ds, test_ds):
+        evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])
+
+        agg_metrics, item_metrics = backtest_metrics(
+            train_dataset=train_ds,
+            test_dataset=test_ds,
+            forecaster=self.estimator,
+            evaluator=evaluator,
+            num_samples=100
         )
-        evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])  # todo : quantiles from eval_params
-        if eval_params['evaluation_strategy'] == "split":
-            agg_metrics, item_metrics = evaluator(iter(ts_it), iter(forecast_it), num_series=len(test_dataset))
-        else:
-            # Todo: backtest configuration
-            agg_metrics, item_metrics = backtest_metrics(
-                test_dataset=test_dataset,
-                train_dataset=test_dataset,
-                predictor=self.predictor,
-                evaluator=evaluator,
-                forecaster=self.predictor
-            )
+
         agg_metrics.update({
             "predictor": self.model_name
-        })
+        }) 
         return agg_metrics
+
+
+
+    # def evaluate(self, eval_params, test_dataset):
+    #     forecast_it, ts_it = make_evaluation_predictions(
+    #         dataset=test_dataset,  # test dataset
+    #         predictor=self.predictor,  # predictor
+    #         num_samples=100,  # number of sample paths we want for evaluation. Todo: from eval_params
+    #     )
+    #     evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])  # todo : quantiles from eval_params
+    #     if eval_params['evaluation_strategy'] == "split":
+    #         agg_metrics, item_metrics = evaluator(iter(ts_it), iter(forecast_it), num_series=len(test_dataset))
+    #     else:
+    #         # Todo: backtest configuration
+    #         agg_metrics, item_metrics = backtest_metrics(
+    #             test_dataset=test_dataset,
+    #             train_dataset=test_dataset,
+    #             predictor=self.predictor,
+    #             evaluator=evaluator,
+    #             forecaster=self.predictor
+    #         )
+    #     agg_metrics.update({
+    #         "predictor": self.model_name
+    #     })# time series cross validation in timeseries R
+    #     return agg_metrics
 
     def save(self, model_folder, version_name): # todo: review how folder/paths are handled
         bytes_io = BytesIO()
         pickle.dump(self.predictor, bytes_io)
         bytes_io.seek(0)
-        pickle_file_path = "{}/{}/{}/model.pk".format("versions", version_name, self.model_name)
-        parameters_file_path = "{}/{}/{}/params.json".format("versions", version_name, self.model_name)
+        pickle_file_path = "{}/{}/model.pk".format(version_name, self.model_name)
+        parameters_file_path = "{}/{}/params.json".format(version_name, self.model_name)
         model_folder.upload_stream(pickle_file_path, bytes_io)
         json_dump = dumps(self.model_params)
         model_folder.upload_stream(parameters_file_path, json_dump)

@@ -1,4 +1,5 @@
 from dku_timeseries.single_model import SingleModel
+from gluonts.dataset.common import ListDataset
 try:
     from BytesIO import BytesIO  # for Python 2
 except ImportError:
@@ -6,12 +7,13 @@ except ImportError:
 
 
 class GlobalModels():
-    def __init__(self, global_params, models_parameters):
+    def __init__(self, global_params, models_parameters, training_df):  # df as input ?
         self.global_params = global_params
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
         self.glutonts_dataset = None
+        self.training_df = training_df
 
     def init_all_models(self):
         self.models = []
@@ -21,15 +23,37 @@ class GlobalModels():
                 SingleModel(model_name, model_parameters, self.global_params)
             )  # model_name, model_params, global_models_params
 
-    def fit_all(self, gluonts_dataset):
+    def fit_all(self):
+        # create list dataset for fit
+        train_ds = self.create_gluonts_dataset(length=len(self.training_df.index))
         for model in self.models:
-            model.fit(gluonts_dataset)
+            model.fit(train_ds)
 
-    def evaluate_all(self, eval_params, glutonts_dataset):
+    def create_gluonts_dataset(self, length):
+
+        return ListDataset(
+            [{
+                "start": self.training_df[self.time_col].iloc[0],
+                "target": self.training_df[target_col].iloc[:length]  # start from 0 to length
+            } for target_col in self.target_cols],
+            freq=self.frequency
+        )
+
+    def evaluate_all(self, evaluation_strategy):
+        total_length = len(self.training_df.index)
+        if evaluation_strategy == "split":
+            train_ds = self.create_gluonts_dataset(length=total_length-self.prediction_length)  # all - prediction_length time steps
+            test_ds = self.create_gluonts_dataset(length=total_length)  # all time steps
+        # else:
+        #     for window in rolling_windows:
+        #         train_ds = create_gluonts_dataset("[0, window * window_size] time steps")
+        #         test_ds = create_gluonts_dataset("[0, window * window_size + prediction_length] time steps")
+
+
         models_error = []
-        self.glutonts_dataset = glutonts_dataset
+        # self.glutonts_dataset = glutonts_dataset
         for model in self.models:
-            agg_metrics = model.evaluate(eval_params, glutonts_dataset.get_list_dataset())
+            agg_metrics = model.evaluate(train_ds, test_ds)
             models_error.append(agg_metrics)
         return models_error
 

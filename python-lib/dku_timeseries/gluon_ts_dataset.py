@@ -13,7 +13,7 @@ class GlutonTSDataset():
             #  [{"start": dataset_df.index[0], "target": dataset_df.get(target_column_name)}],
             [{"start": start, "target": dataset_df.get(target_column_name)}],
             freq=frequency
-        )
+        )# todo: add external feature
         self.target_column_name = target_column_name
         for row in self.list_dataset:
             print("ALX:row={}".format(row))

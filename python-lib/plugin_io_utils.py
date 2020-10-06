@@ -15,6 +15,7 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
+import io
 
 import dataiku
 try:
@@ -153,5 +154,5 @@ def save_dataset(dataset_name, time_column_name, target_column_name, model_folde
     virtual_fs.seek(0)
     dataset_df.to_csv(virtual_fs, columns=[time_column_name, target_column_name])
     virtual_fs.seek(0)
-    dataset_file_path = "{}/{}/train_dataset.csv".format("versions", version_name)
+    dataset_file_path = "{}/train_dataset.csv".format(version_name)
     model_folder.upload_stream(dataset_file_path, virtual_fs)
