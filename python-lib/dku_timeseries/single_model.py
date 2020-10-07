@@ -48,11 +48,30 @@ class SingleModel():
             evaluator=evaluator,
             num_samples=100
         )
+        item_metrics['item_id'] = self.model_name
+        agg_metrics['item_id'] = self.model_name
 
-        agg_metrics.update({
-            "predictor": self.model_name
-        })
         return agg_metrics
+
+    def evaluate_and_forecast(self, train_ds, test_ds):
+        predictor = self.estimator.train(train_ds)
+        evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])
+
+        forecast_it, ts_it = make_evaluation_predictions(
+            dataset=test_ds,  # test dataset
+            predictor=predictor,  # predictor
+            num_samples=100,  # number of sample paths we want for evaluation
+        )
+
+        ts_list = list(ts_it)
+        forecast_list = list(forecast_it)
+
+        agg_metrics, item_metrics = evaluator(iter(ts_list), iter(forecast_list), num_series=len(test_ds))
+
+        item_metrics['item_id'] = self.model_name
+        agg_metrics['item_id'] = self.model_name
+
+        return agg_metrics, item_metrics, forecasts_df
 
     def save(self, model_folder, version_name): # todo: review how folder/paths are handled
         bytes_io = BytesIO()

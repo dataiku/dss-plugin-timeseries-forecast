@@ -14,6 +14,7 @@ version_name = datetime.now().strftime('%Y-%m-%dT%H-%M-%S-%f')[:-3]
 
 models_parameters = get_models_parameters(config)
 
+# TODO save with compression
 save_dataset(
     dataset_name=global_params['input_dataset_name'],
     time_column_name=global_params['time_column_name'],
@@ -33,15 +34,15 @@ global_models = GlobalModels(
     epoch=global_params['epoch'],
     models_parameters=models_parameters,
     prediction_length=global_params['prediction_length'],
-    training_df=training_df
+    training_df=training_df,
+    forecast=global_params.get('evaluation_forecasts')
 )  # todo : integrate external features and multiple target columns
 global_models.init_all_models()
 
-predictors_error = global_models.evaluate_all(global_params['evaluation_strategy'])
+df = global_models.evaluate_all(global_params['evaluation_strategy'])
 
 global_models.fit_all()
 
-df = pd.json_normalize(predictors_error)
 global_params['evaluation_dataset'].write_schema_from_dataframe(df)
 writer = global_params['evaluation_dataset'].get_writer()
 writer.write_dataframe(df)

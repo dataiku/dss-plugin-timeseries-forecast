@@ -8,7 +8,7 @@ except ImportError:
 
 
 class GlobalModels():
-    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df):
+    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df, forecast):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -20,6 +20,7 @@ class GlobalModels():
         self.frequency = frequency
         self.model_folder = model_folder
         self.epoch = epoch
+        self.forecast = True if forecast else False
 
     def init_all_models(self):
         self.models = []
@@ -59,17 +60,21 @@ class GlobalModels():
             test_ds = self.create_gluonts_dataset(length=total_length)  # all time steps
         else:
             raise Exception("{} evaluation strategy not implemented".format(evaluation_strategy))
-        # else:
-        #     for window in rolling_windows:
-        #         train_ds = create_gluonts_dataset("[0, window * window_size] time steps")
-        #         test_ds = create_gluonts_dataset("[0, window * window_size + prediction_length] time steps")
 
-        models_error = []
-        # self.glutonts_dataset = glutonts_dataset
+        metrics_df = pd.DataFrame()
         for model in self.models:
-            agg_metrics = model.evaluate(train_ds, test_ds)
-            models_error.append(agg_metrics)
-        return models_error
+            if self.forecast:
+                agg_metrics, item_metrics, forecasts_df = model.evaluate_and_forecast(train_ds, test_ds)
+                # TODO concat forecasts_df to others forecast_df and make it a class field
+            else:
+                agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
+
+            item_metrics.insert(1, 'target_col', self.target_columns_names)
+            agg_metrics['target_col'] = 'All'
+            item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
+
+            metrics_df = metrics_df.append(item_metrics)
+        return metrics_df
 
     def save_all(self, version_name):
         model_folder = self.model_folder
@@ -85,3 +90,6 @@ class GlobalModels():
         best_model = find_best_model(dataset)
         model = SingleModel()
         model.load(path, best_model)
+
+    def get_forecast_df(self):
+    # TODO method to output all forecast and true values if self.forecast is True

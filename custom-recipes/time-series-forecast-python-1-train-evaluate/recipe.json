@@ -35,6 +35,15 @@
             "required": true,
             "acceptsDataset": false,
             "acceptsManagedFolder": true
+        },
+        {
+            "name": "evaluation_forecasts",
+            "label": "Evaluation forecasts",
+            "description": "Dataset with forecasts made for evaluation",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsFolder": false
         }
     ],
     "params": [
@@ -152,6 +161,7 @@
             "type": "SEPARATOR",
             "visibilityCondition": "model.forecasting_style == 'expert'"
         },
+        // TODO visibility condition based on external features
         {
             "name": "naive_model_activated",
             "label": "- Baseline",
@@ -352,24 +362,9 @@
                 {
                     "value": "split",
                     "label": "Train/Test Split"
-                },
-                {
-                    "value": "backtest",
-                    "label": "Backtesting"
                 }
             ],
             "defaultValue": "split"
-        },
-        {
-            "name": "num_samples",
-            "label": "Backtesting samples",
-            "description": "Number of sample sequences to generate for evaluation",
-            "type": "INT",
-            "defaultValue": 100,
-            "mandatory": true,
-            "minI": 10,
-            "maxI": 1000000,
-            "visibilityCondition": "model.evaluation_strategy == 'backtest'"
         }
     ],
     "resourceKeys": []
