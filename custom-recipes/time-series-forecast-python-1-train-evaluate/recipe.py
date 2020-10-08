@@ -35,7 +35,7 @@ global_models = GlobalModels(
     models_parameters=models_parameters,
     prediction_length=global_params['prediction_length'],
     training_df=training_df,
-    forecast=global_params.get('evaluation_forecasts'),
+    make_forecasts=global_params['make_forecasts'],
     external_features_column_name=global_params['external_feature_columns']
 )  # todo : integrate external features and multiple target columns
 global_models.init_all_models()
@@ -44,9 +44,8 @@ df = global_models.evaluate_all(global_params['evaluation_strategy'])
 
 global_models.fit_all()
 
-global_params['evaluation_dataset'].write_schema_from_dataframe(df)
-writer = global_params['evaluation_dataset'].get_writer()
-writer.write_dataframe(df)
+global_params['evaluation_dataset'].write_with_schema(df)
+
 
 global_models.save_all(version_name=version_name)
 

@@ -46,9 +46,11 @@ def load_training_config(recipe_config):
     params['model_folder'] = dataiku.Folder(model_folder_name)
     params['evaluation_dataset_name'] = get_output_names_for_role('evaluation_dataset')[0]
 
+    params['make_forecasts'] = False
     evaluation_forecasts_names = get_output_names_for_role("evaluation_forecasts")
     if len(evaluation_forecasts_names) > 0:
         params["evaluation_forecasts"] = dataiku.Dataset(evaluation_forecasts_names[0])
+        params['make_forecasts'] = True
 
     params['target_columns_names'] = recipe_config.get("target_columns")
     params['time_column_name'] = recipe_config.get("time_column")

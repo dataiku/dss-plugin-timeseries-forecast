@@ -8,7 +8,7 @@ except ImportError:
 
 
 class GlobalModels():
-    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df, forecast, external_features_column_name=None):
+    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df, make_forecasts, external_features_column_name=None):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -20,7 +20,7 @@ class GlobalModels():
         self.frequency = frequency
         self.model_folder = model_folder
         self.epoch = epoch
-        self.forecast = True if forecast else False
+        self.make_forecasts = make_forecasts
         self.external_features_column_name = [] if external_features_column_name is None else external_features_column_name
 
     def init_all_models(self):
@@ -36,6 +36,8 @@ class GlobalModels():
                     epoch=self.epoch
                 )
             )
+        if self.make_forecasts:
+            self.forecasts_df = pd.DataFrame()
 
     def fit_all(self):
         # create list dataset for fit
@@ -88,9 +90,10 @@ class GlobalModels():
 
         metrics_df = pd.DataFrame()
         for model in self.models:
-            if self.forecast:
+            if self.make_forecast:
                 agg_metrics, item_metrics, forecasts_df = model.evaluate_and_forecast(train_ds, test_ds)
                 # TODO concat forecasts_df to others forecast_df and make it a class field
+                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
             else:
                 agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
 
@@ -118,4 +121,4 @@ class GlobalModels():
 
     def get_forecast_df(self):
         # TODO method to output all forecast and true values if self.forecast is True
-        return
+        return self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')
