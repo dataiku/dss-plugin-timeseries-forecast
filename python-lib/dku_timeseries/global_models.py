@@ -8,7 +8,7 @@ except ImportError:
 
 
 class GlobalModels():
-    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df, forecast):
+    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df, forecast, external_features_column_name=None):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -21,6 +21,7 @@ class GlobalModels():
         self.model_folder = model_folder
         self.epoch = epoch
         self.forecast = True if forecast else False
+        self.external_features_column_name = [] if external_features_column_name is None else external_features_column_name
 
     def init_all_models(self):
         self.models = []
@@ -45,13 +46,37 @@ class GlobalModels():
     def create_gluonts_dataset(self, length):
         initial_date = self.training_df[self.time_col].iloc[0]
         start = pd.Timestamp(initial_date, freq=self.frequency).tz_localize(None)
-        return ListDataset(
-            [{
-                "start": start,
-                "target": self.training_df[target_column_name].iloc[:length]  # start from 0 to length
-            } for target_column_name in self.target_columns_names],
-            freq=self.frequency
-        )
+        #print("ALX:self.external_features_future_df={}".format(self.external_features_future_df))
+        if self.external_features_column_name is None or len(self.external_features_column_name) == 0:
+            return ListDataset(
+                [{
+                    "start": start,
+                    "target": self.training_df[target_column_name].iloc[:length]  # start from 0 to length
+                } for target_column_name in self.target_columns_names],
+                freq=self.frequency
+            )
+        else:
+            columns_names_to_drop = []
+            columns_names_to_drop.append(self.time_col)
+            columns_names_to_drop.extend(self.target_columns_names)
+            print("ALX:columns_names_to_drop={}".format(columns_names_to_drop))
+            #print("ALX:self.training_df={}".format(self.training_df))
+            for col in self.training_df.columns:
+                print("ALX:col={}".format(col))
+            print("ALX:self.external_features_column_name={}".format(self.external_features_column_name))
+            # for col in self.external_features_future_df.columns:
+            #     print("ALX:col2={}".format(col))
+            #external_features_all_df = self.training_df.drop(columns_names_to_drop).append(self.external_features_future_df.drop(self.time_col))
+            external_features_all_df = self.training_df.drop(self.external_features_column_name, axis=1)
+            print("ALX:external_features_all_df={}".format(external_features_all_df))
+            return ListDataset(
+                [{
+                    "start": start,
+                    "target": self.training_df[target_column_name].iloc[:length],  # start from 0 to length
+                    'feat_dynamic_real': external_features_all_df.values.T
+                } for target_column_name in self.target_columns_names],
+                freq=self.frequency
+            )
 
     def evaluate_all(self, evaluation_strategy):
         total_length = len(self.training_df.index)
@@ -92,4 +117,5 @@ class GlobalModels():
         model.load(path, best_model)
 
     def get_forecast_df(self):
-    # TODO method to output all forecast and true values if self.forecast is True
+        # TODO method to output all forecast and true values if self.forecast is True
+        return

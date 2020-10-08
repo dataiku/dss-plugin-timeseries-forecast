@@ -151,6 +151,7 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, model_fol
     columns_to_save = []
     columns_to_save.append(time_column_name)
     columns_to_save.extend(target_columns_names)
+    print("ALX:columns_to_save={}".format(columns_to_save))
     dataset_df.to_csv(virtual_fs, columns=columns_to_save)
     virtual_fs.seek(0)
     dataset_file_path = "{}/train_dataset.csv".format(version_name)

@@ -51,7 +51,7 @@ class SingleModel():
         item_metrics['item_id'] = self.model_name
         agg_metrics['item_id'] = self.model_name
 
-        return agg_metrics
+        return agg_metrics, item_metrics
 
     def evaluate_and_forecast(self, train_ds, test_ds):
         predictor = self.estimator.train(train_ds)
