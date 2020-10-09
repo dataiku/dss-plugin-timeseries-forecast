@@ -49,6 +49,11 @@ global_params['evaluation_dataset'].write_with_schema(df)
 
 global_models.save_all(version_name=version_name)
 
+if global_params['make_forecasts']:
+    forecasts_df = global_models.get_history_and_forecasts_df()
+    global_params['evaluation_forecasts'].write_with_schema(forecasts_df)
+
+
 # Naive estimator is in fact 3 models
 # kwargs by default could be made visible in the interface (when in expert mode)
 # Trainer has it's own set of kwargs. 2 kwargs in the interface or key prefix ?

@@ -18,7 +18,8 @@ class GlobalModels():
         self.model_folder = model_folder
         self.epoch = epoch
         self.make_forecasts = make_forecasts
-        self.external_features_column_name = [] if external_features_column_name is None else external_features_column_name
+        self.external_features_column_name = external_features_column_name
+        # [] if external_features_column_name is None else external_features_column_name
 
     def init_all_models(self):
         self.models = []
@@ -33,6 +34,7 @@ class GlobalModels():
                     epoch=self.epoch
                 )
             )
+        self.training_df[self.time_col] = pd.to_datetime(self.training_df[self.time_col]).dt.tz_convert(None)
         if self.make_forecasts:
             self.forecasts_df = pd.DataFrame()
 
@@ -44,8 +46,8 @@ class GlobalModels():
 
     def create_gluonts_dataset(self, length):
         initial_date = self.training_df[self.time_col].iloc[0]
-        start = pd.Timestamp(initial_date, freq=self.frequency).tz_localize(None)
-        if self.external_features_column_name is None or len(self.external_features_column_name) == 0:
+        start = pd.Timestamp(initial_date, freq=self.frequency)
+        if self.external_features_column_name:  # is None or len(self.external_features_column_name) == 0:
             return ListDataset(
                 [{
                     "start": start,
@@ -78,9 +80,10 @@ class GlobalModels():
                 agg_metrics, item_metrics, forecasts_df = model.evaluate(train_ds, test_ds, make_forecasts=True)
                 forecasts_df = forecasts_df.rename(columns={'index': self.time_col})
                 if self.forecasts_df.empty:
-                    self.forecast_df = forecasts_df
+                    self.forecasts_df = forecasts_df
                 else:
                     self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
+                # TODO remove timezone of self.forecasts_df
             else:
                 agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
 
@@ -102,6 +105,5 @@ class GlobalModels():
         model = SingleModel()
         model.load(path, best_model)
 
-    def get_forecast_df(self):
-        # TODO method to output all forecast and true values if self.forecast is True
+    def get_history_and_forecasts_df(self):
         return self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')

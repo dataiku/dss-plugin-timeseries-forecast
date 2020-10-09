@@ -30,6 +30,10 @@ AVAILABLE_MODELS = [
     "npts", "transformer"
 ]
 
+EVALUATION_METRICS = [
+    "MSE", # TODO
+]
+
 
 def read_from_folder(folder, path, obj_type):
     with folder.get_download_stream(path) as stream:

@@ -57,13 +57,15 @@ class SingleModel():
 
         target_cols = [time_series['target'].name for time_series in train_ds.list_data]
         item_metrics.insert(1, 'target_col', target_cols)
-        agg_metrics['target_col'] = 'Aggregation'
+
+        # TODO only if multiple target columns
+        agg_metrics['target_col'] = 'AGGREGATION'
         item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
         if make_forecasts:
             series = []
             for i, sample_forecasts in enumerate(forecast_list):
-                series.append(sample_forecasts.mean_ts.rename(target_cols[i]))
+                series.append(sample_forecasts.mean_ts.rename("{}_{}".format(target_cols[i], self.model_name)))
             forecasts_df = pd.concat(series, axis=1).reset_index()
             return agg_metrics, item_metrics, forecasts_df
 
