@@ -48,7 +48,7 @@ def write_to_folder(obj, folder, path, obj_type):
         if obj_type == 'pickle':
             writeable = pickle.dumps(obj)
         elif obj_type == 'json':
-            writeable = json.dumps(obj)
+            writeable = json.dumps(obj).encode()
         elif obj_type == 'csv':
             writeable = obj.to_csv(sep=',', na_rep='', header=True, index=False).encode()
         else:
