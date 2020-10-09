@@ -48,7 +48,6 @@ class GlobalModels():
     def create_gluonts_dataset(self, length):
         initial_date = self.training_df[self.time_col].iloc[0]
         start = pd.Timestamp(initial_date, freq=self.frequency).tz_localize(None)
-        #print("ALX:self.external_features_future_df={}".format(self.external_features_future_df))
         if self.external_features_column_name is None or len(self.external_features_column_name) == 0:
             return ListDataset(
                 [{
@@ -58,23 +57,11 @@ class GlobalModels():
                 freq=self.frequency
             )
         else:
-            columns_names_to_drop = []
-            columns_names_to_drop.append(self.time_col)
-            columns_names_to_drop.extend(self.target_columns_names)
-            print("ALX:columns_names_to_drop={}".format(columns_names_to_drop))
-            #print("ALX:self.training_df={}".format(self.training_df))
-            for col in self.training_df.columns:
-                print("ALX:col={}".format(col))
-            print("ALX:self.external_features_column_name={}".format(self.external_features_column_name))
-            # for col in self.external_features_future_df.columns:
-            #     print("ALX:col2={}".format(col))
-            #external_features_all_df = self.training_df.drop(columns_names_to_drop).append(self.external_features_future_df.drop(self.time_col))
-            external_features_all_df = self.training_df.drop(self.external_features_column_name, axis=1)
-            print("ALX:external_features_all_df={}".format(external_features_all_df))
+            external_features_all_df = self.training_df[self.external_features_column_name].iloc[:length]
             return ListDataset(
                 [{
-                    "start": start,
-                    "target": self.training_df[target_column_name].iloc[:length],  # start from 0 to length
+                    'start': start,
+                    'target': self.training_df[target_column_name].iloc[:length],  # start from 0 to length
                     'feat_dynamic_real': external_features_all_df.values.T
                 } for target_column_name in self.target_columns_names],
                 freq=self.frequency
@@ -90,7 +77,7 @@ class GlobalModels():
 
         metrics_df = pd.DataFrame()
         for model in self.models:
-            if self.make_forecast:
+            if self.make_forecasts:
                 agg_metrics, item_metrics, forecasts_df = model.evaluate_and_forecast(train_ds, test_ds)
                 # TODO concat forecasts_df to others forecast_df and make it a class field
                 self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
