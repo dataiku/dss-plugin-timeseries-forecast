@@ -2,6 +2,11 @@ import dataiku
 from dataiku.customrecipe import get_recipe_config, get_input_names_for_role, get_output_names_for_role
 
 
+class PluginParamValidationError(ValueError):
+    """Custom exception raised when the the plugin parameters chosen by the user are invalid"""
+    pass
+
+
 def load_predict_config():
     """Utility function to load, resolve and validate all plugin config into a clean `params` dictionary
 
@@ -23,7 +28,7 @@ def load_predict_config():
     # output dataset
     output_dataset_names = get_output_names_for_role("output_dataset")
     if len(output_dataset_names) == 0:
-        raise ValueError("Please specify output dataset")
+        raise PluginParamValidationError("Please specify output dataset")
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
 
     params['manual_selection'] = True if recipe_config.get("model_selection_mode") == "manual" else False
