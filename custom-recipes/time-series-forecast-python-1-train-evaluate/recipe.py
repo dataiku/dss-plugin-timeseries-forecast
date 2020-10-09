@@ -2,7 +2,7 @@
 import pandas as pd
 import dataiku
 from dataiku.customrecipe import get_recipe_config
-from datetime import datetime
+import time
 from plugin_io_utils import get_models_parameters, save_dataset
 from dku_timeseries.global_models import GlobalModels
 from plugin_config_loading import load_training_config
@@ -10,11 +10,11 @@ from plugin_config_loading import load_training_config
 config = get_recipe_config()
 
 global_params = load_training_config(config)
-version_name = datetime.now().strftime('%Y-%m-%dT%H-%M-%S-%f')[:-3]
+version_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 
 models_parameters = get_models_parameters(config)
 
-# TODO save with compression
+# TODO save with compression and with time column as dattime no timezone
 save_dataset(
     dataset_name=global_params['input_dataset_name'],
     time_column_name=global_params['time_column_name'],
@@ -40,18 +40,17 @@ global_models = GlobalModels(
 )  # todo : integrate external features and multiple target columns
 global_models.init_all_models()
 
-df = global_models.evaluate_all(global_params['evaluation_strategy'])
+global_models.evaluate_all(global_params['evaluation_strategy'])
 
 global_models.fit_all()
 
-global_params['evaluation_dataset'].write_with_schema(df)
-
-
 global_models.save_all(version_name=version_name)
 
+global_params['evaluation_dataset'].write_with_schema(global_models.get_metrics_df())
+
 if global_params['make_forecasts']:
-    forecasts_df = global_models.get_history_and_forecasts_df()
-    global_params['evaluation_forecasts'].write_with_schema(forecasts_df)
+    global_params['evaluation_forecasts'].write_with_schema(global_models.get_history_and_forecasts_df())
+
 
 
 # Naive estimator is in fact 3 models

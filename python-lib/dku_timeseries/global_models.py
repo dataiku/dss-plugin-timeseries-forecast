@@ -1,6 +1,7 @@
 import pandas as pd
 from dku_timeseries.single_model import SingleModel
 from gluonts.dataset.common import ListDataset
+from plugin_io_utils import write_to_folder
 
 
 class GlobalModels():
@@ -19,7 +20,6 @@ class GlobalModels():
         self.epoch = epoch
         self.make_forecasts = make_forecasts
         self.external_features_column_name = external_features_column_name
-        # [] if external_features_column_name is None else external_features_column_name
 
     def init_all_models(self):
         self.models = []
@@ -47,7 +47,7 @@ class GlobalModels():
     def create_gluonts_dataset(self, length):
         initial_date = self.training_df[self.time_col].iloc[0]
         start = pd.Timestamp(initial_date, freq=self.frequency)
-        if self.external_features_column_name:  # is None or len(self.external_features_column_name) == 0:
+        if not self.external_features_column_name:
             return ListDataset(
                 [{
                     "start": start,
@@ -74,7 +74,7 @@ class GlobalModels():
         else:
             raise Exception("{} evaluation strategy not implemented".format(evaluation_strategy))
 
-        metrics_df = pd.DataFrame()
+        self.metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
                 agg_metrics, item_metrics, forecasts_df = model.evaluate(train_ds, test_ds, make_forecasts=True)
@@ -83,17 +83,15 @@ class GlobalModels():
                     self.forecasts_df = forecasts_df
                 else:
                     self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
-                # TODO remove timezone of self.forecasts_df
             else:
                 agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
-
-            metrics_df = metrics_df.append(item_metrics)
-        return metrics_df
+            self.metrics_df = self.metrics_df.append(item_metrics)
 
     def save_all(self, version_name):
-        model_folder = self.model_folder
+        metrics_path = "{}/metrics.csv".format(version_name)
+        write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
         for model in self.models:
-            model.save(model_folder=model_folder, version_name=version_name)
+            model.save(model_folder=self.model_folder, version_name=version_name)
 
     def prediction(self, model_name):
         return
@@ -107,3 +105,6 @@ class GlobalModels():
 
     def get_history_and_forecasts_df(self):
         return self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')
+
+    def get_metrics_df(self):
+        return self.metrics_df

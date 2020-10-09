@@ -1,5 +1,5 @@
 import re
-from plugin_io_utils import read_csv_from_folder, read_pickle_from_folder
+from plugin_io_utils import read_from_folder
 
 
 class ModelSelection():
@@ -22,12 +22,14 @@ class ModelSelection():
             self.model_type = self._get_best_model()
 
         model_path = "{}/{}/model.pk".format(self.session, self.model_type)
-        model = read_pickle_from_folder(model_path, self.folder)  # TODO implement load_model
+        model = read_from_folder(self.folder, model_path, 'pickle')  # TODO implement load_model
         return model
 
     def get_training_dataframe(self):
-        training_dataset_path = "{}/training_time_series.csv".format(self.session)
-        df = read_csv_from_folder(training_dataset_path, self.folder)
+        training_dataset_path = "{}/train_dataset.csv".format(self.session)
+        # TODO read the compress csv
+        print("training_dataset_path: ", training_dataset_path)
+        df = read_from_folder(self.folder, training_dataset_path, 'csv')
         return df
 
     def _get_last_session(self):
@@ -39,7 +41,10 @@ class ModelSelection():
         return last_session
 
     def _get_best_model(self):
-        # TODO make it work
-        df = read_csv_from_folder("{}/model_results.csv".format(self.session), self.folder)  # TODO implement load_csv
-        model_type = df.loc[df[self.performance_metric].idxmin()]['model']  # or idxmin() if minimize metric
+        # TODO read the compress csv
+        df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), 'csv')
+        if (df['target_col'] == 'AGGREGATED').any():
+            df = df[df['target_col'] == 'AGGREGATED']
+        assert df['model'].nunique() == len(df.index), "More than one row per model"
+        model_type = df.loc[df[self.performance_metric].idxmin()]['model']  # or idxmax() if maximize metric
         return model_type
