@@ -32,7 +32,7 @@ AVAILABLE_MODELS = [
 ]
 
 EVALUATION_METRICS = [
-    "MSE", # TODO
+    "MSE", "MASE", "MAPE", "sMAPE", "MSIS"
 ]
 
 

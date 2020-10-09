@@ -36,27 +36,13 @@ model_selection = ModelSelection(
 )
 
 if params['manual_selection']:
-    model_selection.manual_params(
-        session=params['selected_session'],
-        model_type=params['selected_model_type']
-    )
+    model_selection.manual_params(session=params['selected_session'], model_type=params['selected_model_type'])
 else:
-    model_selection.auto_params(
-        performance_metric=params['performance_metric']
-    )
+    model_selection.auto_params(performance_metric=params['performance_metric'])
 
 predictor = model_selection.get_model()  # => Predictor()
 
 training_df = model_selection.get_training_dataframe()  # => DataFrame()
-
-# results_dataset = load_dataset(model_folder, results_path)
-# best_model_name = find_best_model(results_dataset)
-# model = load_model(best_model_name) # => Predictor()
-
-# glutonts_dataset = dataset of timesteps to predict (with external features or not)
-# glutonts_dataset = GlutonTSDataset(recipe_config, input_dataset)
-
-# prediction_params = PredictionParams(recipe_config)
 
 prediction = Prediction(
     predictor,

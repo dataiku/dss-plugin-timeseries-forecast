@@ -12,7 +12,7 @@ class Prediction():
             raise ValueError("Forecasting horizon cannot be higher than the prediction length ({}) used in training !".format(predictor.prediction_length))
 
     def predict(self, training_df, external_features_future_df=None):
-
+        return training_df
         prediction_input = self._create_prediction_input(training_df, external_features_future_df)
 
         forecasts = self.predictor.predict(prediction_input)
@@ -52,9 +52,9 @@ class Prediction():
         self.time_col = training_df.columns[0]  # TODO assert it is a datetime (instead of converting it)
 
         try:
-            training_df[self.time_col] = pd.to_datetime(training_df[self.time_col]) 
-        except:
-            raise ValueError("Could not convert to datetime !")
+            training_df[self.time_col] = pd.to_datetime(training_df[self.time_col]).dt.tz_convert(None)
+        except Exception as e:
+            raise ValueError("Could not convert to datetime: {}".format(e))
 
         # if no external features, then it's the other column, should always be the second column of training_df
         self.target_col = training_df.columns[1]

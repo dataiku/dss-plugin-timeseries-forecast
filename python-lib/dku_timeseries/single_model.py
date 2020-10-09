@@ -1,6 +1,6 @@
 import dill as pickle #todo: check whether or not dill still necessary
 from gluonts.trainer import Trainer
-from plugin_io_utils import get_estimator, write_to_folder
+from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
@@ -52,15 +52,17 @@ class SingleModel():
 
         agg_metrics, item_metrics = evaluator(iter(ts_list), iter(forecast_list), num_series=len(test_ds))
 
-        item_metrics['item_id'] = self.model_name
-        agg_metrics['item_id'] = self.model_name
+        item_metrics['model'] = self.model_name
+        agg_metrics['model'] = self.model_name
 
         target_cols = [time_series['target'].name for time_series in train_ds.list_data]
-        item_metrics.insert(1, 'target_col', target_cols)
+        item_metrics['target_col'] = target_cols
 
-        # TODO only if multiple target columns
-        agg_metrics['target_col'] = 'AGGREGATION'
-        item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
+        if len(item_metrics.index) > 1:
+            agg_metrics['target_col'] = 'AGGREGATED'
+            item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
+
+        item_metrics = item_metrics[['model', 'target_col'] + EVALUATION_METRICS]
 
         if make_forecasts:
             series = []
