@@ -17,7 +17,7 @@ class Prediction():
 
         forecasts = self.predictor.predict(prediction_input)
         sample_forecasts = list(forecasts)[0]
-
+        # TODO handle multivariate timeseries
         columns = ["forecasts"]
         series = [sample_forecasts.mean_ts]
         for conf_int in self.confidence_intervals:

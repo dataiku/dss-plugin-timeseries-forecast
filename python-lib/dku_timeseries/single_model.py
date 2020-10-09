@@ -1,9 +1,9 @@
 import dill as pickle #todo: check whether or not dill still necessary
 from gluonts.trainer import Trainer
-from plugin_io_utils import get_estimator
+from plugin_io_utils import get_estimator, write_to_folder
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
-from gluonts.evaluation.backtest import backtest_metrics
+import pandas as pd
 try:
     from BytesIO import BytesIO  # for Python 2
 except ImportError:
@@ -38,22 +38,7 @@ class SingleModel():
             return
         self.predictor = self.estimator.train(train_ds)
 
-    def evaluate(self, train_ds, test_ds):
-        evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])
-
-        agg_metrics, item_metrics = backtest_metrics(
-            train_dataset=train_ds,
-            test_dataset=test_ds,
-            forecaster=self.estimator,
-            evaluator=evaluator,
-            num_samples=100
-        )
-        item_metrics['item_id'] = self.model_name
-        agg_metrics['item_id'] = self.model_name
-
-        return agg_metrics, item_metrics
-
-    def evaluate_and_forecast(self, train_ds, test_ds):
+    def evaluate(self, train_ds, test_ds, make_forecasts=False):
         predictor = self.estimator.train(train_ds)
         evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])
 
@@ -62,7 +47,6 @@ class SingleModel():
             predictor=predictor,  # predictor
             num_samples=100,  # number of sample paths we want for evaluation
         )
-
         ts_list = list(ts_it)
         forecast_list = list(forecast_it)
 
@@ -71,17 +55,26 @@ class SingleModel():
         item_metrics['item_id'] = self.model_name
         agg_metrics['item_id'] = self.model_name
 
-        return agg_metrics, item_metrics, forecasts_df
+        target_cols = [time_series['target'].name for time_series in train_ds.list_data]
+        item_metrics.insert(1, 'target_col', target_cols)
+        agg_metrics['target_col'] = 'Aggregation'
+        item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-    def save(self, model_folder, version_name): # todo: review how folder/paths are handled
-        bytes_io = BytesIO()
-        pickle.dump(self.predictor, bytes_io)
-        bytes_io.seek(0)
-        pickle_file_path = "{}/{}/model.pk".format(version_name, self.model_name)
-        parameters_file_path = "{}/{}/params.json".format(version_name, self.model_name)
-        model_folder.upload_stream(pickle_file_path, bytes_io)
-        json_dump = dumps(self.model_parameters)
-        model_folder.upload_stream(parameters_file_path, json_dump)
+        if make_forecasts:
+            series = []
+            for i, sample_forecasts in enumerate(forecast_list):
+                series.append(sample_forecasts.mean_ts.rename(target_cols[i]))
+            forecasts_df = pd.concat(series, axis=1).reset_index()
+            return agg_metrics, item_metrics, forecasts_df
+
+        return agg_metrics, item_metrics
+
+    def save(self, model_folder, version_name):  # todo: review how folder/paths are handled
+        model_path = "{}/{}/model.pk".format(version_name, self.model_name)
+        write_to_folder(self.predictor, model_folder, model_path, 'pickle')
+
+        parameters_path = "{}/{}/params.json".format(version_name, self.model_name)
+        write_to_folder(self.model_parameters, model_folder, parameters_path, 'json')
 
 # file structure:
 # Subfolder per timestamp (each time the recipe is run)

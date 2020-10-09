@@ -1,5 +1,6 @@
 
 import re
+import io
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
 from gluonts.model.deep_factor import DeepFactorEstimator
@@ -7,14 +8,15 @@ from gluonts.model.lstnet import LSTNetEstimator
 from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.npts import NPTSEstimator
 from gluonts.model.transformer import TransformerEstimator
-#from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-#from gluonts.model.naive_2 import Naive2Predictor
+# from gluonts.model.seasonal_naive import SeasonalNaivePredictor
+# from gluonts.model.naive_2 import Naive2Predictor
 import os
 import dill as pickle
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
+import json
 
 import dataiku
 try:
@@ -29,30 +31,29 @@ AVAILABLE_MODELS = [
 ]
 
 
-def read_pickle_from_folder(path, folder):
+def read_from_folder(folder, path, obj_type):
     with folder.get_download_stream(path) as stream:
         data = stream.read()
-        return pickle.loads(data)
+        if obj_type == 'pickle':
+            return pickle.loads(data)
+        elif obj_type == 'csv':
+            data = io.StringIO(data.decode())
+            return pd.read_csv(data, sep=",", compression='infer')
+        else:
+            raise ValueError("Can only read objects of type ['pickle', 'csv'] from folder, not '{}'".format(obj_type))
 
 
-def write_object_as_pickle_to_folder(obj, path, folder):
+def write_to_folder(obj, folder, path, obj_type):
     with folder.get_writer(path) as writer:
-        pickled = pickle.dumps(obj)
-        writer.write(pickled)
-
-
-def write_dataframe_as_csv_to_folder(df, path, folder):
-    with folder.get_writer(path=path) as writer:
-        string_buf = df.to_csv(sep=',', na_rep='', header=True, index=False)
-        writer.write(string_buf.encode())
-
-
-def read_csv_from_folder(path, folder):
-    """ return dataframe from local path in folder """
-    with folder.get_download_stream(path) as stream:
-        data = stream.read()
-        data = io.StringIO(data.decode())
-    return pd.read_csv(data, sep=",", compression='infer')
+        if obj_type == 'pickle':
+            writeable = pickle.dumps(obj)
+        elif obj_type == 'json':
+            writeable = json.dumps(obj)
+        elif obj_type == 'csv':
+            writeable = obj.to_csv(sep=',', na_rep='', header=True, index=False).encode()
+        else:
+            raise ValueError("Can only write objects of type ['pickle', 'json', 'csv'] to folder, not '{}'".format(obj_type))
+        writer.write(writeable)
 
 
 def get_models_parameters(config):

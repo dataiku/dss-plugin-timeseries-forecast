@@ -1,14 +1,11 @@
 import pandas as pd
 from dku_timeseries.single_model import SingleModel
 from gluonts.dataset.common import ListDataset
-try:
-    from BytesIO import BytesIO  # for Python 2
-except ImportError:
-    from io import BytesIO  # for Python 3
 
 
 class GlobalModels():
-    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length, training_df, make_forecasts, external_features_column_name=None):
+    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length,
+                 training_df, make_forecasts, external_features_column_name=None):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -90,16 +87,15 @@ class GlobalModels():
 
         metrics_df = pd.DataFrame()
         for model in self.models:
-            if self.make_forecast:
-                agg_metrics, item_metrics, forecasts_df = model.evaluate_and_forecast(train_ds, test_ds)
-                # TODO concat forecasts_df to others forecast_df and make it a class field
-                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
+            if self.make_forecasts:
+                agg_metrics, item_metrics, forecasts_df = model.evaluate(train_ds, test_ds, make_forecasts=True)
+                forecasts_df = forecasts_df.rename(columns={'index': self.time_col})
+                if self.forecasts_df.empty:
+                    self.forecast_df = forecasts_df
+                else:
+                    self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
             else:
                 agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
-
-            item_metrics.insert(1, 'target_col', self.target_columns_names)
-            agg_metrics['target_col'] = 'All'
-            item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
             metrics_df = metrics_df.append(item_metrics)
         return metrics_df
