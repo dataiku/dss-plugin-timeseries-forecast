@@ -13,12 +13,13 @@ global_params = load_training_config(config)
 version_name = datetime.now().strftime('%Y-%m-%dT%H-%M-%S-%f')[:-3]
 
 models_parameters = get_models_parameters(config)
-
+print("ALX:models_parameters={}".format(models_parameters))
 # TODO save with compression
 save_dataset(
     dataset_name=global_params['input_dataset_name'],
     time_column_name=global_params['time_column_name'],
     target_columns_names=global_params['target_columns_names'],
+    external_feature_columns=global_params['external_feature_columns'],
     model_folder=global_params['model_folder'],
     version_name=version_name
 )

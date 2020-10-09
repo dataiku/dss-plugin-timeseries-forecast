@@ -17,6 +17,7 @@ from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
 import json
+from plugin_config_loading import PluginParamValidationError
 
 import dataiku
 try:
@@ -64,8 +65,11 @@ def get_models_parameters(config):
     models_parameters = {}
     for model in AVAILABLE_MODELS:
         if is_activated(config, model):
+            model_presets = get_model_presets(config, model)
+            if 'prediction_length' in model_presets.get('kwargs', {}):
+                raise PluginParamValidationError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({
-                model: get_model_presets(config, model)
+                model: model_presets
             })
     return models_parameters
 
@@ -148,7 +152,7 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
     return models_error
 
 
-def save_dataset(dataset_name, time_column_name, target_columns_names, model_folder, version_name):
+def save_dataset(dataset_name, time_column_name, target_columns_names, external_feature_columns, model_folder, version_name):
     dataset = dataiku.Dataset(dataset_name)
     dataset_df = dataset.get_dataframe()
     virtual_fs = BytesIO()
@@ -156,7 +160,7 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, model_fol
     columns_to_save = []
     columns_to_save.append(time_column_name)
     columns_to_save.extend(target_columns_names)
-    print("ALX:columns_to_save={}".format(columns_to_save))
+    columns_to_save.extend(external_feature_columns)
     dataset_df.to_csv(virtual_fs, columns=columns_to_save)
     virtual_fs.seek(0)
     dataset_file_path = "{}/train_dataset.csv".format(version_name)
