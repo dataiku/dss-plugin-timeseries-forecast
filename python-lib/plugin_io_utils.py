@@ -165,3 +165,13 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, external_
     virtual_fs.seek(0)
     dataset_file_path = "{}/train_dataset.csv".format(version_name)
     model_folder.upload_stream(dataset_file_path, virtual_fs)
+
+
+def set_column_description(output_dataset):
+    output_schema = output_dataset.read_schema()
+    for col_schema in output_schema:
+        if '_forecasts_median' in col_schema['name']:
+            col_schema['comment'] = "Median of all sample predictions."
+        if '_forecasts_percentile_' in col_schema['name']:
+            col_schema['comment'] = "{}% of sample predictions are below these values.".format(col_schema['name'].split('_')[-1])
+    output_dataset.write_schema(output_schema)

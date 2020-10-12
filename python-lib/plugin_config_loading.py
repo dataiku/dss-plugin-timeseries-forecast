@@ -67,7 +67,7 @@ def load_training_config(recipe_config):
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
 
     params['prediction_length'] = 30
-    params['epoch'] = 20
+    params['epoch'] = 10
 
     params['evaluation_dataset'] = dataiku.Dataset(params['evaluation_dataset_name'])
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")

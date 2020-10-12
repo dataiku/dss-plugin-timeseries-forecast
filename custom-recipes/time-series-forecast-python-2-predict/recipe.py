@@ -25,6 +25,7 @@
 # print("ALX:tadaaa")
 
 from plugin_config_loading import load_predict_config
+from plugin_io_utils import set_column_description
 from dku_timeseries.model_selection import ModelSelection
 from dku_timeseries.prediction import Prediction
 
@@ -64,6 +65,7 @@ output_df = prediction.get_results_dataframe()
 output_dataset = params['output_dataset']
 output_dataset.write_with_schema(output_df)
 
+set_column_description(output_dataset)
 
 # class Prediction():
 #     def __init__(self, model, config):
