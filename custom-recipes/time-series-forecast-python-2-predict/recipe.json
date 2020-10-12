@@ -133,24 +133,12 @@
             "minI": 1
         },
         {
-            "name": "confidence_interval_1",
-            "label": "Confidence interval 1",
-            "type": "INT",
-            "minI": 50,
-            "maxI": 99,
+            "name": "quantiles",
+            "label": "Quantiles",
+            "type": "DOUBLES",
             "mandatory": true,
-            "defaultValue": 50,
-            "description": "%"
-        },
-        {
-            "name": "confidence_interval_2",
-            "label": "Confidence interval 2",
-            "type": "INT",
-            "minI": 50,
-            "maxI": 99,
-            "mandatory": true,
-            "defaultValue": 95,
-            "description": "%"
+            "defaultValue": [0.1, 0.5, 0.9],
+            "description": "Quantiles of forecasts to output. 0.5-quantile is the median."
         }
     ],
     "resourceKeys": []

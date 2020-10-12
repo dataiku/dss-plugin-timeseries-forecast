@@ -28,9 +28,18 @@ class ModelSelection():
     def get_training_dataframe(self):
         training_dataset_path = "{}/train_dataset.csv".format(self.session)
         # TODO read the compress csv
-        print("training_dataset_path: ", training_dataset_path)
-        df = read_from_folder(self.folder, training_dataset_path, 'csv')
-        return df
+        training_df = read_from_folder(self.folder, training_dataset_path, 'csv')
+        self.training_cols = list(training_df.columns)
+        self.time_col = self.training_cols[0]
+        return training_df
+
+    def get_columns_role(self):
+        metrics_df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), 'csv')
+        metrics_col = set(metrics_df['target_col'].unique())
+        metrics_col.remove('AGGREGATED')
+        # self.target_cols are ordered
+        self.target_cols = [col for col in self.training_cols if col in metrics_col]
+        return self.time_col, self.target_cols
 
     def _get_last_session(self):
         session_timestamps = []

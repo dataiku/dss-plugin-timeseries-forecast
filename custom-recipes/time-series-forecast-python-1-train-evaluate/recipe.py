@@ -15,17 +15,19 @@ version_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
 models_parameters = get_models_parameters(config)
 
 # TODO save with compression and with time column as dattime no timezone
-save_dataset(
-    dataset_name=global_params['input_dataset_name'],
-    time_column_name=global_params['time_column_name'],
-    target_columns_names=global_params['target_columns_names'],
-    external_feature_columns=global_params['external_feature_columns'],
-    model_folder=global_params['model_folder'],
-    version_name=version_name
-)
+# save_dataset(
+#     dataset_name=global_params['input_dataset_name'],
+#     time_column_name=global_params['time_column_name'],
+#     target_columns_names=global_params['target_columns_names'],
+#     external_feature_columns=global_params['external_feature_columns'],
+#     model_folder=global_params['model_folder'],
+#     version_name=version_name
+# )
 
 training_dataset = dataiku.Dataset(global_params['input_dataset_name'])
-training_df = training_dataset.get_dataframe()
+# order of cols is important (for the predict recipe)
+cols = [global_params['time_column_name']] + global_params['target_columns_names'] + global_params['external_feature_columns']
+training_df = training_dataset.get_dataframe(columns=cols)
 
 global_models = GlobalModels(
     target_columns_names=global_params['target_columns_names'],

@@ -38,8 +38,9 @@ def load_predict_config():
     params['selected_model_type'] = recipe_config.get("manually_selected_model_type")
 
     params['forecasting_horizon'] = recipe_config.get("forecasting_horizon")
-    params['confidence_interval_1'] = recipe_config.get("confidence_interval_1")/100
-    params['confidence_interval_2'] = recipe_config.get("confidence_interval_2")/100
+    params['quantiles'] = recipe_config.get("quantiles")
+    if any(x < 0 or x > 1 for x in params['quantiles']):
+        raise PluginParamValidationError("Quantiles must be between 0 and 1.")
 
     return params
 
@@ -65,8 +66,8 @@ def load_training_config(recipe_config):
     params['time_granularity_step'] = recipe_config.get('time_granularity_step', 1)
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
 
-    params['prediction_length'] = 10
-    params['epoch'] = 10
+    params['prediction_length'] = 30
+    params['epoch'] = 20
 
     params['evaluation_dataset'] = dataiku.Dataset(params['evaluation_dataset_name'])
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")

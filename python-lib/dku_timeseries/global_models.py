@@ -34,7 +34,7 @@ class GlobalModels():
                     epoch=self.epoch
                 )
             )
-        self.training_df[self.time_col] = pd.to_datetime(self.training_df[self.time_col]).dt.tz_convert(None)
+        self.training_df[self.time_col] = pd.to_datetime(self.training_df[self.time_col]).dt.tz_localize(tz=None)
         if self.make_forecasts:
             self.forecasts_df = pd.DataFrame()
 
@@ -90,6 +90,10 @@ class GlobalModels():
     def save_all(self, version_name):
         metrics_path = "{}/metrics.csv".format(version_name)
         write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
+
+        df_path = "{}/train_dataset.csv".format(version_name)
+        write_to_folder(self.training_df, self.model_folder, df_path, 'csv')
+
         for model in self.models:
             model.save(model_folder=self.model_folder, version_name=version_name)
 

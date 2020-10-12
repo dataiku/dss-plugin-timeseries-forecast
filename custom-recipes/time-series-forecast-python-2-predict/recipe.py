@@ -2,7 +2,6 @@
 # import dataiku
 # from dataiku.customrecipe import get_recipe_config, get_input_names_for_role, get_output_names_for_role
 
-# TODO
 # config = get_recipe_config()
 # model_folder_name = get_input_names_for_role('model_folder')[0]
 # model_folder = dataiku.Folder(model_folder_name)
@@ -41,20 +40,24 @@ else:
     model_selection.auto_params(performance_metric=params['performance_metric'])
 
 predictor = model_selection.get_model()  # => Predictor()
-
 training_df = model_selection.get_training_dataframe()  # => DataFrame()
+time_col, target_cols = model_selection.get_columns_role()
 
-prediction = Prediction(
-    predictor,
-    forecasting_horizon=params['forecasting_horizon'],
-    confidence_intervals=(params['confidence_interval_1'], params['confidence_interval_2'])
-)
-
+external_features_future_df = None
 if params['external_features_future']:
     external_features_future_df = params['external_features_future'].get_dataframe()
-    prediction.predict(training_df, external_features_future_df)
-else:
-    prediction.predict(training_df)
+
+prediction = Prediction(
+    predictor=predictor,
+    training_df=training_df,
+    external_features_future_df=external_features_future_df,
+    time_col=time_col,
+    target_cols=target_cols,
+    forecasting_horizon=params['forecasting_horizon'],
+    quantiles=params['quantiles']
+)
+
+prediction.predict()
 
 output_df = prediction.get_results_dataframe()
 
