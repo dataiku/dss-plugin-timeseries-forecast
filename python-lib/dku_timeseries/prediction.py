@@ -22,9 +22,10 @@ class Prediction():
 
         series = []
         for i, sample_forecasts in enumerate(forecasts_list):
-            # series.append(sample_forecasts.mean_ts.rename("{}_mean_forecasts".format(self.target_cols[i])))
+            series.append(sample_forecasts.quantile_ts(0.5).rename("{}_forecasts_median".format(self.target_cols[i])))
             for quantile in self.quantiles:
-                series.append(sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.target_cols[i], int(quantile*100))))
+                if quantile != 0.5:
+                    series.append(sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.target_cols[i], int(quantile*100))))
 
         predictions_df = pd.concat(series, axis=1).reset_index().rename(columns={'index': self.time_col})
 
