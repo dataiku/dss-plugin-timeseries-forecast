@@ -167,3 +167,13 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, external_
     columns_to_save = [time_column_name] + target_columns_names + external_feature_columns
     dataset_file_path = "{}/train_dataset.gz".format(version_name)
     write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'gzip')
+
+
+def set_column_description(output_dataset):
+    output_schema = output_dataset.read_schema()
+    for col_schema in output_schema:
+        if '_forecasts_median' in col_schema['name']:
+            col_schema['comment'] = "Median of all sample predictions."
+        if '_forecasts_percentile_' in col_schema['name']:
+            col_schema['comment'] = "{}% of sample predictions are below these values.".format(col_schema['name'].split('_')[-1])
+    output_dataset.write_schema(output_schema)
