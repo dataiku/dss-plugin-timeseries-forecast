@@ -50,24 +50,21 @@ def read_from_folder(folder, path, obj_type):
 
 
 def write_to_folder(obj, folder, path, obj_type):
-    if obj_type == 'gzip':
-        compressed_buffer = io.BytesIO()
-        with gzip.open(compressed_buffer, mode='wb') as gzip_file:
-            gzip_file.write(obj.to_csv(index=False).encode())
-        compressed_buffer.seek(0)
-        folder.upload_stream(path, compressed_buffer)
-        return
-
     with folder.get_writer(path) as writer:
         if obj_type == 'pickle':
             writeable = pickle.dumps(obj)
+            writer.write(writeable)
         elif obj_type == 'json':
             writeable = json.dumps(obj).encode()
+            writer.write(writeable)
         elif obj_type == 'csv':
             writeable = obj.to_csv(sep=',', na_rep='', header=True, index=False).encode()
+            writer.write(writeable)
+        elif obj_type == 'csv.gz':
+            with gzip.GzipFile(fileobj=writer, mode='wb') as fgzip:
+                fgzip.write(obj.to_csv(index=False).encode())
         else:
-            raise ValueError("Can only write objects of type ['pickle', 'json', 'csv', 'gzip'] to folder, not '{}'".format(obj_type))
-        writer.write(writeable)
+            raise ValueError("Can only write objects of type ['pickle', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(obj_type))
 
 
 def get_models_parameters(config):
@@ -166,4 +163,4 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, external_
     dataset_df = dataset.get_dataframe()
     columns_to_save = [time_column_name] + target_columns_names + external_feature_columns
     dataset_file_path = "{}/train_dataset.gz".format(version_name)
-    write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'gzip')
+    write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'csv.gz')
