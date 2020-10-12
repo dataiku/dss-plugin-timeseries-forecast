@@ -40,7 +40,7 @@ global_models = GlobalModels(
     training_df=training_df,
     make_forecasts=global_params['make_forecasts'],
     external_features_column_name=global_params['external_feature_columns']
-)  # todo : integrate external features and multiple target columns
+)
 global_models.init_all_models()
 
 global_models.evaluate_all(global_params['evaluation_strategy'])
