@@ -18,6 +18,7 @@ from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
 import json
 from plugin_config_loading import PluginParamValidationError
+import gzip
 
 import dataiku
 try:
@@ -49,6 +50,14 @@ def read_from_folder(folder, path, obj_type):
 
 
 def write_to_folder(obj, folder, path, obj_type):
+    if obj_type == 'gzip':
+        compressed_buffer = io.BytesIO()
+        with gzip.open(compressed_buffer, mode='wb') as gzip_file:
+            gzip_file.write(obj.to_csv(index=False).encode())
+        compressed_buffer.seek(0)
+        folder.upload_stream(path, compressed_buffer)
+        return
+
     with folder.get_writer(path) as writer:
         if obj_type == 'pickle':
             writeable = pickle.dumps(obj)
@@ -57,7 +66,7 @@ def write_to_folder(obj, folder, path, obj_type):
         elif obj_type == 'csv':
             writeable = obj.to_csv(sep=',', na_rep='', header=True, index=False).encode()
         else:
-            raise ValueError("Can only write objects of type ['pickle', 'json', 'csv'] to folder, not '{}'".format(obj_type))
+            raise ValueError("Can only write objects of type ['pickle', 'json', 'csv', 'gzip'] to folder, not '{}'".format(obj_type))
         writer.write(writeable)
 
 
@@ -155,23 +164,6 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
 def save_dataset(dataset_name, time_column_name, target_columns_names, external_feature_columns, model_folder, version_name):
     dataset = dataiku.Dataset(dataset_name)
     dataset_df = dataset.get_dataframe()
-    virtual_fs = BytesIO()
-    virtual_fs.seek(0)
-    columns_to_save = []
-    columns_to_save.append(time_column_name)
-    columns_to_save.extend(target_columns_names)
-    columns_to_save.extend(external_feature_columns)
-    dataset_df.to_csv(virtual_fs, columns=columns_to_save)
-    virtual_fs.seek(0)
-    dataset_file_path = "{}/train_dataset.csv".format(version_name)
-    model_folder.upload_stream(dataset_file_path, virtual_fs)
-
-
-def set_column_description(output_dataset):
-    output_schema = output_dataset.read_schema()
-    for col_schema in output_schema:
-        if '_forecasts_median' in col_schema['name']:
-            col_schema['comment'] = "Median of all sample predictions."
-        if '_forecasts_percentile_' in col_schema['name']:
-            col_schema['comment'] = "{}% of sample predictions are below these values.".format(col_schema['name'].split('_')[-1])
-    output_dataset.write_schema(output_schema)
+    columns_to_save = [time_column_name] + target_columns_names + external_feature_columns
+    dataset_file_path = "{}/train_dataset.gz".format(version_name)
+    write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'gzip')
