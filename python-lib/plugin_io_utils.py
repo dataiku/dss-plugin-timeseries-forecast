@@ -21,10 +21,10 @@ from plugin_config_loading import PluginParamValidationError
 import gzip
 
 import dataiku
-try:
-    from io import StringIO as BytesIO  # for Python 2
-except ImportError:
-    from io import BytesIO  # for Python 3
+# try:
+#     from io import StringIO as BytesIO  # for Python 2
+# except ImportError:
+#     from io import BytesIO  # for Python 3
 
 
 AVAILABLE_MODELS = [
@@ -39,14 +39,16 @@ EVALUATION_METRICS = [
 
 def read_from_folder(folder, path, obj_type):
     with folder.get_download_stream(path) as stream:
-        data = stream.read()
         if obj_type == 'pickle':
-            return pickle.loads(data)
+            return pickle.loads(stream.read())
         elif obj_type == 'csv':
-            data = io.StringIO(data.decode())
-            return pd.read_csv(data, sep=",", compression='infer')
+            data = io.StringIO(stream.read().decode())
+            return pd.read_csv(data)
+        elif obj_type == 'csv.gz':
+            with gzip.GzipFile(fileobj=stream) as fgzip:
+                return pd.read_csv(fgzip)
         else:
-            raise ValueError("Can only read objects of type ['pickle', 'csv'] from folder, not '{}'".format(obj_type))
+            raise ValueError("Can only read objects of type ['pickle', 'csv', 'csv.gz] from folder, not '{}'".format(obj_type))
 
 
 def write_to_folder(obj, folder, path, obj_type):
@@ -164,3 +166,13 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, external_
     columns_to_save = [time_column_name] + target_columns_names + external_feature_columns
     dataset_file_path = "{}/train_dataset.gz".format(version_name)
     write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'csv.gz')
+
+
+def set_column_description(output_dataset):
+    output_schema = output_dataset.read_schema()
+    for col_schema in output_schema:
+        if '_forecasts_median' in col_schema['name']:
+            col_schema['comment'] = "Median of all sample predictions."
+        if '_forecasts_percentile_' in col_schema['name']:
+            col_schema['comment'] = "{}% of sample predictions are below these values.".format(col_schema['name'].split('_')[-1])
+    output_dataset.write_schema(output_schema)

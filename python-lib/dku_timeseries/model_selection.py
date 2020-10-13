@@ -26,9 +26,9 @@ class ModelSelection():
         return model
 
     def get_training_dataframe(self):
-        training_dataset_path = "{}/train_dataset.csv".format(self.session)
+        training_dataset_path = "{}/train_dataset.csv.gz".format(self.session)
         # TODO read the compress csv
-        training_df = read_from_folder(self.folder, training_dataset_path, 'csv')
+        training_df = read_from_folder(self.folder, training_dataset_path, 'csv.gz')
         self.training_cols = list(training_df.columns)
         self.time_col = self.training_cols[0]
         return training_df
@@ -50,7 +50,6 @@ class ModelSelection():
         return last_session
 
     def _get_best_model(self):
-        # TODO read the compress csv
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), 'csv')
         if (df['target_col'] == 'AGGREGATED').any():
             df = df[df['target_col'] == 'AGGREGATED']

@@ -91,8 +91,8 @@ class GlobalModels():
         metrics_path = "{}/metrics.csv".format(version_name)
         write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
 
-        df_path = "{}/train_dataset.csv".format(version_name)
-        write_to_folder(self.training_df, self.model_folder, df_path, 'csv')
+        df_path = "{}/train_dataset.csv.gz".format(version_name)
+        write_to_folder(self.training_df, self.model_folder, df_path, 'csv.gz')
 
         for model in self.models:
             model.save(model_folder=self.model_folder, version_name=version_name)
