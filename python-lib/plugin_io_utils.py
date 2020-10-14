@@ -8,8 +8,9 @@ from gluonts.model.lstnet import LSTNetEstimator
 from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.npts import NPTSEstimator
 from gluonts.model.transformer import TransformerEstimator
+from gluonts.trainer import Trainer
 # from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-# from gluonts.model.naive_2 import Naive2Predictor
+from gluonts.model.naive_2 import Naive2Predictor
 import os
 import dill as pickle
 from gluonts.evaluation.backtest import make_evaluation_predictions
@@ -19,12 +20,7 @@ import pandas as pd
 import json
 from plugin_config_loading import PluginParamValidationError
 import gzip
-
 import dataiku
-# try:
-#     from io import StringIO as BytesIO  # for Python 2
-# except ImportError:
-#     from io import BytesIO  # for Python 3
 
 
 AVAILABLE_MODELS = [
@@ -35,6 +31,48 @@ AVAILABLE_MODELS = [
 EVALUATION_METRICS = [
     "MSE", "MASE", "MAPE", "sMAPE", "MSIS"
 ]
+
+ESTIMATOR = 'estimator'
+CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature'
+TRAINER = 'trainer'
+
+MODEL_DESCRIPTORS = {
+    "default": {},
+    "deepar": {
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: DeepAREstimator,
+        TRAINER: Trainer
+    },
+    "deepfactor": {
+        ESTIMATOR: DeepFactorEstimator,
+        TRAINER: Trainer
+    },
+    "lstnet": {
+        ESTIMATOR: LSTNetEstimator,
+        TRAINER: Trainer
+    },
+    "naive": {
+        ESTIMATOR: Naive2Predictor,
+        TRAINER: None
+    },
+    "nbeats": {
+        ESTIMATOR: NBEATSEstimator,
+        TRAINER: Trainer
+    },
+    "npts": {
+        ESTIMATOR: NPTSEstimator,
+        TRAINER: None
+    },
+    "simplefeedforward": {
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: SimpleFeedForwardEstimator,
+        TRAINER: Trainer
+    },
+    "transformer": {
+        ESTIMATOR: TransformerEstimator,
+        TRAINER: Trainer
+    }
+}
 
 
 def read_from_folder(folder, path, obj_type):
@@ -87,7 +125,7 @@ def is_activated(config, model):
 
 
 def get_model_kwargs(config, model):
-    return config.get("{}_model_kwargs")
+    return config.get("{}_model_kwargs".format(model))
 
 
 def get_model_presets(config, model):
@@ -103,27 +141,30 @@ def get_model_presets(config, model):
     return model_presets
 
 
+def get_model_descriptor(model):
+    model_descriptor = MODEL_DESCRIPTORS.get(model)
+    if model_descriptor is None:
+        return MODEL_DESCRIPTORS.get('default')
+    else:
+        return model_descriptor
+
+
 def get_estimator(model, model_parameters, **kwargs):
-    # "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
-    # "npts", "transformer"
-    # SeasonalNaivePredictor
-    # Naive2Predictor
     kwargs.update(model_parameters.get("kwargs", {}))
-    if model == "simplefeedforward":
-        return SimpleFeedForwardEstimator(**kwargs)
-    if model == "deepfactor":
-        return DeepFactorEstimator(**kwargs)
-    if model == "deepar":
-        return DeepAREstimator(**kwargs)
-    if model == "lstnet":
-        return LSTNetEstimator(**kwargs)
-    if model == "nbeats":
-        return NBEATSEstimator(**kwargs)
-    if model == "npts":
-        return NPTSEstimator(**kwargs)
-    if model == "transformer":
-        return TransformerEstimator(**kwargs)
-    return None
+    model_descriptor = get_model_descriptor(model)
+    estimator = model_descriptor.get(ESTIMATOR)
+    return None if estimator is None else estimator(**kwargs)
+
+
+def get_trainer(model, **kwargs):
+    model_descriptor = get_model_descriptor(model)
+    trainer = model_descriptor.get(TRAINER)
+    return None if trainer is None else trainer(**kwargs)
+
+
+def can_model_use_external_feature(model):
+    model_descriptor = get_model_descriptor(model)
+    return model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
 
 
 def save_forecasting_objects(folder_name, version_name, forecasting_object):
@@ -161,7 +202,7 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
 
 
 def save_dataset(dataset_name, time_column_name, target_columns_names, external_feature_columns, model_folder, version_name):
-    dataset = dataiku.Dataset(dataset_name)
+    dataset = dataiku.Dataset(dataset_name)  # TODO: push this out
     dataset_df = dataset.get_dataframe()
     columns_to_save = [time_column_name] + target_columns_names + external_feature_columns
     dataset_file_path = "{}/train_dataset.gz".format(version_name)
