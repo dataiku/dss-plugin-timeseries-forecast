@@ -1,6 +1,6 @@
-import dill as pickle #todo: check whether or not dill still necessary
-from gluonts.trainer import Trainer
-from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS
+# import dill as pickle #todo: check whether or not dill still necessary
+#  from gluonts.trainer import Trainer
+from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS, get_trainer
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
@@ -8,7 +8,7 @@ try:
     from BytesIO import BytesIO  # for Python 2
 except ImportError:
     from io import BytesIO  # for Python 3
-from json import dumps
+# from json import dumps
 
 
 class SingleModel():
@@ -23,7 +23,7 @@ class SingleModel():
             self.model_parameters,
             freq=self.frequency,
             prediction_length=self.prediction_length,  # 10,
-            trainer=Trainer(epochs=self.epoch)  # 10
+            trainer=get_trainer(model_name, epochs=self.epoch)  # 10
         )
         self.predictor = None
         if self.estimator is None:
