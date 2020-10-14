@@ -20,10 +20,10 @@ def load_predict_config():
     model_folder = dataiku.Folder(get_input_names_for_role('model_folder')[0])
     params['model_folder'] = model_folder
 
-    params['external_features_future'] = None
+    params['external_features_future_dataset'] = None
     external_features_future_dataset_names = get_input_names_for_role('external_features_future_future_dataset')
     if len(external_features_future_dataset_names) > 0:
-        params['external_features_future'] = dataiku.Dataset(external_features_future_dataset_names[0])
+        params['external_features_future_dataset'] = dataiku.Dataset(external_features_future_dataset_names[0])
 
     # output dataset
     output_dataset_names = get_output_names_for_role("output_dataset")
@@ -41,6 +41,7 @@ def load_predict_config():
     params['quantiles'] = recipe_config.get("quantiles")
     if any(x < 0 or x > 1 for x in params['quantiles']):
         raise PluginParamValidationError("Quantiles must be between 0 and 1.")
+    params['quantile'].sort()
 
     return params
 

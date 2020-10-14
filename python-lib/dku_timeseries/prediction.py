@@ -4,12 +4,12 @@ from plugin_config_loading import PluginParamValidationError
 
 
 class Prediction():
-    def __init__(self, predictor, training_df, external_features_future_df, time_col, target_cols, forecasting_horizon, quantiles):
+    def __init__(self, predictor, targets_train_df, external_features_df, forecasting_horizon, quantiles):
         self.predictor = predictor
-        self.training_df = training_df
-        self.external_features_future_df = external_features_future_df
-        self.time_col = time_col
-        self.target_cols = target_cols
+        self.targets_train_df = targets_train_df
+        self.time_column = targets_train_df.columns[0]
+        self.target_columns = targets_train_df.columns[1:]
+        self.external_features_df = external_features_df
         self.forecasting_horizon = forecasting_horizon
         self.quantiles = quantiles
         self._check()
@@ -22,43 +22,48 @@ class Prediction():
 
         series = []
         for i, sample_forecasts in enumerate(forecasts_list):
-            series.append(sample_forecasts.quantile_ts(0.5).rename("{}_forecasts_median".format(self.target_cols[i])))
+            is_median = False
             for quantile in self.quantiles:
+                # replace percentile_50 with median and always output the median
+                if quantile == 0.5 or (quantile > 0.5 and not is_median):
+                    series.append(sample_forecasts.quantile_ts(0.5).rename("{}_forecasts_median".format(self.target_columns[i])))
+                    is_median = True
                 if quantile != 0.5:
-                    series.append(sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.target_cols[i], int(quantile*100))))
+                    series.append(sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.target_columns[i], int(quantile*100))))
 
-        predictions_df = pd.concat(series, axis=1).reset_index().rename(columns={'index': self.time_col})
-
-        if self.external_features_future_df:
-            predictions_df = predictions_df.merge(self.external_features_future_df, on=self.time_col)
-
-        # only keep the first forecasting_horizon predictions
-        predictions_df = predictions_df.iloc[:self.forecasting_horizon]
+        predictions_df = pd.concat(series, axis=1).reset_index().rename(columns={'index': self.time_column})
 
         # include history
-        self.results_df = self.training_df.append(predictions_df)
+        results_df = self.targets_train_df.append(predictions_df)
 
-    def get_results_dataframe(self):
-        return self.results_df
+        if self.external_features_df:
+            results_df = results_df.merge(self.external_features_df, on=self.time_column)
+
+        # only keep the first forecasting_horizon predictions
+        if self.predictor.prediction_length > self.forecasting_horizon:
+            diff = self.predictor.prediction_length - self.forecasting_horizon
+            results_df = results_df.iloc[:-diff]
+
+        return results_df
 
     def _create_gluonts_dataset(self):
         freq = self.predictor.freq
-        start = self.training_df[self.time_col].iloc[0]
-        if not self.external_features_future_df:
+        start = self.targets_train_df[self.time_column].iloc[0]
+        if self.external_features_df:
+            # feat_dynamic_real_df = self.targets_train_df.drop(self.target_columns).append(self.external_features_future_df).drop(self.time_column)
             input_ds = ListDataset(
                 [{
-                    'target': self.training_df[target_col],
+                    'target': self.targets_train_df[target_column],
+                    'feat_dynamic_real': self.external_features_df.values.T,
                     'start': start
-                } for target_col in self.target_cols],
+                } for target_column in self.target_columns],
                 freq=freq)
         else:
-            feat_dynamic_real_df = self.training_df.drop(self.target_cols).append(self.external_features_future_df).drop(self.time_col)
             input_ds = ListDataset(
                 [{
-                    'target': self.training_df[target_col],
-                    'feat_dynamic_real': feat_dynamic_real_df.values.T,
+                    'target': self.targets_train_df[target_column],
                     'start': start
-                } for target_col in self.target_cols],
+                } for target_column in self.target_columns],
                 freq=freq)
 
         return input_ds
@@ -69,18 +74,18 @@ class Prediction():
                 self.predictor.prediction_length))
 
         try:
-            self.training_df[self.time_col] = pd.to_datetime(self.training_df[self.time_col]).dt.tz_localize(tz=None)
+            self.targets_train_df[self.time_column] = pd.to_datetime(self.targets_train_df[self.time_column]).dt.tz_localize(tz=None)
         except Exception as e:
             raise ValueError("Could not convert to datetime: {}".format(e))
 
-        if self.external_features_future_df:
-            if len(self.external_features_future_df.index) != self.predictor.prediction_length:
+        if self.external_features_df:
+            if len(self.external_features_df.index) != self.predictor.prediction_length + len(self.targets_train_df.index):
                 raise ValueError("External feature dataset must have exactly {} rows (same as prediction_length used in training)".format(
                     self.predictor.prediction_length))
 
-            if set(self.training_df.columns.drop(self.target_cols)) == set(self.external_features_future_df.columns):
-                raise ValueError("External feature dataset must only contain the following columns: {}".format(
-                    self.training_df.columns.drop(self.target_cols)))
+            # if set(self.targets_train_df.columns.drop(self.target_columns)) == set(self.external_features_future_df.columns):
+            #     raise ValueError("External feature dataset must only contain the following columns: {}".format(
+            #         self.targets_train_df.columns.drop(self.target_columns)))
 
             # maybe also check for identical dtypes
-            # maybe check that external_features_future_df just follow training_df (based on time_col)
+            # maybe check that external_features_future_df just follow targets_train_df (based on time_column)

@@ -1,11 +1,13 @@
 import re
 from plugin_io_utils import read_from_folder
+from plugin_config_loading import PluginParamValidationError
 
 
 class ModelSelection():
 
-    def __init__(self, folder):
+    def __init__(self, folder, external_features_future_dataset=None):
         self.folder = folder
+        self.external_features_future_dataset = external_features_future_dataset
 
     def manual_params(self, session, model_type):
         self.manual_selection = True
@@ -25,21 +27,31 @@ class ModelSelection():
         model = read_from_folder(self.folder, model_path, 'pickle')  # TODO implement load_model
         return model
 
-    def get_training_dataframe(self):
-        training_dataset_path = "{}/train_dataset.csv.gz".format(self.session)
-        # TODO read the compress csv
-        training_df = read_from_folder(self.folder, training_dataset_path, 'csv.gz')
-        self.training_cols = list(training_df.columns)
-        self.time_col = self.training_cols[0]
-        return training_df
+    def get_targets_train_dataframe(self):
+        targets_train_dataset_path = "{}/targets_train_dataset.csv.gz".format(self.session)
+        targets_train_df = read_from_folder(self.folder, targets_train_dataset_path, 'csv.gz')
+        return targets_train_df
 
-    def get_columns_role(self):
-        metrics_df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), 'csv')
-        metrics_col = set(metrics_df['target_col'].unique())
-        metrics_col.remove('AGGREGATED')
-        # self.target_cols are ordered
-        self.target_cols = [col for col in self.training_cols if col in metrics_col]
-        return self.time_col, self.target_cols
+    def get_external_features_dataframe(self):
+        external_features_train_dataset_path = "{}/external_features_train_dataset.csv.gz".format(self.session)
+        path_details = self.folder.get_path_details(external_features_train_dataset_path)
+        trained_with_external_features = path_details['exists'] and not path_details['directory']
+        if self.external_features_future_dataset:
+            if trained_with_external_features:
+                external_features_train_df = read_from_folder(self.folder, external_features_train_dataset_path, 'csv.gz')
+                external_features_future_df = self.external_features_future_dataset.get_dataframe()
+                if set(external_features_train_df.columns) != set(external_features_future_df.columns):
+                    raise PluginParamValidationError("External features dataset must exactly contain the following columns: {}".format(
+                        external_features_train_df.columns))
+                # TODO ? check that the time column is just 1 freq after
+                return external_features_train_df.append(external_features_future_df)
+            else:
+                # maybe no exception as it won't cause any errors (instead just return None ?)
+                raise PluginParamValidationError("An external features dataset was provided forprediction but no external features were used in training.")
+        else:
+            if trained_with_external_features:
+                raise PluginParamValidationError("No external features dataset was provided for prediction but some external features were used in training.")
+            return None
 
     def _get_last_session(self):
         session_timestamps = []
