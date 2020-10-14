@@ -1,28 +1,17 @@
 # -*- coding: utf-8 -*-
-import pandas as pd
 import dataiku
 from dataiku.customrecipe import get_recipe_config
-import time
-from plugin_io_utils import get_models_parameters, save_dataset
+from datetime import datetime
+from plugin_io_utils import get_models_parameters, set_column_description
 from dku_timeseries.global_models import GlobalModels
 from plugin_config_loading import load_training_config
 
 config = get_recipe_config()
 
 global_params = load_training_config(config)
-version_name = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
+version_name = datetime.utcnow().isoformat()+'Z'
 
 models_parameters = get_models_parameters(config)
-
-# TODO save with compression and with time column as dattime no timezone
-# save_dataset(
-#     dataset_name=global_params['input_dataset_name'],
-#     time_column_name=global_params['time_column_name'],
-#     target_columns_names=global_params['target_columns_names'],
-#     external_feature_columns=global_params['external_feature_columns'],
-#     model_folder=global_params['model_folder'],
-#     version_name=version_name
-# )
 
 training_dataset = dataiku.Dataset(global_params['input_dataset_name'])
 # order of cols is important (for the predict recipe)
@@ -49,11 +38,18 @@ global_models.fit_all()
 
 global_models.save_all(version_name=version_name)
 
-global_params['evaluation_dataset'].write_with_schema(global_models.get_metrics_df())
+metrics_df = global_models.get_metrics_df()
+global_params['evaluation_dataset'].write_with_schema(metrics_df)
+
+metrics_column_descriptions = global_models.create_metrics_column_description()
+set_column_description(global_params['evaluation_dataset'], metrics_column_descriptions)
 
 if global_params['make_forecasts']:
-    global_params['evaluation_forecasts'].write_with_schema(global_models.get_history_and_forecasts_df())
+    evaluation_forecasts_df = global_models.get_evaluation_forecasts_df()
+    global_params['evaluation_forecasts'].write_with_schema(evaluation_forecasts_df)
 
+    evaluation_forecasts_column_descriptions = global_models.create_evaluation_forecasts_column_description()
+    set_column_description(global_params['evaluation_forecasts'], evaluation_forecasts_column_descriptions)
 
 
 # Naive estimator is in fact 3 models

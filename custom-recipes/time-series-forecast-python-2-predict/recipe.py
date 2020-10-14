@@ -25,12 +25,14 @@ prediction = Prediction(
     targets_train_df=targets_train_df,
     external_features_df=external_features_df,
     forecasting_horizon=params['forecasting_horizon'],
-    quantiles=params['quantiles']
+    quantiles=params['quantiles'],
+    include_history=params['include_history']
 )
 
-output_df = prediction.predict()
+prediction.predict()
 
-output_dataset = params['output_dataset']
-output_dataset.write_with_schema(output_df)
+forecasts_df = prediction.get_forecasts_df()
+params['output_dataset'].write_with_schema(forecasts_df)
 
-set_column_description(output_dataset)
+column_descriptions = prediction.create_forecasts_column_description()
+set_column_description(params['output_dataset'], column_descriptions)

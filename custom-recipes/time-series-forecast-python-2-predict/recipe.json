@@ -139,6 +139,14 @@
             "mandatory": true,
             "defaultValue": [0.1, 0.5, 0.9],
             "description": "Quantiles of forecasts to output. 0.5-quantile is the median."
+        },
+        {
+            "name": "include_history",
+            "label": "Include history",
+            "description": "Whether to include past values in addition to the forecasted values.",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true
         }
     ],
     "resourceKeys": []

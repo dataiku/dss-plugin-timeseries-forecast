@@ -16,7 +16,7 @@ def do(payload, config, plugin_config, inputs):
 
     sessions = []
     for child in input_folder.get_path_details(path='/')['children']:
-        if re.match(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', child['name']):
+        if re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z', child['name']):
             sessions += [child['name']]
 
     if payload.get('parameterName') == 'manually_selected_session':

@@ -89,6 +89,7 @@ class GlobalModels():
 
     def save_all(self, version_name):
         metrics_path = "{}/metrics.csv".format(version_name)
+        self.metrics_df['session'] = version_name
         write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
 
         targets_df_path = "{}/targets_train_dataset.csv.gz".format(version_name)
@@ -101,9 +102,6 @@ class GlobalModels():
         for model in self.models:
             model.save(model_folder=self.model_folder, version_name=version_name)
 
-    def prediction(self, model_name):
-        return
-
     def load(self, path):
         # Todo
         dataset = load(dataset)
@@ -111,8 +109,21 @@ class GlobalModels():
         model = SingleModel()
         model.load(path, best_model)
 
-    def get_history_and_forecasts_df(self):
-        return self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')
+    def get_evaluation_forecasts_df(self):
+        self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')
+        return self.evaluation_forecasts_df
 
     def get_metrics_df(self):
         return self.metrics_df
+
+    def create_metrics_column_description(self):
+        column_descriptions = {}
+        for column in self.metrics_df.columns:
+            column_descriptions[column] = "TO FILL"
+        return column_descriptions
+
+    def create_evaluation_forecasts_column_description(self):
+        column_descriptions = {}
+        for column in self.evaluation_forecasts_df.columns:
+            column_descriptions[column] = "TO FILL"
+        return column_descriptions

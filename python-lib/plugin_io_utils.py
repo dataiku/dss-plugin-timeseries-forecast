@@ -209,11 +209,32 @@ def save_dataset(dataset_name, time_column_name, target_columns_names, external_
     write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'csv.gz')
 
 
-def set_column_description(output_dataset):
-    output_schema = output_dataset.read_schema()
-    for col_schema in output_schema:
-        if '_forecasts_median' in col_schema['name']:
-            col_schema['comment'] = "Median of all sample predictions."
-        if '_forecasts_percentile_' in col_schema['name']:
-            col_schema['comment'] = "{}% of sample predictions are below these values.".format(col_schema['name'].split('_')[-1])
-    output_dataset.write_schema(output_schema)
+def set_column_description(output_dataset, column_description_dict, input_dataset=None):
+    """Set column descriptions of the output dataset based on a dictionary of column descriptions
+
+    Retains the column descriptions from the input dataset if the column name matches.
+
+    Args:
+        output_dataset: Output dataiku.Dataset instance
+        column_description_dict: Dictionary holding column descriptions (value) by column name (key)
+        input_dataset: Optional input dataiku.Dataset instance
+            in case you want to retain input column descriptions
+    """
+    output_dataset_schema = output_dataset.read_schema()
+    input_dataset_schema = []
+    input_columns_names = []
+    if input_dataset is not None:
+        input_dataset_schema = input_dataset.read_schema()
+        input_columns_names = [col["name"] for col in input_dataset_schema]
+    for output_col_info in output_dataset_schema:
+        output_col_name = output_col_info.get("name", "")
+        output_col_info["comment"] = column_description_dict.get(output_col_name)
+        if output_col_name in input_columns_names:
+            matched_comment = [
+                input_col_info.get("comment", "")
+                for input_col_info in input_dataset_schema
+                if input_col_info.get("name") == output_col_name
+            ]
+            if len(matched_comment) != 0:
+                output_col_info["comment"] = matched_comment[0]
+    output_dataset.write_schema(output_dataset_schema)

@@ -1,5 +1,7 @@
 import re
 from plugin_io_utils import read_from_folder
+import pandas as pd
+from plugin_io_utils import MODEL_DESCRIPTORS, CAN_USE_EXTERNAL_FEATURES
 
 
 class ModelSelection():
@@ -29,6 +31,7 @@ class ModelSelection():
     def get_targets_train_dataframe(self):
         targets_train_dataset_path = "{}/targets_train_dataset.csv.gz".format(self.session)
         targets_train_df = read_from_folder(self.folder, targets_train_dataset_path, 'csv.gz')
+        targets_train_df.iloc[:, 0] = pd.to_datetime(targets_train_df.iloc[:, 0]).dt.tz_localize(tz=None)
         return targets_train_df
 
     def get_external_features_dataframe(self):
@@ -37,27 +40,44 @@ class ModelSelection():
         trained_with_external_features = path_details['exists'] and not path_details['directory']
         if self.external_features_future_dataset:
             if trained_with_external_features:
+                # the external features won't be used if the model doesn't support feat_dynamic_real
+                # we could either raise an Error to warn the user or do as usual and output the external
+                # features in the forecasts dataset even though they are not used
                 external_features_train_df = read_from_folder(self.folder, external_features_train_dataset_path, 'csv.gz')
                 external_features_future_df = self.external_features_future_dataset.get_dataframe()
-                if set(external_features_train_df.columns) != set(external_features_future_df.columns):
-                    raise ValueError("External features dataset must exactly contain the following columns: {}".format(
+                if not set(external_features_train_df.columns) <= set(external_features_future_df.columns):
+                    raise ValueError("External features dataset must contain the following columns: {}".format(
                         external_features_train_df.columns))
-                # TODO ? check that the time column is just 1 freq after
-                return external_features_train_df.append(external_features_future_df)
+                external_features_future_df = external_features_future_df[external_features_train_df.columns]
+                # convert to same datetime format before appending past and future exteranl features dataframes
+                external_features_train_df.iloc[:, 0] = pd.to_datetime(external_features_train_df.iloc[:, 0]).dt.tz_localize(tz=None)
+                external_features_future_df.iloc[:, 0] = pd.to_datetime(external_features_future_df.iloc[:, 0]).dt.tz_localize(tz=None)
+
+                # TODO ? check that the time column is just 1 freq after (using self.model.freq)
+                return external_features_train_df.append(external_features_future_df).reset_index(drop=True)
             else:
-                # maybe no exception as it won't cause any errors (instead just return None ?)
-                raise ValueError("An external features dataset was provided for forecasting but no external features were used in training.")
+                # it would not cause any errors to return None but the ouput would not contain the external features,
+                # that could be confusing for the user => raise Error for transparency
+                raise ValueError("""
+                                An external features dataset was provided for forecasting but no external features
+                                were used for training in the selected session. Please remove the external features
+                                Dataset or select a model that was trained with external features.
+                            """)
         else:
-            if trained_with_external_features:
-                raise ValueError("No external features dataset was provided for forecasting but some external features were used in training.")
+            if trained_with_external_features and MODEL_DESCRIPTORS[self.model_type].get(CAN_USE_EXTERNAL_FEATURES):
+                raise ValueError("""
+                            No external features dataset was provided for forecasting but some external features
+                            were used in training to train the selected model. Please provide an external features
+                            Dataset or select a model that doesn't use external features.
+                        """)
             return None
 
     def _get_last_session(self):
         session_timestamps = []
         for child in self.folder.get_path_details(path='/')['children']:
-            if re.match(r'\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}', child['name']):
+            if re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z', child['name']):
                 session_timestamps += [child['name']]
-        last_session = max(session_timestamps, key=lambda timestamp: int(timestamp.replace('-', '')))
+        last_session = max(session_timestamps, key=lambda timestamp: timestamp)
         return last_session
 
     def _get_best_model(self):

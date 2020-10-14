@@ -21,7 +21,7 @@ def load_predict_config():
     params['model_folder'] = model_folder
 
     params['external_features_future_dataset'] = None
-    external_features_future_dataset_names = get_input_names_for_role('external_features_future_future_dataset')
+    external_features_future_dataset_names = get_input_names_for_role('external_features_future_dataset')
     if len(external_features_future_dataset_names) > 0:
         params['external_features_future_dataset'] = dataiku.Dataset(external_features_future_dataset_names[0])
 
@@ -42,6 +42,8 @@ def load_predict_config():
     if any(x < 0 or x > 1 for x in params['quantiles']):
         raise PluginParamValidationError("Quantiles must be between 0 and 1.")
     params['quantiles'].sort()
+
+    params['include_history'] = recipe_config.get("include_history")
 
     return params
 
@@ -68,7 +70,7 @@ def load_training_config(recipe_config):
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
 
     params['prediction_length'] = 30
-    params['epoch'] = 10
+    params['epoch'] = 1
 
     params['evaluation_dataset'] = dataiku.Dataset(params['evaluation_dataset_name'])
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")

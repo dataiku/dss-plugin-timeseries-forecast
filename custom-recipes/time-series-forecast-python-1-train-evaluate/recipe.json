@@ -80,6 +80,7 @@
         {
             "name": "external_feature_columns",
             "label": "External features (optional)",
+            "description": "Useable only by DeepAR",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -161,7 +162,6 @@
             "type": "SEPARATOR",
             "visibilityCondition": "model.forecasting_style == 'expert'"
         },
-        // TODO visibility condition based on external features
         {
             "name": "naive_model_activated",
             "label": "- Baseline",
