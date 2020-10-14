@@ -41,7 +41,7 @@ def load_predict_config():
     params['quantiles'] = recipe_config.get("quantiles")
     if any(x < 0 or x > 1 for x in params['quantiles']):
         raise PluginParamValidationError("Quantiles must be between 0 and 1.")
-    params['quantile'].sort()
+    params['quantiles'].sort()
 
     return params
 

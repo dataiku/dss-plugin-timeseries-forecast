@@ -1,6 +1,5 @@
 import re
 from plugin_io_utils import read_from_folder
-from plugin_config_loading import PluginParamValidationError
 
 
 class ModelSelection():
@@ -41,16 +40,16 @@ class ModelSelection():
                 external_features_train_df = read_from_folder(self.folder, external_features_train_dataset_path, 'csv.gz')
                 external_features_future_df = self.external_features_future_dataset.get_dataframe()
                 if set(external_features_train_df.columns) != set(external_features_future_df.columns):
-                    raise PluginParamValidationError("External features dataset must exactly contain the following columns: {}".format(
+                    raise ValueError("External features dataset must exactly contain the following columns: {}".format(
                         external_features_train_df.columns))
                 # TODO ? check that the time column is just 1 freq after
                 return external_features_train_df.append(external_features_future_df)
             else:
                 # maybe no exception as it won't cause any errors (instead just return None ?)
-                raise PluginParamValidationError("An external features dataset was provided forprediction but no external features were used in training.")
+                raise ValueError("An external features dataset was provided for forecasting but no external features were used in training.")
         else:
             if trained_with_external_features:
-                raise PluginParamValidationError("No external features dataset was provided for prediction but some external features were used in training.")
+                raise ValueError("No external features dataset was provided for forecasting but some external features were used in training.")
             return None
 
     def _get_last_session(self):

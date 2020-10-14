@@ -94,8 +94,9 @@ class GlobalModels():
         targets_df_path = "{}/targets_train_dataset.csv.gz".format(version_name)
         write_to_folder(self.training_df[[self.time_col]+self.target_columns_names], self.model_folder, targets_df_path, 'csv.gz')
 
-        external_features_df_path = "{}/external_features_train_dataset.csv.gz".format(version_name)
-        write_to_folder(self.training_df[[self.time_col]+self.external_features_column_name], self.model_folder, external_features_df_path, 'csv.gz')
+        if self.external_features_column_name:
+            external_features_df_path = "{}/external_features_train_dataset.csv.gz".format(version_name)
+            write_to_folder(self.training_df[[self.time_col]+self.external_features_column_name], self.model_folder, external_features_df_path, 'csv.gz')
 
         for model in self.models:
             model.save(model_folder=self.model_folder, version_name=version_name)
