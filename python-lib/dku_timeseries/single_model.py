@@ -74,8 +74,8 @@ class SingleModel():
         return agg_metrics, item_metrics
 
     def save(self, model_folder, version_name):  # todo: review how folder/paths are handled
-        model_path = "{}/{}/model.pk".format(version_name, self.model_name)
-        write_to_folder(self.predictor, model_folder, model_path, 'pickle')
+        model_path = "{}/{}/model.pk.gz".format(version_name, self.model_name)
+        write_to_folder(self.predictor, model_folder, model_path, 'pickle.gz')
 
         parameters_path = "{}/{}/params.json".format(version_name, self.model_name)
         write_to_folder(self.model_parameters, model_folder, parameters_path, 'json')

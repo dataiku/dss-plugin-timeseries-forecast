@@ -24,8 +24,8 @@ class ModelSelection():
             self.session = self._get_last_session()
             self.model_type = self._get_best_model()
 
-        model_path = "{}/{}/model.pk".format(self.session, self.model_type)
-        model = read_from_folder(self.folder, model_path, 'pickle')  # TODO implement load_model
+        model_path = "{}/{}/model.pk.gz".format(self.session, self.model_type)
+        model = read_from_folder(self.folder, model_path, 'pickle.gz')  # TODO implement load_model
         return model
 
     def get_targets_train_dataframe(self):

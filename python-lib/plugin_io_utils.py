@@ -22,7 +22,6 @@ from plugin_config_loading import PluginParamValidationError
 import gzip
 import dataiku
 
-
 AVAILABLE_MODELS = [
     "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
     "npts", "transformer"
@@ -79,6 +78,9 @@ def read_from_folder(folder, path, obj_type):
     with folder.get_download_stream(path) as stream:
         if obj_type == 'pickle':
             return pickle.loads(stream.read())
+        if obj_type == 'pickle.gz':
+            with gzip.GzipFile(fileobj=stream) as fgzip:
+                return pickle.loads(fgzip.read())
         elif obj_type == 'csv':
             data = io.StringIO(stream.read().decode())
             return pd.read_csv(data)
@@ -86,7 +88,7 @@ def read_from_folder(folder, path, obj_type):
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pd.read_csv(fgzip)
         else:
-            raise ValueError("Can only read objects of type ['pickle', 'csv', 'csv.gz] from folder, not '{}'".format(obj_type))
+            raise ValueError("Can only read objects of type ['pickle', 'pickle.gz', 'csv', 'csv.gz'] from folder, not '{}'".format(obj_type))
 
 
 def write_to_folder(obj, folder, path, obj_type):
@@ -94,6 +96,10 @@ def write_to_folder(obj, folder, path, obj_type):
         if obj_type == 'pickle':
             writeable = pickle.dumps(obj)
             writer.write(writeable)
+        elif obj_type == 'pickle.gz':
+            writeable = pickle.dumps(obj)
+            with gzip.GzipFile(fileobj=writer, mode='wb', compresslevel=9) as fgzip:
+                fgzip.write(writeable)
         elif obj_type == 'json':
             writeable = json.dumps(obj).encode()
             writer.write(writeable)
@@ -104,7 +110,7 @@ def write_to_folder(obj, folder, path, obj_type):
             with gzip.GzipFile(fileobj=writer, mode='wb') as fgzip:
                 fgzip.write(obj.to_csv(index=False).encode())
         else:
-            raise ValueError("Can only write objects of type ['pickle', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(obj_type))
+            raise ValueError("Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(obj_type))
 
 
 def get_models_parameters(config):
