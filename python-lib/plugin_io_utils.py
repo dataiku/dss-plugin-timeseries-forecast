@@ -244,3 +244,13 @@ def set_column_description(output_dataset, column_description_dict, input_datase
             if len(matched_comment) != 0:
                 output_col_info["comment"] = matched_comment[0]
     output_dataset.write_schema(output_dataset_schema)
+
+
+def assert_time_column_is_date(dku_dataset, time_column_name):
+    dataset_columns_schema = dku_dataset.read_schema()
+    for column_schema in dataset_columns_schema:
+        column_name = column_schema.get('name')
+        if column_name == time_column_name:
+            column_type = column_schema.get('type')
+            if column_type != 'date':
+                raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
