@@ -2,7 +2,7 @@
 import dataiku
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
-from plugin_io_utils import get_models_parameters, set_column_description, assert_time_column_is_date
+from plugin_io_utils import get_models_parameters, set_column_description, assert_time_column_is_date, assert_continuous_time_column
 from dku_timeseries.global_models import GlobalModels
 from plugin_config_loading import load_training_config
 
@@ -18,6 +18,7 @@ assert_time_column_is_date(training_dataset, global_params['time_column_name'])
 # order of cols is important (for the predict recipe)
 columns = [global_params['time_column_name']] + global_params['target_columns_names'] + global_params['external_feature_columns']
 training_df = training_dataset.get_dataframe(columns=columns)
+assert_continuous_time_column(training_df, global_params['time_column_name'])
 
 global_models = GlobalModels(
     target_columns_names=global_params['target_columns_names'],
