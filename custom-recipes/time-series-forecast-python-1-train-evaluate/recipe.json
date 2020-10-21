@@ -264,26 +264,6 @@
             "visibilityCondition": "model.forecasting_style == 'expert'"
         },
         {
-            "name": "lstnet_model_activated",
-            "label": "- LSTNet",
-            "description": "Based on the LSTNetEstimator GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": true,
-            "mandatory": true
-        },
-        {
-            "name": "lstnet_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.lstnet.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.lstnet_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
-        },
-        {
             "name": "nbeats_model_activated",
             "label": "- NBEATS",
             "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
