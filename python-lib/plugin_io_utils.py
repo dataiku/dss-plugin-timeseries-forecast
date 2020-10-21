@@ -257,7 +257,8 @@ def assert_time_column_is_date(dku_dataset, time_column_name):
 
 
 def assert_continuous_time_column(dataframe, time_column_name):
-    max_diff = dataframe[time_column_name].diff().max()
-    min_diff = dataframe[time_column_name].diff().min()
+    time_diff = dataframe[time_column_name].diff() 
+    max_diff = time_diff.max()
+    min_diff = time_diff.min()
     if max_diff != min_diff:
         raise ValueError("There are gaps in the '{}' time column".format(time_column_name))

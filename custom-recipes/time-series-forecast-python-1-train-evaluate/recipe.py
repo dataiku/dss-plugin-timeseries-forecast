@@ -52,25 +52,3 @@ if global_params['make_forecasts']:
 
     evaluation_forecasts_column_descriptions = global_models.create_evaluation_forecasts_column_description()
     set_column_description(global_params['evaluation_forecasts'], evaluation_forecasts_column_descriptions)
-
-
-# Naive estimator is in fact 3 models
-# kwargs by default could be made visible in the interface (when in expert mode)
-# Trainer has it's own set of kwargs. 2 kwargs in the interface or key prefix ?
-
-"""
-ketchup du 
-models.rdata
-contient tous les models entraines et les données d'entrainement (archivage), parametres d'entrainement
-
-2eme recipe 
-normalement, output vide
-
-python: 
-interogation du model : même horizon qu'a l'entrainement pour la version python (!= que R)
-"""
-
-"""
-objet instancié par model, avec fonction create json
-model sauvé par repertoire 
-"""
