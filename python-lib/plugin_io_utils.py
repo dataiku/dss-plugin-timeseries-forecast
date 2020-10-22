@@ -1,6 +1,7 @@
 
 import re
 import io
+import math
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
 from gluonts.model.deep_factor import DeepFactorEstimator
@@ -28,7 +29,7 @@ AVAILABLE_MODELS = [
 ]
 
 EVALUATION_METRICS = [
-    "MSE", "MASE", "MAPE", "sMAPE", "MSIS"
+    "MSE", "MASE", "MAPE", "sMAPE", "MSIS", "ND", "mean_wQuantileLoss"
 ]
 
 ESTIMATOR = 'estimator'
@@ -256,9 +257,23 @@ def assert_time_column_is_date(dku_dataset, time_column_name):
                 raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
 
 
-def assert_continuous_time_column(dataframe, time_column_name):
-    time_diff = dataframe[time_column_name].diff() 
+def assert_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step):
+    dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
+    time_diff = dataframe[time_column_name].diff()
     max_diff = time_diff.max()
     min_diff = time_diff.min()
-    if max_diff != min_diff:
-        raise ValueError("There are gaps in the '{}' time column".format(time_column_name))
+    error_message = "There are gaps in the '{}' time column".format(time_column_name)
+    if time_granularity_unit not in ['M', 'Y']:
+        if max_diff != min_diff:
+            raise ValueError(error_message)
+    else:
+        if time_granularity_unit == 'Y':
+            possible_diffs = [
+                pd.Timedelta(days=math.floor(365.2422 * time_granularity_step)),
+                pd.Timedelta(days=math.ceil(365.2422 * time_granularity_step))
+            ]
+        elif time_granularity_unit == 'M':
+            # the interval can be narrowed
+            possible_diffs = [pd.Timedelta(days=d) for d in range(28 * time_granularity_step, 31 * time_granularity_step)]
+        if min_diff not in possible_diffs or max_diff not in possible_diffs:
+            raise ValueError(error_message)
