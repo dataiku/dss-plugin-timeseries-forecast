@@ -18,7 +18,8 @@ assert_time_column_is_date(training_dataset, global_params['time_column_name'])
 # order of cols is important (for the predict recipe)
 columns = [global_params['time_column_name']] + global_params['target_columns_names'] + global_params['external_feature_columns']
 training_df = training_dataset.get_dataframe(columns=columns)
-assert_continuous_time_column(training_df, global_params['time_column_name'])
+assert_continuous_time_column(
+    training_df, global_params['time_column_name'], global_params['time_granularity_unit'], global_params['time_granularity_step'])
 
 global_models = GlobalModels(
     target_columns_names=global_params['target_columns_names'],
