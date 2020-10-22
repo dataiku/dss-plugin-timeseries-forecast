@@ -1,22 +1,7 @@
-# Public variable to be set by the user in the Makefile
-TARGET_DSS_VERSION=8.0
-
-# Private variables to be set by the user in the environment
-ifndef DKU_PLUGIN_DEVELOPER_ORG
-$(error the DKU_PLUGIN_DEVELOPER_ORG environment variable is not set)
-endif
-ifndef DKU_PLUGIN_DEVELOPER_TOKEN
-$(error the DKU_PLUGIN_DEVELOPER_TOKEN environment variable is not set)
-endif
-ifndef DKU_PLUGIN_DEVELOPER_REPO_URL
-$(error the DKU_PLUGIN_DEVELOPER_REPO_URL environment variable is not set)
-endif
-
-# evaluate additional variable
+# Makefile variables set automatically
 plugin_id=`cat plugin.json | python -c "import sys, json; print(str(json.load(sys.stdin)['id']).replace('/',''))"`
 plugin_version=`cat plugin.json | python -c "import sys, json; print(str(json.load(sys.stdin)['version']).replace('/',''))"`
 archive_file_name="dss-plugin-${plugin_id}-${plugin_version}.zip"
-artifact_repo_target="${DKU_PLUGIN_DEVELOPER_REPO_URL}/${TARGET_DSS_VERSION}/${DKU_PLUGIN_DEVELOPER_ORG}/${plugin_id}/${plugin_version}/${archive_file_name}"
 remote_url=`git config --get remote.origin.url`
 last_commit_id=`git rev-parse HEAD`
 
@@ -32,27 +17,28 @@ plugin:
 	@rm release_info.json
 	@echo "[SUCCESS] Archiving plugin to dist/ folder: Done!"
 
-submit: plugin
-	@echo "[START] Publishing archive to artifact repository..."
-	@curl -H "Authorization: Bearer ${DKU_PLUGIN_DEVELOPER_TOKEN}>" -X PUT ${artifact_repo_target} -T dist/${archive_file_name}
-	@echo "[SUCCESS] Publishing archive to artifact repository: Done!"
-
 unit-tests:
 	@echo "[START] Running unit tests..."
 	@( \
+		PYTHON_VERSION=`python3 -V 2>&1 | sed 's/[^0-9]*//g' | cut -c 1,2`; \
+		PYTHON_VERSION_IS_CORRECT=`cat code-env/python/desc.json | python3 -c "import sys, json; print(str($$PYTHON_VERSION) in [x[-2:] for x in json.load(sys.stdin)['acceptedPythonInterpreters']]);"`; \
+		if [ ! $$PYTHON_VERSION_IS_CORRECT ]; then echo "Python version $$PYTHON_VERSION is not in acceptedPythonInterpreters"; exit 1; fi; \
+	)
+	@( \
 		python3 -m venv env/; \
 		source env/bin/activate; \
+		pip3 install --upgrade pip; \
 		pip install --no-cache-dir -r tests/python/requirements.txt; \
 		pip install --no-cache-dir -r code-env/python/spec/requirements.txt; \
-		python3 -m pytest tests/python/unit/; \
-		source deactivate; \
+		export PYTHONPATH="$(PYTHONPATH):$(PWD)/python-lib"; \
+                pytest -o junit_family=xunit2 --junitxml=unit.xml tests/python/unit || true; \
+		deactivate; \
 	)
 	@echo "[SUCCESS] Running unit tests: Done!"
 
 integration-tests:
 	@echo "[START] Running integration tests..."
-	@# TODO add integration tests in v2
-	@echo "No integration tests detected :'("
+	# TODO add integration tests
 	@echo "[SUCCESS] Running integration tests: Done!"
 
 tests: unit-tests integration-tests

@@ -280,3 +280,7 @@ def assert_continuous_time_column(dataframe, time_column_name, time_granularity_
             possible_diffs = [pd.Timedelta(days=d) for d in range(28 * time_granularity_step, 31 * time_granularity_step)]
         if min_diff not in possible_diffs or max_diff not in possible_diffs:
             raise ValueError(error_message)
+
+
+def test_dummy_test_function():
+    assert dummy_test_function() == True
