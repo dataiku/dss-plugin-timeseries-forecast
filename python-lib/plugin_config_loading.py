@@ -1,5 +1,6 @@
 import dataiku
 from dataiku.customrecipe import get_recipe_config, get_input_names_for_role, get_output_names_for_role
+import plugin_io_utils as utils
 
 
 class PluginParamValidationError(ValueError):
@@ -50,10 +51,15 @@ def load_predict_config():
 
 def load_training_config(recipe_config):
     params = {}
-    params['input_dataset_name'] = get_input_names_for_role('input_dataset')[0]
+
+    input_dataset_name = get_input_names_for_role('input_dataset')[0]
+    params['training_dataset'] = dataiku.Dataset(input_dataset_name)
+
     model_folder_name = get_output_names_for_role('model_folder')[0]
     params['model_folder'] = dataiku.Folder(model_folder_name)
-    params['evaluation_dataset_name'] = get_output_names_for_role('evaluation_dataset')[0]
+
+    evaluation_dataset_name = get_output_names_for_role('evaluation_dataset')[0]
+    params['evaluation_dataset'] = dataiku.Dataset(evaluation_dataset_name)
 
     params['make_forecasts'] = False
     evaluation_forecasts_names = get_output_names_for_role("evaluation_forecasts")
@@ -61,6 +67,8 @@ def load_training_config(recipe_config):
         params["evaluation_forecasts"] = dataiku.Dataset(evaluation_forecasts_names[0])
         params['make_forecasts'] = True
 
+    # TODO check that time and target columns have been selected
+    # TODO check that columns do exist
     params['target_columns_names'] = recipe_config.get("target_columns")
     params['time_column_name'] = recipe_config.get("time_column")
     params['external_feature_columns'] = recipe_config.get('external_feature_columns', [])
@@ -68,10 +76,15 @@ def load_training_config(recipe_config):
     params['time_granularity_unit'] = recipe_config.get('time_granularity_unit')
     params['time_granularity_step'] = recipe_config.get('time_granularity_step', 1)
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
-
+    
+    # order of cols is important (for the predict recipe)
+    params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['external_feature_columns']
+    
     params['prediction_length'] = recipe_config.get('forecasting_horizon', 30)
     params['epoch'] = recipe_config.get('epoch', 1)
 
-    params['evaluation_dataset'] = dataiku.Dataset(params['evaluation_dataset_name'])
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")
+
+    utils.assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
+
     return params

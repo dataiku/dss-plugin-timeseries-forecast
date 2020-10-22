@@ -34,7 +34,8 @@ class GlobalModels():
                     epoch=self.epoch
                 )
             )
-        self.training_df[self.time_col] = pd.to_datetime(self.training_df[self.time_col]).dt.tz_localize(tz=None)
+        # already done in assert_continuous_time_column
+        # self.training_df[self.time_col] = pd.to_datetime(self.training_df[self.time_col]).dt.tz_localize(tz=None)
         if self.make_forecasts:
             self.forecasts_df = pd.DataFrame()
 

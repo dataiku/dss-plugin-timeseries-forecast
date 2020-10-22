@@ -258,6 +258,9 @@ def assert_time_column_is_date(dku_dataset, time_column_name):
 
 
 def assert_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step):
+    """
+    check that all timesteps are identical
+    """
     dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
     time_diff = dataframe[time_column_name].diff()
     max_diff = time_diff.max()
