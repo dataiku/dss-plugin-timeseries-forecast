@@ -58,9 +58,9 @@ class SingleModel():
         target_cols = [time_series['target'].name for time_series in train_ds.list_data]
         item_metrics['target_col'] = target_cols
 
-        if len(item_metrics.index) > 1:
-            agg_metrics['target_col'] = 'AGGREGATED'
-            item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
+        # if len(item_metrics.index) > 1:  # only display the aggregation row when multiple targets
+        agg_metrics['target_col'] = 'AGGREGATED'
+        item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
         item_metrics = item_metrics[['model', 'target_col'] + EVALUATION_METRICS]
 

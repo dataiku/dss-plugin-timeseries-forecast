@@ -1,7 +1,6 @@
 
 import re
 import io
-import math
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
 from gluonts.model.deep_factor import DeepFactorEstimator
@@ -29,7 +28,7 @@ AVAILABLE_MODELS = [
 ]
 
 EVALUATION_METRICS = [
-    "MSE", "MASE", "MAPE", "sMAPE", "MSIS", "ND", "mean_wQuantileLoss"
+    "MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"
 ]
 
 ESTIMATOR = 'estimator'
@@ -262,23 +261,28 @@ def assert_continuous_time_column(dataframe, time_column_name, time_granularity_
     check that all timesteps are identical
     """
     dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
-    time_diff = dataframe[time_column_name].diff()
-    max_diff = time_diff.max()
-    min_diff = time_diff.min()
-    error_message = "There are gaps in the '{}' time column".format(time_column_name)
-    if time_granularity_unit not in ['M', 'Y']:
-        if max_diff != min_diff:
+    frequency = "{}{}".format(time_granularity_unit, time_granularity_step)
+
+    if time_granularity_step not in ['M', 'Y']:
+        time_diff = dataframe[time_column_name].diff()
+        error_message = """
+            Time column {} doesn't have regular time intervals of frequency {}.
+        """.format(time_column_name, frequency)
+        if time_diff.max() != time_diff.min():
             raise ValueError(error_message)
     else:
-        if time_granularity_unit == 'Y':
-            possible_diffs = [
-                pd.Timedelta(days=math.floor(365.2422 * time_granularity_step)),
-                pd.Timedelta(days=math.ceil(365.2422 * time_granularity_step))
-            ]
-        elif time_granularity_unit == 'M':
-            # the interval can be narrowed
-            possible_diffs = [pd.Timedelta(days=d) for d in range(28 * time_granularity_step, 31 * time_granularity_step)]
-        if min_diff not in possible_diffs or max_diff not in possible_diffs:
+        start_date = dataframe[time_column_name].iloc[0]
+        end_date = dataframe[time_column_name].iloc[-1]
+        date_range = pd.date_range(start=start_date, end=end_date, freq=frequency)
+        error_message = """
+            Time column {name} doesn't have regular time intervals of frequency {frequency}.
+            For {unit_name} frequency, timestamps must be end of {unit_name} (for e.g. '2020-12-31 00:00:00')
+        """.format(name=time_column_name,
+                   frequency=frequency,
+                   unit_name='Month' if time_granularity_step == 'M' else 'Year')
+        if len(date_range) != len(dataframe.index):
+            raise ValueError(error_message)
+        if not dataframe[time_column_name].equals(date_range.to_frame(index=False)[0]):
             raise ValueError(error_message)
 
 
