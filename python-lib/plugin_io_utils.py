@@ -19,7 +19,6 @@ from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
 import json
 import gzip
-import dataiku
 import logging
 
 AVAILABLE_MODELS = [
@@ -176,7 +175,7 @@ def can_model_use_external_feature(model):
 
 
 def save_forecasting_objects(folder_name, version_name, forecasting_object):
-    #filename = "predictor_{}.pk".format(version_name)
+    # filename = "predictor_{}.pk".format(version_name)
     path = os.path.join(folder_name, "versions", version_name)
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, "models.pk"), 'wb') as predictor_file:
@@ -207,14 +206,6 @@ def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split"
         })
         models_error.append(agg_metrics)
     return models_error
-
-
-def save_dataset(dataset_name, time_column_name, target_columns_names, external_feature_columns, model_folder, version_name):
-    dataset = dataiku.Dataset(dataset_name)  # TODO: push this out
-    dataset_df = dataset.get_dataframe()
-    columns_to_save = [time_column_name] + target_columns_names + external_feature_columns
-    dataset_file_path = "{}/train_dataset.gz".format(version_name)
-    write_to_folder(dataset_df[columns_to_save], model_folder, dataset_file_path, 'csv.gz')
 
 
 def set_column_description(output_dataset, column_description_dict, input_dataset=None):
@@ -248,46 +239,28 @@ def set_column_description(output_dataset, column_description_dict, input_datase
     output_dataset.write_schema(output_dataset_schema)
 
 
-def assert_time_column_is_date(dku_dataset, time_column_name):
-    dataset_columns_schema = dku_dataset.read_schema()
-    for column_schema in dataset_columns_schema:
-        column_name = column_schema.get('name')
-        if column_name == time_column_name:
-            column_type = column_schema.get('type')
-            if column_type != 'date':
-                raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
-
-
 def assert_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step):
-    """
-    check that all timesteps are identical
-    """
+    """ raise an explicit error message """
+    is_continuous = check_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step)
+    if not is_continuous:
+        frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
+        error_message = f"Time column {time_column_name} doesn't have regular time intervals of frequency {frequency}."
+        if time_granularity_unit in ['M', 'Y']:
+            unit_name = 'Month' if time_granularity_step == 'M' else 'Year'
+            error_message += f"For {unit_name} frequency, timestamps must be end of {unit_name} (for e.g. '2020-12-31 00:00:00')"
+        raise ValueError(error_message)
+
+
+def check_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step):
+    """ check that all timesteps are identical and follow the chosen frequency """
     dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
     frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
-    print("frequency: ", frequency)
 
-    if time_granularity_unit not in ['M', 'Y']:
-        time_diff = dataframe[time_column_name].diff()
-        error_message = """
-            Time column {} doesn't have regular time intervals of frequency {}.
-        """.format(time_column_name, frequency)
-        if time_diff.max() != time_diff.min():
-            raise ValueError(error_message)
-    else:
-        start_date = dataframe[time_column_name].iloc[0]
-        end_date = dataframe[time_column_name].iloc[-1]
-        date_range = pd.date_range(start=start_date, end=end_date, freq=frequency)
-        error_message = """
-            Time column {name} doesn't have regular time intervals of frequency {frequency}.
-            For {unit_name} frequency, timestamps must be end of {unit_name} (for e.g. '2020-12-31 00:00:00')
-        """.format(name=time_column_name,
-                   frequency=frequency,
-                   unit_name='Month' if time_granularity_step == 'M' else 'Year')
-        if len(date_range) != len(dataframe.index):
-            raise ValueError(error_message)
-        if not dataframe[time_column_name].equals(date_range.to_frame(index=False)[0]):
-            raise ValueError(error_message)
+    start_date = dataframe[time_column_name].iloc[0]
+    end_date = dataframe[time_column_name].iloc[-1]
 
+    date_range_df = pd.date_range(start=start_date, end=end_date, freq=frequency).to_frame(index=False)
 
-def test_dummy_test_function():
-    assert dummy_test_function() == True
+    if len(date_range_df.index) != len(dataframe.index) or not dataframe[time_column_name].equals(date_range_df[0]):
+        return False
+    return True

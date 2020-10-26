@@ -1,2 +1,4 @@
 mxnet==1.6.0
 gluonts==0.5.0
+pandas==1.0.5
+pytest==6.0.1

@@ -1,11 +1,20 @@
 import dataiku
 from dataiku.customrecipe import get_recipe_config, get_input_names_for_role, get_output_names_for_role
-import plugin_io_utils as utils
 
 
 class PluginParamValidationError(ValueError):
     """Custom exception raised when the the plugin parameters chosen by the user are invalid"""
     pass
+
+
+def assert_time_column_is_date(dku_dataset, time_column_name):
+    dataset_columns_schema = dku_dataset.read_schema()
+    for column_schema in dataset_columns_schema:
+        column_name = column_schema.get('name')
+        if column_name == time_column_name:
+            column_type = column_schema.get('type')
+            if column_type != 'date':
+                raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
 
 
 def load_predict_config():
@@ -93,6 +102,6 @@ def load_training_config(recipe_config):
 
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")
 
-    utils.assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
+    assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
 
     return params

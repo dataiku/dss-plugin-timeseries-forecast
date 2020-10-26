@@ -5,11 +5,6 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
 import logging
-try:
-    from BytesIO import BytesIO  # for Python 2
-except ImportError:
-    from io import BytesIO  # for Python 3
-# from json import dumps
 
 
 class SingleModel():
