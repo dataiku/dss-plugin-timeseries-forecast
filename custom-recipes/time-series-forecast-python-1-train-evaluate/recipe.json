@@ -345,6 +345,14 @@
                 }
             ],
             "defaultValue": "split"
+        },
+        {
+            "name": "epoch",
+            "label": "Epoch",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "minI": 1
         }
     ],
     "resourceKeys": []

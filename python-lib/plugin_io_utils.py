@@ -261,9 +261,10 @@ def assert_continuous_time_column(dataframe, time_column_name, time_granularity_
     check that all timesteps are identical
     """
     dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
-    frequency = "{}{}".format(time_granularity_unit, time_granularity_step)
+    frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
+    print("frequency: ", frequency)
 
-    if time_granularity_step not in ['M', 'Y']:
+    if time_granularity_unit not in ['M', 'Y']:
         time_diff = dataframe[time_column_name].diff()
         error_message = """
             Time column {} doesn't have regular time intervals of frequency {}.

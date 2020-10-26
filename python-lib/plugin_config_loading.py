@@ -54,6 +54,7 @@ def load_training_config(recipe_config):
 
     input_dataset_name = get_input_names_for_role('input_dataset')[0]
     params['training_dataset'] = dataiku.Dataset(input_dataset_name)
+    training_dataset_columns = [p["name"] for p in params["training_dataset"].read_schema()]
 
     model_folder_name = get_output_names_for_role('model_folder')[0]
     params['model_folder'] = dataiku.Folder(model_folder_name)
@@ -67,19 +68,26 @@ def load_training_config(recipe_config):
         params["evaluation_forecasts"] = dataiku.Dataset(evaluation_forecasts_names[0])
         params['make_forecasts'] = True
 
-    # TODO check that time and target columns have been selected
-    # TODO check that columns do exist
-    params['target_columns_names'] = recipe_config.get("target_columns")
     params['time_column_name'] = recipe_config.get("time_column")
+    if params['time_column_name'] not in training_dataset_columns:
+        raise PluginParamValidationError("Invalid time column selection")
+
+    params['target_columns_names'] = recipe_config.get("target_columns")
+    if len(params['target_columns_names']) == 0 or not all(column in training_dataset_columns for column in params['target_columns_names']):
+        raise PluginParamValidationError("Invalid target column(s) selection")
+
     params['external_feature_columns'] = recipe_config.get('external_feature_columns', [])
+    if not all(column in training_dataset_columns for column in params['external_feature_columns']):
+        raise PluginParamValidationError("Invalid external features column(s) selection")
+
     params['deepar_model_activated'] = recipe_config.get('deepar_model_activated', False)
     params['time_granularity_unit'] = recipe_config.get('time_granularity_unit')
     params['time_granularity_step'] = recipe_config.get('time_granularity_step', 1)
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
-    
+
     # order of cols is important (for the predict recipe)
     params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['external_feature_columns']
-    
+
     params['prediction_length'] = recipe_config.get('forecasting_horizon', 30)
     params['epoch'] = recipe_config.get('epoch', 1)
 
