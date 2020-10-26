@@ -18,7 +18,6 @@ from gluonts.evaluation import Evaluator
 from gluonts.evaluation.backtest import backtest_metrics
 import pandas as pd
 import json
-from plugin_config_loading import PluginParamValidationError
 import gzip
 import dataiku
 import logging
@@ -122,7 +121,7 @@ def get_models_parameters(config):
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if 'prediction_length' in model_presets.get('kwargs', {}):
-                raise PluginParamValidationError("The value for 'prediction_length' cannot be changed")
+                raise ValueError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({
                 model: model_presets
             })
