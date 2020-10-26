@@ -167,7 +167,7 @@
             "label": "- Baseline",
             "description": "Based on the trivial/seasonal_naive/naive_2 GluonTS models",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "mandatory": true
         },
         {
@@ -288,7 +288,7 @@
             "label": "- NPTS",
             "description": "Based on the NPTSPredictor GluonTS model",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "mandatory": true
         },
         {

@@ -76,7 +76,7 @@ MODEL_DESCRIPTORS = {
 
 
 def read_from_folder(folder, path, obj_type):
-    logging.info("Timseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
+    logging.info("Timeseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_download_stream(path) as stream:
         if obj_type == 'pickle':
             return pickle.loads(stream.read())
@@ -94,7 +94,7 @@ def read_from_folder(folder, path, obj_type):
 
 
 def write_to_folder(obj, folder, path, obj_type):
-    logging.info("Timseries forecast - Saving {}".format(os.path.join(folder.get_path(), path)))
+    logging.info("Timeseries forecast - Saving {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_writer(path) as writer:
         if obj_type == 'pickle':
             writeable = pickle.dumps(obj)
