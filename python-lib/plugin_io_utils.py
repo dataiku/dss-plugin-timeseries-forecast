@@ -21,6 +21,7 @@ import json
 from plugin_config_loading import PluginParamValidationError
 import gzip
 import dataiku
+import logging
 
 AVAILABLE_MODELS = [
     "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
@@ -75,6 +76,7 @@ MODEL_DESCRIPTORS = {
 
 
 def read_from_folder(folder, path, obj_type):
+    logging.info("Timseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_download_stream(path) as stream:
         if obj_type == 'pickle':
             return pickle.loads(stream.read())
@@ -92,6 +94,7 @@ def read_from_folder(folder, path, obj_type):
 
 
 def write_to_folder(obj, folder, path, obj_type):
+    logging.info("Timseries forecast - Saving {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_writer(path) as writer:
         if obj_type == 'pickle':
             writeable = pickle.dumps(obj)

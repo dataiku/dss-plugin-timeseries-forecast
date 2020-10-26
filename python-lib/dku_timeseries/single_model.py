@@ -4,6 +4,7 @@ from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS, 
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
+import logging
 try:
     from BytesIO import BytesIO  # for Python 2
 except ImportError:
@@ -36,9 +37,11 @@ class SingleModel():
         if self.estimator is None:
             print("No training: {} model not implemented yet".format(self.model_name))
             return
+        logging.info("Timeseries forecast - Training model {} on all data".format(self.model_name))
         self.predictor = self.estimator.train(train_ds)
 
     def evaluate(self, train_ds, test_ds, make_forecasts=False):
+        logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
         predictor = self.estimator.train(train_ds)
         evaluator = Evaluator(quantiles=[0.1, 0.5, 0.9])
 
