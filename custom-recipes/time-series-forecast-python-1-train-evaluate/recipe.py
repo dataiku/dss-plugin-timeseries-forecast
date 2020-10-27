@@ -31,13 +31,13 @@ global_models = GlobalModels(
     make_forecasts=params['make_forecasts'],
     external_features_column_name=params['external_feature_columns']
 )
-global_models.init_all_models()
+global_models.init_all_models(version_name=version_name)
 
 global_models.evaluate_all(params['evaluation_strategy'])
 
-global_models.fit_all()
-
-global_models.save_all(version_name=version_name)
+if not params['evaluation_only']:
+    global_models.fit_all()
+    global_models.save_all()
 
 metrics_df = global_models.get_metrics_df()
 params['evaluation_dataset'].write_with_schema(metrics_df)

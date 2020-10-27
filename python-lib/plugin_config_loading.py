@@ -98,9 +98,17 @@ def load_training_config(recipe_config):
     params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['external_feature_columns']
 
     params['prediction_length'] = recipe_config.get('forecasting_horizon', 30)
+
+    params['context_length'] = recipe_config.get('context_length', 0)
+    if params['context_length'] == 0:
+        params['context_length'] = params['prediction_length']
+
     params['epoch'] = recipe_config.get('epoch', 1)
+    params['gpu'] = recipe_config.get('gpu', 'no_gpu')
+    params['batch_size'] = recipe_config.get('batch_size', 32)
 
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")
+    params['evaluation_only'] = recipe_config.get("evaluation_only", False)
 
     assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
 

@@ -331,6 +331,13 @@
             "defaultValue": "split"
         },
         {
+            "name": "evaluation_only",
+            "label": "Only evaluation",
+            "description": "Don't save models retrained on all data.",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
             "name": "training_options_separator",
             "label": "Training options",
             "type": "SEPARATOR"
