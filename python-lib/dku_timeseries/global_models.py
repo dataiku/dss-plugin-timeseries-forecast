@@ -1,7 +1,7 @@
 import pandas as pd
 from dku_timeseries.single_model import SingleModel
 from gluonts.dataset.common import ListDataset
-from plugin_io_utils import write_to_folder
+from plugin_io_utils import write_to_folder, METRICS_DATASET
 
 
 class GlobalModels():
@@ -21,7 +21,8 @@ class GlobalModels():
         self.make_forecasts = make_forecasts
         self.external_features_column_name = external_features_column_name
 
-    def init_all_models(self):
+    def init_all_models(self, version_name):
+        self.version_name = version_name
         self.models = []
         for model_name in self.models_parameters:
             model_parameters = self.models_parameters.get(model_name)
@@ -75,7 +76,10 @@ class GlobalModels():
         else:
             raise Exception("{} evaluation strategy not implemented".format(evaluation_strategy))
 
-        self.metrics_df = pd.DataFrame()
+        self.metrics_df = self._compute_all_evaluation_metrics(train_ds, test_ds)
+
+    def _compute_all_evaluation_metrics(self, train_ds, test_ds):
+        metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
                 agg_metrics, item_metrics, forecasts_df = model.evaluate(train_ds, test_ds, make_forecasts=True)
@@ -86,32 +90,44 @@ class GlobalModels():
                     self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
             else:
                 agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
-            self.metrics_df = self.metrics_df.append(item_metrics)
+            metrics_df = metrics_df.append(item_metrics)
+        metrics_df['session'] = self.version_name
+        orderd_metrics_df = self._reorder_metrics_df(metrics_df)
+        return orderd_metrics_df
 
-    def save_all(self, version_name):
-        metrics_path = "{}/metrics.csv".format(version_name)
-        self.metrics_df['session'] = version_name
+    def _reorder_metrics_df(self, metrics_df):
+        """ sort rows by target column and put aggregated rows on top """
+        metrics_df = metrics_df.sort_values(by=[METRICS_DATASET.TARGET_COLUMN], ascending=True)
+        orderd_metrics_df = pd.concat([
+            metrics_df[metrics_df[METRICS_DATASET.TARGET_COLUMN]==METRICS_DATASET.AGGREGATED_ROW],
+            metrics_df[metrics_df[METRICS_DATASET.TARGET_COLUMN]!=METRICS_DATASET.AGGREGATED_ROW]
+        ], axis=0)
+        return orderd_metrics_df
+
+    def save_all(self):
+        metrics_path = "{}/metrics.csv".format(self.version_name)
         write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
 
-        targets_df_path = "{}/targets_train_dataset.csv.gz".format(version_name)
+        targets_df_path = "{}/targets_train_dataset.csv.gz".format(self.version_name)
         write_to_folder(self.training_df[[self.time_col]+self.target_columns_names], self.model_folder, targets_df_path, 'csv.gz')
 
         if self.external_features_column_name:
-            external_features_df_path = "{}/external_features_train_dataset.csv.gz".format(version_name)
+            external_features_df_path = "{}/external_features_train_dataset.csv.gz".format(self.version_name)
             write_to_folder(self.training_df[[self.time_col]+self.external_features_column_name], self.model_folder, external_features_df_path, 'csv.gz')
 
         for model in self.models:
-            model.save(model_folder=self.model_folder, version_name=version_name)
+            model.save(model_folder=self.model_folder, version_name=self.version_name)
 
-    def load(self, path):
-        # Todo
-        dataset = load(dataset)
-        best_model = find_best_model(dataset)
-        model = SingleModel()
-        model.load(path, best_model)
+    # def load(self, path):
+    #     # Todo
+    #     dataset = load(dataset)
+    #     best_model = find_best_model(dataset)
+    #     model = SingleModel()
+    #     model.load(path, best_model)
 
     def get_evaluation_forecasts_df(self):
         self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')
+        self.evaluation_forecasts_df['session'] = self.version_name
         return self.evaluation_forecasts_df
 
     def get_metrics_df(self):

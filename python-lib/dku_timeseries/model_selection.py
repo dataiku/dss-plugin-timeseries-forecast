@@ -1,5 +1,5 @@
 import re
-from plugin_io_utils import read_from_folder
+from plugin_io_utils import read_from_folder, METRICS_DATASET
 import pandas as pd
 from plugin_io_utils import MODEL_DESCRIPTORS, CAN_USE_EXTERNAL_FEATURES
 
@@ -24,6 +24,7 @@ class ModelSelection():
             self.session = self._get_last_session()
             self.model_type = self._get_best_model()
 
+        # TODO raise explicit error if selected model is not in selected session
         model_path = "{}/{}/model.pk.gz".format(self.session, self.model_type)
         model = read_from_folder(self.folder, model_path, 'pickle.gz')
         return model
@@ -82,8 +83,8 @@ class ModelSelection():
 
     def _get_best_model(self):
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), 'csv')
-        if (df['target_col'] == 'AGGREGATED').any():
-            df = df[df['target_col'] == 'AGGREGATED']
-        assert df['model'].nunique() == len(df.index), "More than one row per model"
-        model_type = df.loc[df[self.performance_metric].idxmin()]['model']  # or idxmax() if maximize metric
+        if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
+            df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
+        assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
+        model_type = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
         return model_type

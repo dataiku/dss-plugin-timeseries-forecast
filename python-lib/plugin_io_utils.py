@@ -30,6 +30,11 @@ EVALUATION_METRICS = [
     "MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"
 ]
 
+class METRICS_DATASET:
+    TARGET_COLUMN = "target_column"
+    MODEL_COLUMN = "model"
+    AGGREGATED_ROW = "AGGREGATED"
+
 ESTIMATOR = 'estimator'
 CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature'
 TRAINER = 'trainer'
@@ -172,14 +177,6 @@ def get_trainer(model, **kwargs):
 def can_model_use_external_feature(model):
     model_descriptor = get_model_descriptor(model)
     return model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
-
-
-def save_forecasting_objects(folder_name, version_name, forecasting_object):
-    # filename = "predictor_{}.pk".format(version_name)
-    path = os.path.join(folder_name, "versions", version_name)
-    os.makedirs(path, exist_ok=True)
-    with open(os.path.join(path, "models.pk"), 'wb') as predictor_file:
-        pickle.dump(forecasting_object, predictor_file)
 
 
 def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split", forecasting_horizon=1):

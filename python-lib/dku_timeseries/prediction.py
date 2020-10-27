@@ -47,6 +47,7 @@ class Prediction():
             self.forecasts_df = self.forecasts_df.iloc[:-diff]
 
     def get_forecasts_df(self):
+        # TODO add to forecasts dataframe the selected model and session ?
         return self.forecasts_df
 
     def _create_gluonts_dataset(self):
