@@ -9,15 +9,6 @@
     "selectableFromDataset": "evaluation_dataset",
     "selectableFromFolder": "model_folder",
     "inputRoles": [
-        // {
-        //     "name": "evaluation_dataset",
-        //     "label": "Evaluation results",
-        //     "description": "Dataset with the evaluation results computed by the \"Train and evaluate\" recipe",
-        //     "arity": "UNARY",
-        //     "required": true,
-        //     "acceptsDataset": true,
-        //     "acceptsFolder": false
-        // },
         {
             "name": "model_folder",
             "label": "Trained model folder",
@@ -101,6 +92,18 @@
                 {
                     "value": "MSIS",
                     "label": "Mean Scaled Interval Score"
+                },
+                {
+                    "value": "ND",
+                    "label": "ND"
+                },
+                {
+                    "value": "RMSE",
+                    "label": "Root Mean Squared Error"
+                },
+                {
+                    "value": "mean_wQuantileLoss",
+                    "label": "Mean weighted Qauntile Loss"
                 }
             ]
         },

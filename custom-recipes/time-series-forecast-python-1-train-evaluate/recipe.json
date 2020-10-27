@@ -126,6 +126,10 @@
                     "label": "Day"
                 },
                 {
+                    "value": "B",
+                    "label": "Business Day"
+                },
+                {
                     "value": "H",
                     "label": "Hour"
                 },
@@ -135,6 +139,14 @@
                 }
             ],
             "defaultValue": "D"
+        },
+        {
+            "name": "forecasting_horizon",
+            "label": "Forecasting horizon",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": true,
+            "minI": 1
         },
         {
             "name": "separator_modeling",
@@ -224,26 +236,6 @@
             "visibilityCondition": "model.forecasting_style == 'expert'"
         },
         {
-            "name": "deepfactor_model_activated",
-            "label": "- DeepFactor",
-            "description": "Based on the DeepFactorEstimator GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": true,
-            "mandatory": true
-        },
-        {
-            "name": "deepfactor_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deep_factor.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.deepfactor_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
-        },
-        {
             "name": "deepar_model_activated",
             "label": "- DeepAR",
             "description": "Based on the DeepAREstimator GluonTS model",
@@ -257,46 +249,6 @@
             "label": "  ↳ Parameters",
             "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deepar.html",
             "visibilityCondition": "model.forecasting_style == 'expert' && model.deepar_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
-        },
-        {
-            "name": "nbeats_model_activated",
-            "label": "- NBEATS",
-            "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": true,
-            "mandatory": true
-        },
-        {
-            "name": "nbeats_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.n_beats.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.nbeats_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
-        },
-        {
-            "name": "npts_model_activated",
-            "label": "- NPTS",
-            "description": "Based on the NPTSPredictor GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "mandatory": true
-        },
-        {
-            "name": "npts_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.npts.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.npts_model_activated",
             "mandatory": false
         },
         {
@@ -320,17 +272,49 @@
             "mandatory": false
         },
         {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "deepfactor_model_activated",
+            "label": "- DeepFactor",
+            "description": "Based on the DeepFactorEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true
+        },
+        {
+            "name": "deepfactor_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deep_factor.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.deepfactor_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'expert'"
+        },
+        {
+            "name": "nbeats_model_activated",
+            "label": "- NBEATS",
+            "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true
+        },
+        {
+            "name": "nbeats_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.n_beats.html",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.nbeats_model_activated",
+            "mandatory": false
+        },
+        {
             "name": "separator_evaluation",
             "label": "Performance Evaluation",
             "type": "SEPARATOR"
-        },
-        {
-            "name": "forecasting_horizon",
-            "label": "Forecasting horizon",
-            "type": "INT",
-            "defaultValue": 1,
-            "mandatory": true,
-            "minI": 1
         },
         {
             "name": "evaluation_strategy",
@@ -347,12 +331,61 @@
             "defaultValue": "split"
         },
         {
+            "name": "training_options_separator",
+            "label": "Training options",
+            "type": "SEPARATOR"
+        },
+        {
             "name": "epoch",
             "label": "Epoch",
             "type": "INT",
             "defaultValue": 1,
             "mandatory": false,
             "minI": 1
+        },
+        {
+            "name": "context_length",
+            "label": "Context length",
+            "type": "INT",
+            "description": "If 0, same as prediction length.",
+            "defaultValue": 0,
+            "mandatory": false,
+            "minI": 0
+        },
+        {
+            "name": "advanced_options_separator",
+            "label": "Advanced",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "adavanced_options",
+            "label": "Display advanced options",
+            "description": "Options of Trainer",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
+            "name": "gpu",
+            "label": "GPU",
+            "type": "SELECT",
+            "selectChoices": [
+                {
+                    "value": "no_gpu",
+                    "label": "No GPU"
+                }
+            ],
+            "defaultValue": "no_gpu",
+            "visibilityCondition": "model.adavanced_options == true"
+        },
+        {
+            "name": "batch_size",
+            "label": "Batch size",
+            "type": "INT",
+            "description": "",
+            "defaultValue": 32,
+            "mandatory": false,
+            "minI": 0,
+            "visibilityCondition": "model.adavanced_options == true"
         }
     ],
     "resourceKeys": []
