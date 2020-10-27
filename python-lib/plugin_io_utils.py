@@ -36,7 +36,7 @@ class METRICS_DATASET:
     AGGREGATED_ROW = "AGGREGATED"
 
 ESTIMATOR = 'estimator'
-CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature'
+CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature' # TODO implement
 TRAINER = 'trainer'
 
 MODEL_DESCRIPTORS = {

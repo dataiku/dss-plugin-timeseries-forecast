@@ -101,11 +101,11 @@ def load_training_config(recipe_config):
 
     params['context_length'] = recipe_config.get('context_length', 0)
     if params['context_length'] == 0:
-        params['context_length'] = params['prediction_length']
+        params['context_length'] = params['prediction_length']  # TODO implement
 
     params['epoch'] = recipe_config.get('epoch', 1)
-    params['gpu'] = recipe_config.get('gpu', 'no_gpu')
-    params['batch_size'] = recipe_config.get('batch_size', 32)
+    params['gpu'] = recipe_config.get('gpu', 'no_gpu')  # TODO implement
+    params['batch_size'] = recipe_config.get('batch_size', 32)  # TODO implement
 
     params['evaluation_strategy'] = recipe_config.get("evaluation_strategy", "split")
     params['evaluation_only'] = recipe_config.get("evaluation_only", False)
