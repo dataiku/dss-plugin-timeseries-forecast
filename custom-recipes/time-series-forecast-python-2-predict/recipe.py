@@ -17,13 +17,15 @@ else:
 
 predictor = model_selection.get_model()  # => Predictor()
 
-targets_train_df = model_selection.get_targets_train_dataframe()  # => DataFrame()
-external_features_df = model_selection.get_external_features_dataframe()  # => DataFrame()
+gluon_train_dataset = model_selection.get_gluon_train_dataset()  # => ListDataset()
+# targets_train_df = model_selection.get_targets_train_dataframe()  # => DataFrame()
+# external_features_df = model_selection.get_external_features_dataframe()  # => DataFrame()
 
 prediction = Prediction(
     predictor=predictor,
-    targets_train_df=targets_train_df,
-    external_features_df=external_features_df,
+    gluon_train_dataset=gluon_train_dataset,
+    # targets_train_df=targets_train_df,
+    # external_features_df=external_features_df,
     forecasting_horizon=params['forecasting_horizon'],
     quantiles=params['quantiles'],
     include_history=params['include_history']

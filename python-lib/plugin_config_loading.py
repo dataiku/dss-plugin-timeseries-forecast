@@ -85,8 +85,14 @@ def load_training_config(recipe_config):
     if len(params['target_columns_names']) == 0 or not all(column in training_dataset_columns for column in params['target_columns_names']):
         raise PluginParamValidationError("Invalid target column(s) selection")
 
-    params['external_feature_columns'] = recipe_config.get('external_feature_columns', [])
-    if not all(column in training_dataset_columns for column in params['external_feature_columns']):
+    params['category_columns_names'] = recipe_config.get('category_columns', [])
+    if not all(column in training_dataset_columns for column in params['category_columns_names']):
+        raise PluginParamValidationError("Invalid category column(s) selection")
+    if params['category_columns_names'] and params['make_forecasts']:
+        raise ValueError("Cannot output evaluation forecasts dataset with long format input.")
+
+    params['external_features_columns_names'] = recipe_config.get('external_feature_columns', [])
+    if not all(column in training_dataset_columns for column in params['external_features_columns_names']):
         raise PluginParamValidationError("Invalid external features column(s) selection")
 
     params['deepar_model_activated'] = recipe_config.get('deepar_model_activated', False)
@@ -95,7 +101,7 @@ def load_training_config(recipe_config):
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
 
     # order of cols is important (for the predict recipe)
-    params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['external_feature_columns']
+    params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['category_columns_names'] + params['external_features_columns_names']
 
     params['prediction_length'] = recipe_config.get('forecasting_horizon', 30)
 

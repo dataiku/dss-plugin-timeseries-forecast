@@ -261,3 +261,6 @@ def check_continuous_time_column(dataframe, time_column_name, time_granularity_u
     if len(date_range_df.index) != len(dataframe.index) or not dataframe[time_column_name].equals(date_range_df[0]):
         return False
     return True
+
+def remove_timezone_information(dataframe, time_column_name):
+    dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)

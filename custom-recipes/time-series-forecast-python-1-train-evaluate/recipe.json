@@ -78,6 +78,22 @@
             "mandatory": true
         },
         {
+            "name": "category_columns",
+            "label": "Category columns (optional)",
+            "description": "For long-format input dataset",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "string",
+                "boolean"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false
+        },        
+        {
             "name": "external_feature_columns",
             "label": "External features (optional)",
             "description": "Useable only by DeepAR",

@@ -6,7 +6,7 @@ from plugin_io_utils import write_to_folder, METRICS_DATASET
 
 class GlobalModels():
     def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length,
-                 training_df, make_forecasts, external_features_column_name=None):
+                 training_df, make_forecasts, external_features_columns_names=None, category_columns_names=None):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -19,7 +19,8 @@ class GlobalModels():
         self.model_folder = model_folder
         self.epoch = epoch
         self.make_forecasts = make_forecasts
-        self.external_features_column_name = external_features_column_name
+        self.external_features_columns_names = external_features_columns_names
+        self.category_columns_names = category_columns_names
 
     def init_all_models(self, version_name):
         self.version_name = version_name
@@ -42,54 +43,80 @@ class GlobalModels():
 
     def fit_all(self):
         # create list dataset for fit
-        train_ds = self.create_gluonts_dataset(length=len(self.training_df.index))
+        # train_ds = self.create_gluonts_dataset()
         for model in self.models:
-            model.fit(train_ds)
+            model.fit(self.test_ds)
 
-    def create_gluonts_dataset(self, length):
+    def create_gluonts_dataset(self, remove_length=None):
+        length = -remove_length if remove_length else None
+        if self.category_columns_names:
+            return self.create_gluonts_dataset_from_long_format(length)
+        else:
+            return self.create_gluonts_dataset_from_wide_format(length)
+
+    def create_gluonts_dataset_from_wide_format(self, length):
         initial_date = self.training_df[self.time_col].iloc[0]
         start = pd.Timestamp(initial_date, freq=self.frequency)
-        if not self.external_features_column_name:
+        if not self.external_features_columns_names:
             return ListDataset(
                 [{
                     "start": start,
-                    "target": self.training_df[target_column_name].iloc[:length]  # start from 0 to length
+                    "target": self.training_df[target_column_name].iloc[:length].values,  # start from 0 to length
+                    "target_name": target_column_name
                 } for target_column_name in self.target_columns_names],
                 freq=self.frequency
             )
         else:
-            external_features_all_df = self.training_df[self.external_features_column_name].iloc[:length]
+            external_features_all_df = self.training_df[self.external_features_columns_names].iloc[:length]
             return ListDataset(
                 [{
                     'start': start,
-                    'target': self.training_df[target_column_name].iloc[:length],  # start from 0 to length
+                    'target': self.training_df[target_column_name].iloc[:length].values,  # start from 0 to length
                     'feat_dynamic_real': external_features_all_df.values.T
                 } for target_column_name in self.target_columns_names],
                 freq=self.frequency
             )
 
+    def create_gluonts_dataset_from_long_format(self, length):
+        """ convert training_df into ListDataset based on category columns """
+        multiple_timeseries = []
+        for group_names, df_group in self.training_df.groupby(self.category_columns_names):
+            categories_map = {self.category_columns_names[i]: group_name for i, group_name in enumerate(group_names)}
+            categories_label = '_'.join([f"{self.category_columns_names[i]}_{group_name}" for i, group_name in enumerate(group_names)])
+            for target_column_name in self.target_columns_names:
+                timeseries = {
+                    'start': df_group[self.time_col].iloc[0],
+                    'target': df_group[target_column_name].iloc[:length].values,
+                    'target_name': f"{target_column_name}_{categories_label}",
+                    'target_column_name': target_column_name,
+                    'categories': categories_map
+                }
+                multiple_timeseries.append(timeseries)
+        return ListDataset(multiple_timeseries, freq=self.frequency)
+
     def evaluate_all(self, evaluation_strategy):
-        total_length = len(self.training_df.index)
+        # total_length = len(self.training_df.index)
         if evaluation_strategy == "split":
-            train_ds = self.create_gluonts_dataset(length=total_length-self.prediction_length)  # all - prediction_length time steps
-            test_ds = self.create_gluonts_dataset(length=total_length)  # all time steps
+            self.train_ds = self.create_gluonts_dataset(remove_length=self.prediction_length)  # remove last prediction_length time steps
+            self.test_ds = self.create_gluonts_dataset()  # all time steps
         else:
             raise Exception("{} evaluation strategy not implemented".format(evaluation_strategy))
+        self.metrics_df = self._compute_all_evaluation_metrics()
 
-        self.metrics_df = self._compute_all_evaluation_metrics(train_ds, test_ds)
-
-    def _compute_all_evaluation_metrics(self, train_ds, test_ds):
+    def _compute_all_evaluation_metrics(self):
         metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
-                agg_metrics, item_metrics, forecasts_df = model.evaluate(train_ds, test_ds, make_forecasts=True)
+                if self.category_columns_names:
+                    raise ValueError("Cannot output evaluation forecasts dataset with long format input.")
+                agg_metrics, item_metrics, forecasts_df = model.evaluate(self.train_ds, self.test_ds, make_forecasts=True)
                 forecasts_df = forecasts_df.rename(columns={'index': self.time_col})
                 if self.forecasts_df.empty:
                     self.forecasts_df = forecasts_df
                 else:
                     self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=self.time_col)
             else:
-                agg_metrics, item_metrics = model.evaluate(train_ds, test_ds)
+                agg_metrics, item_metrics = model.evaluate(self.train_ds, self.test_ds)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df['session'] = self.version_name
         orderd_metrics_df = self._reorder_metrics_df(metrics_df)
@@ -108,22 +135,18 @@ class GlobalModels():
         metrics_path = "{}/metrics.csv".format(self.version_name)
         write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
 
-        targets_df_path = "{}/targets_train_dataset.csv.gz".format(self.version_name)
-        write_to_folder(self.training_df[[self.time_col]+self.target_columns_names], self.model_folder, targets_df_path, 'csv.gz')
+        gluon_train_dataset_path = "{}/gluon_train_dataset.pickle.gz".format(self.version_name)
+        write_to_folder(self.test_ds, self.model_folder, gluon_train_dataset_path, 'pickle.gz')
 
-        if self.external_features_column_name:
-            external_features_df_path = "{}/external_features_train_dataset.csv.gz".format(self.version_name)
-            write_to_folder(self.training_df[[self.time_col]+self.external_features_column_name], self.model_folder, external_features_df_path, 'csv.gz')
+        # targets_df_path = "{}/targets_train_dataset.csv.gz".format(self.version_name)
+        # write_to_folder(self.training_df[[self.time_col]+self.target_columns_names], self.model_folder, targets_df_path, 'csv.gz')
+
+        # if self.external_features_columns_names:
+        #     external_features_df_path = "{}/external_features_train_dataset.csv.gz".format(self.version_name)
+        #     write_to_folder(self.training_df[[self.time_col]+self.external_features_columns_names], self.model_folder, external_features_df_path, 'csv.gz')
 
         for model in self.models:
             model.save(model_folder=self.model_folder, version_name=self.version_name)
-
-    # def load(self, path):
-    #     # Todo
-    #     dataset = load(dataset)
-    #     best_model = find_best_model(dataset)
-    #     model = SingleModel()
-    #     model.load(path, best_model)
 
     def get_evaluation_forecasts_df(self):
         self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=self.time_col, how='left')

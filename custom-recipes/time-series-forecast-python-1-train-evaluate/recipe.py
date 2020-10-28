@@ -2,7 +2,7 @@
 import dataiku
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
-from plugin_io_utils import get_models_parameters, set_column_description, assert_continuous_time_column
+from plugin_io_utils import get_models_parameters, set_column_description, assert_continuous_time_column, remove_timezone_information
 from dku_timeseries.global_models import GlobalModels
 from plugin_config_loading import load_training_config
 
@@ -15,9 +15,11 @@ models_parameters = get_models_parameters(config)
 
 training_df = params['training_dataset'].get_dataframe(columns=params['columns_to_keep'])
 
-assert_continuous_time_column(
-    training_df, params['time_column_name'], params['time_granularity_unit'], params['time_granularity_step']
-)
+remove_timezone_information(training_df, params['time_column_name'])
+
+# assert_continuous_time_column(
+#     training_df, params['time_column_name'], params['time_granularity_unit'], params['time_granularity_step']
+# )
 
 global_models = GlobalModels(
     target_columns_names=params['target_columns_names'],
@@ -29,7 +31,8 @@ global_models = GlobalModels(
     prediction_length=params['prediction_length'],
     training_df=training_df,
     make_forecasts=params['make_forecasts'],
-    external_features_column_name=params['external_feature_columns']
+    external_features_columns_names=params['external_features_columns_names'],
+    category_columns_names=params['category_columns_names']
 )
 global_models.init_all_models(version_name=version_name)
 

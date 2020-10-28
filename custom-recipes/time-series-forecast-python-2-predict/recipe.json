@@ -148,7 +148,7 @@
             "label": "Include history",
             "description": "Whether to include past values in addition to the forecasted values.",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "mandatory": true
         }
     ],

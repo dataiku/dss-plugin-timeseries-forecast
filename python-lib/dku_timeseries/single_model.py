@@ -53,7 +53,7 @@ class SingleModel():
         item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
         agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
 
-        target_cols = [time_series['target'].name for time_series in train_ds.list_data]
+        target_cols = [time_series['target_name'] for time_series in train_ds.list_data]
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_cols
 
         # if len(item_metrics.index) > 1:  # only display the aggregation row when multiple targets
