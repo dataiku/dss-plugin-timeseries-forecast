@@ -26,7 +26,7 @@ prediction = Prediction(
     gluon_train_dataset=gluon_train_dataset,
     # targets_train_df=targets_train_df,
     # external_features_df=external_features_df,
-    forecasting_horizon=params['forecasting_horizon'],
+    prediction_length=params['prediction_length'],
     quantiles=params['quantiles'],
     include_history=params['include_history']
 )

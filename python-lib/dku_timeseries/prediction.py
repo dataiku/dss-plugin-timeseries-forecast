@@ -4,21 +4,21 @@ from plugin_config_loading import PluginParamValidationError
 
 
 class Prediction():
-    def __init__(self, predictor, gluon_train_dataset, forecasting_horizon, quantiles, include_history):
+    def __init__(self, predictor, gluon_train_dataset, prediction_length, quantiles, include_history):
         self.predictor = predictor
         self.gluon_train_dataset = gluon_train_dataset
         # self.targets_train_df = targets_train_df
         # self.time_column = targets_train_df.columns[0]
         # self.target_columns = targets_train_df.columns[1:]
         # self.external_features_df = external_features_df
-        self.forecasting_horizon = forecasting_horizon
+        self.prediction_length = prediction_length
         self.quantiles = quantiles
         self.include_history = include_history
         # self._check()
 
     def predict(self):
         # prediction_dataset = self._create_gluonts_dataset()
-        long_format = bool('categories' in self.gluon_train_dataset.list_data[0])
+        long_format = bool('identifiers' in self.gluon_train_dataset.list_data[0])
         if long_format and self.include_history:
             raise ValueError("Cannot include history in long format")
 
@@ -27,9 +27,9 @@ class Prediction():
 
         if long_format:
             multiple_df = []
+            # TODO copy code from single_model
             for i, sample_forecasts in enumerate(forecasts_list):
                 df = pd.DataFrame()
-                is_median = False
                 for quantile in self.quantiles:
                     sample_forecasts_df = sample_forecasts.quantile_ts(quantile).to_frame().reset_index().rename(
                         columns={
@@ -41,7 +41,7 @@ class Prediction():
                         df = sample_forecasts_df
                     else:
                         df = df.merge(sample_forecasts_df, on='time_column')
-                for category, value in self.gluon_train_dataset.list_data[i]['categories'].items():
+                for category, value in self.gluon_train_dataset.list_data[i]['identifiers'].items():
                     df[category] = value
                 multiple_df.append(df)
             self.forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
@@ -67,9 +67,9 @@ class Prediction():
             if self.external_features_df is not None:
                 self.forecasts_df = self.forecasts_df.merge(self.external_features_df, on=self.time_column, how='left', suffixes=('', '_external_feat'))
 
-            # only keep the first forecasting_horizon predictions
-            if self.predictor.prediction_length > self.forecasting_horizon:
-                diff = self.predictor.prediction_length - self.forecasting_horizon
+            # only keep the first prediction_length predictions
+            if self.predictor.prediction_length > self.prediction_length:
+                diff = self.predictor.prediction_length - self.prediction_length
                 self.forecasts_df = self.forecasts_df.iloc[:-diff]
 
     def get_forecasts_df(self):
@@ -109,7 +109,7 @@ class Prediction():
         return column_descriptions
 
     def _check(self):
-        if self.predictor.prediction_length < self.forecasting_horizon:
+        if self.predictor.prediction_length < self.prediction_length:
             raise PluginParamValidationError("Forecasting horizon cannot be higher than the prediction length ({}) used in training !".format(
                 self.predictor.prediction_length))
 

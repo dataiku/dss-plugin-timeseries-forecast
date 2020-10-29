@@ -47,7 +47,7 @@ def load_predict_config():
     params['selected_session'] = recipe_config.get("manually_selected_session")
     params['selected_model_type'] = recipe_config.get("manually_selected_model_type")
 
-    params['forecasting_horizon'] = recipe_config.get("forecasting_horizon")
+    params['prediction_length'] = recipe_config.get("prediction_length")
     params['quantiles'] = recipe_config.get("quantiles")
     if any(x < 0 or x > 1 for x in params['quantiles']):
         raise PluginParamValidationError("Quantiles must be between 0 and 1.")
@@ -60,6 +60,8 @@ def load_predict_config():
 
 def load_training_config(recipe_config):
     params = {}
+
+    print("recipe_config: ", recipe_config)
 
     input_dataset_name = get_input_names_for_role('input_dataset')[0]
     params['training_dataset'] = dataiku.Dataset(input_dataset_name)
@@ -85,11 +87,11 @@ def load_training_config(recipe_config):
     if len(params['target_columns_names']) == 0 or not all(column in training_dataset_columns for column in params['target_columns_names']):
         raise PluginParamValidationError("Invalid target column(s) selection")
 
-    params['category_columns_names'] = recipe_config.get('category_columns', [])
-    if not all(column in training_dataset_columns for column in params['category_columns_names']):
-        raise PluginParamValidationError("Invalid category column(s) selection")
-    if params['category_columns_names'] and params['make_forecasts']:
-        raise ValueError("Cannot output evaluation forecasts dataset with long format input.")
+    params['timeseries_identifiers_names'] = recipe_config.get('timeseries_identifiers', [])
+    if not all(column in training_dataset_columns for column in params['timeseries_identifiers_names']):
+        raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
+    # if params['timeseries_identifiers_names'] and params['make_forecasts']:
+    #     raise ValueError("Cannot output evaluation forecasts dataset with long format input.")
 
     params['external_features_columns_names'] = recipe_config.get('external_feature_columns', [])
     if not all(column in training_dataset_columns for column in params['external_features_columns_names']):
@@ -101,9 +103,9 @@ def load_training_config(recipe_config):
     params['frequency'] = "{}{}".format(params['time_granularity_step'], params['time_granularity_unit'])
 
     # order of cols is important (for the predict recipe)
-    params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['category_columns_names'] + params['external_features_columns_names']
+    params['columns_to_keep'] = [params['time_column_name']] + params['target_columns_names'] + params['timeseries_identifiers_names'] + params['external_features_columns_names']
 
-    params['prediction_length'] = recipe_config.get('forecasting_horizon', 30)
+    params['prediction_length'] = recipe_config.get('prediction_length', 30)
 
     params['context_length'] = recipe_config.get('context_length', 0)
     if params['context_length'] == 0:
@@ -117,5 +119,8 @@ def load_training_config(recipe_config):
     params['evaluation_only'] = recipe_config.get("evaluation_only", False)
 
     assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
+
+    print("params: ", params)
+    # raise Exception('Done')
 
     return params

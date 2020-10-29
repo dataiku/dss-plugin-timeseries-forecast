@@ -127,8 +127,8 @@
             "type": "SEPARATOR"
         },
         {
-            "name": "forecasting_horizon",
-            "label": "Forecasting horizon",
+            "name": "prediction_length",
+            "label": "Prediction length",
             "type": "INT",
             "mandatory": true,
             "defaultValue": 1,
