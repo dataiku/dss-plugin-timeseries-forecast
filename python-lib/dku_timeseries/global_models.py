@@ -20,6 +20,7 @@ class GlobalModels():
         self.epoch = epoch
         self.make_forecasts = make_forecasts
         self.external_features_column_name = external_features_column_name
+        self.use_external_features = (len(external_features_column_name) > 0)
 
     def init_all_models(self, version_name):
         self.version_name = version_name
@@ -32,7 +33,8 @@ class GlobalModels():
                     model_parameters=model_parameters,
                     frequency=self.frequency,
                     prediction_length=self.prediction_length,
-                    epoch=self.epoch
+                    epoch=self.epoch,
+                    use_external_features=self.use_external_features
                 )
             )
         # already done in assert_continuous_time_column

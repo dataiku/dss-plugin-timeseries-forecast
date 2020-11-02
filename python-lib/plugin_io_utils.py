@@ -74,6 +74,7 @@ MODEL_DESCRIPTORS = {
         TRAINER: Trainer
     },
     "transformer": {
+        CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer
     }

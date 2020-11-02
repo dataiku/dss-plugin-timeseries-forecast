@@ -1,7 +1,7 @@
 # import dill as pickle #todo: check whether or not dill still necessary
 #  from gluonts.trainer import Trainer
 from gluonts.model.naive_2 import Naive2Predictor
-from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS, get_trainer, METRICS_DATASET, get_predictor
+from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS, get_trainer, METRICS_DATASET, get_predictor, can_model_use_external_feature
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
@@ -9,12 +9,14 @@ import logging
 
 
 class SingleModel():
-    def __init__(self, model_name, model_parameters, frequency, prediction_length, epoch):
+    def __init__(self, model_name, model_parameters, frequency, prediction_length, epoch, use_external_features=False):
         self.model_name = model_name
         self.model_parameters = model_parameters
         self.frequency = frequency
         self.prediction_length = prediction_length
         self.epoch = epoch
+        self.can_model_use_external_feature = can_model_use_external_feature(model_name)
+        self.use_external_features = use_external_features
         estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length
@@ -22,6 +24,8 @@ class SingleModel():
         trainer = get_trainer(model_name, epochs=self.epoch)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
+        if self.can_model_use_external_feature and self.use_external_features:
+            estimator_kwargs.update({"use_feat_dynamic_real": True})
         self.estimator = get_estimator(
             self.model_name,
             self.model_parameters,
