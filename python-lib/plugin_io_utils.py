@@ -38,6 +38,7 @@ class METRICS_DATASET:
 ESTIMATOR = 'estimator'
 CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature' # TODO implement
 TRAINER = 'trainer'
+PREDICTOR = 'predictor'
 
 MODEL_DESCRIPTORS = {
     "default": {},
@@ -55,7 +56,8 @@ MODEL_DESCRIPTORS = {
         TRAINER: Trainer
     },
     "naive": {
-        ESTIMATOR: Naive2Predictor,
+        ESTIMATOR: None,
+        PREDICTOR: Naive2Predictor,
         TRAINER: None
     },
     "nbeats": {
@@ -173,6 +175,11 @@ def get_trainer(model, **kwargs):
     trainer = model_descriptor.get(TRAINER)
     return None if trainer is None else trainer(**kwargs)
 
+def get_predictor(model, **kwargs):
+    model_descriptor = get_model_descriptor(model)
+    predictor = model_descriptor.get(PREDICTOR)
+    # return predictor
+    return None if predictor is None else predictor(**kwargs)
 
 def can_model_use_external_feature(model):
     model_descriptor = get_model_descriptor(model)

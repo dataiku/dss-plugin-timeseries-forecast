@@ -1,6 +1,7 @@
 # import dill as pickle #todo: check whether or not dill still necessary
 #  from gluonts.trainer import Trainer
-from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS, get_trainer, METRICS_DATASET
+from gluonts.model.naive_2 import Naive2Predictor
+from plugin_io_utils import get_estimator, write_to_folder, EVALUATION_METRICS, get_trainer, METRICS_DATASET, get_predictor
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
@@ -14,12 +15,17 @@ class SingleModel():
         self.frequency = frequency
         self.prediction_length = prediction_length
         self.epoch = epoch
+        estimator_kwargs = {
+            "freq": self.frequency,
+            "prediction_length": self.prediction_length
+        }
+        trainer = get_trainer(model_name, epochs=self.epoch)
+        if trainer is not None:
+            estimator_kwargs.update({"trainer": trainer})
         self.estimator = get_estimator(
             self.model_name,
             self.model_parameters,
-            freq=self.frequency,
-            prediction_length=self.prediction_length,  # 10,
-            trainer=get_trainer(model_name, epochs=self.epoch)  # 10
+            **estimator_kwargs
         )
         self.predictor = None
         if self.estimator is None:
@@ -37,7 +43,10 @@ class SingleModel():
 
     def evaluate(self, train_ds, test_ds, make_forecasts=False):
         logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
-        predictor = self.estimator.train(train_ds)
+        if self.estimator is None:
+            predictor = get_predictor(self.model_name, freq=self.frequency, prediction_length=self.prediction_length)
+        else:
+            predictor = self.estimator.train(train_ds)
         evaluator = Evaluator()
 
         forecast_it, ts_it = make_evaluation_predictions(
