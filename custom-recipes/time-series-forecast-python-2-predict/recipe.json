@@ -127,8 +127,8 @@
             "type": "SEPARATOR"
         },
         {
-            "name": "forecasting_horizon",
-            "label": "Forecasting horizon",
+            "name": "prediction_length",
+            "label": "Prediction length",
             "type": "INT",
             "mandatory": true,
             "defaultValue": 1,
@@ -148,7 +148,7 @@
             "label": "Include history",
             "description": "Whether to include past values in addition to the forecasted values.",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "mandatory": true
         }
     ],

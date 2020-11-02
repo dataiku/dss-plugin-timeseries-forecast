@@ -29,6 +29,11 @@ class ModelSelection():
         model = read_from_folder(self.folder, model_path, 'pickle.gz')
         return model
 
+    def get_gluon_train_dataset(self):
+        gluon_train_dataset_path = "{}/gluon_train_dataset.pickle.gz".format(self.session)
+        gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, 'pickle.gz')
+        return gluon_train_dataset
+
     def get_targets_train_dataframe(self):
         targets_train_dataset_path = "{}/targets_train_dataset.csv.gz".format(self.session)
         targets_train_df = read_from_folder(self.folder, targets_train_dataset_path, 'csv.gz')
