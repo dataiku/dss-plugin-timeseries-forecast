@@ -76,7 +76,7 @@ class GlobalModels():
             'target_name': target_column_name
         }
         if self.external_features_columns_names:
-            univariate_timeseries['feat_dynamic_real'] = df[self.external_features_columns_names].iloc[:length]
+            univariate_timeseries['feat_dynamic_real'] = df[self.external_features_columns_names].iloc[:length].values.T
         if identifiers_names:
             identifiers_map = {self.timeseries_identifiers_names[i]: identifier_name for i, identifier_name in enumerate(identifiers_names)}
             univariate_timeseries['identifiers'] = identifiers_map

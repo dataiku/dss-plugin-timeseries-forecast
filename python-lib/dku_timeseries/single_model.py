@@ -50,10 +50,7 @@ class SingleModel():
         if self.estimator is None:
             predictor = self.model_descriptor.get_predictor(freq=self.frequency, prediction_length=self.prediction_length)
         else:
-            print("ALX:model_name={}".format(self.model_name))
-            print("ALX:train_ds={}".format(train_ds.list_data))
             predictor = self.estimator.train(train_ds)
-            print("ALX:after")
         evaluator = Evaluator()
 
         forecast_it, ts_it = make_evaluation_predictions(
