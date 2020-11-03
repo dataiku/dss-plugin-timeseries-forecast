@@ -22,6 +22,7 @@ class GlobalModels():
         self.external_features_columns_names = external_features_columns_names
         self.use_external_features = (len(external_features_columns_names) > 0)
         self.timeseries_identifiers_names = timeseries_identifiers_names
+        # TODO initialise all class field thta are defined later
 
     def init_all_models(self, version_name):
         self.version_name = version_name

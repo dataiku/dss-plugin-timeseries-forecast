@@ -19,6 +19,7 @@ predictor = model_selection.get_model()  # => Predictor()
 
 gluon_train_dataset = model_selection.get_gluon_train_dataset()  # => ListDataset()
 
+# TODO handle exception if feat_dynamic_real in training but no external_feat dataset provided (or the opposite)
 if params['external_features_future_dataset']:
     check_external_features_future_dataset_schema(gluon_train_dataset, params['external_features_future_dataset'])
     external_features_future_df = params['external_features_future_dataset'].get_dataframe()
