@@ -20,7 +20,7 @@ class GlobalModels():
         self.epoch = epoch
         self.make_forecasts = make_forecasts
         self.external_features_columns_names = external_features_columns_names
-        self.use_external_features = (len(external_features_column_names) > 0)
+        self.use_external_features = (len(external_features_columns_names) > 0)
         self.timeseries_identifiers_names = timeseries_identifiers_names
 
     def init_all_models(self, version_name):
