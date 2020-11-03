@@ -1,0 +1,85 @@
+from gluonts.model.deepar import DeepAREstimator
+from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
+from gluonts.model.deep_factor import DeepFactorEstimator
+from gluonts.model.lstnet import LSTNetEstimator
+from gluonts.model.n_beats import NBEATSEstimator
+from gluonts.model.npts import NPTSEstimator
+from gluonts.model.transformer import TransformerEstimator
+from gluonts.trainer import Trainer
+# from gluonts.model.seasonal_naive import SeasonalNaivePredictor
+from gluonts.model.naive_2 import Naive2Predictor
+
+ESTIMATOR = 'estimator'
+CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature' # TODO implement
+TRAINER = 'trainer'
+PREDICTOR = 'predictor'
+
+MODEL_DESCRIPTORS = {
+    "default": {},
+    "deepar": {
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: DeepAREstimator,
+        TRAINER: Trainer
+    },
+    "deepfactor": {
+        ESTIMATOR: DeepFactorEstimator,
+        TRAINER: Trainer
+    },
+    "lstnet": {
+        ESTIMATOR: LSTNetEstimator,
+        TRAINER: Trainer
+    },
+    "naive": {
+        ESTIMATOR: None,
+        PREDICTOR: Naive2Predictor,
+        TRAINER: None
+    },
+    "nbeats": {
+        ESTIMATOR: NBEATSEstimator,
+        TRAINER: Trainer
+    },
+    "npts": {
+        ESTIMATOR: NPTSEstimator,
+        TRAINER: None
+    },
+    "simplefeedforward": {
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: SimpleFeedForwardEstimator,
+        TRAINER: Trainer
+    },
+    "transformer": {
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: TransformerEstimator,
+        TRAINER: Trainer
+    }
+}
+
+
+class ModelDescriptor():
+    def __init__(self, model_name):
+        self.model_name = model_name
+        self.model_descriptor = self.get_model_descriptor()
+
+    def get_model_descriptor(self):
+        model_descriptor = MODEL_DESCRIPTORS.get(self.model_name)
+        if model_descriptor is None:
+            return MODEL_DESCRIPTORS.get('default')
+        else:
+            return model_descriptor
+
+    def get_estimator(self, model_parameters, **kwargs):
+        kwargs.update(model_parameters.get("kwargs", {}))
+        estimator = self.model_descriptor.get(ESTIMATOR)
+        return None if estimator is None else estimator(**kwargs)
+
+    def get_trainer(self, **kwargs):
+        trainer = self.model_descriptor.get(TRAINER)
+        return None if trainer is None else trainer(**kwargs)
+
+    def get_predictor(self, **kwargs):
+        predictor = self.model_descriptor.get(PREDICTOR)
+        # return predictor
+        return None if predictor is None else predictor(**kwargs)
+
+    def can_use_external_feature(self):
+        return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
