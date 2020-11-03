@@ -1,16 +1,6 @@
 
 import re
 import io
-from gluonts.model.deepar import DeepAREstimator
-from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
-from gluonts.model.deep_factor import DeepFactorEstimator
-from gluonts.model.lstnet import LSTNetEstimator
-from gluonts.model.n_beats import NBEATSEstimator
-from gluonts.model.npts import NPTSEstimator
-from gluonts.model.transformer import TransformerEstimator
-from gluonts.trainer import Trainer
-# from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-from gluonts.model.naive_2 import Naive2Predictor
 import os
 import dill as pickle
 from gluonts.evaluation.backtest import make_evaluation_predictions
@@ -23,62 +13,18 @@ import logging
 
 AVAILABLE_MODELS = [
     "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
-    "npts", "transformer"
+    "transformer"
 ]
 
 EVALUATION_METRICS = [
     "MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"
 ]
 
+
 class METRICS_DATASET:
     TARGET_COLUMN = "target_column"
     MODEL_COLUMN = "model"
     AGGREGATED_ROW = "AGGREGATED"
-
-ESTIMATOR = 'estimator'
-CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature' # TODO implement
-TRAINER = 'trainer'
-PREDICTOR = 'predictor'
-
-MODEL_DESCRIPTORS = {
-    "default": {},
-    "deepar": {
-        CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: DeepAREstimator,
-        TRAINER: Trainer
-    },
-    "deepfactor": {
-        ESTIMATOR: DeepFactorEstimator,
-        TRAINER: Trainer
-    },
-    "lstnet": {
-        ESTIMATOR: LSTNetEstimator,
-        TRAINER: Trainer
-    },
-    "naive": {
-        ESTIMATOR: None,
-        PREDICTOR: Naive2Predictor,
-        TRAINER: None
-    },
-    "nbeats": {
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-    },
-    "npts": {
-        ESTIMATOR: NPTSEstimator,
-        TRAINER: None
-    },
-    "simplefeedforward": {
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: SimpleFeedForwardEstimator,
-        TRAINER: Trainer
-    },
-    "transformer": {
-        CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: TransformerEstimator,
-        TRAINER: Trainer
-    }
-}
 
 
 def read_from_folder(folder, path, obj_type):
@@ -154,37 +100,6 @@ def get_model_presets(config, model):
                 key_type: config[key]
             })
     return model_presets
-
-
-def get_model_descriptor(model):
-    model_descriptor = MODEL_DESCRIPTORS.get(model)
-    if model_descriptor is None:
-        return MODEL_DESCRIPTORS.get('default')
-    else:
-        return model_descriptor
-
-
-def get_estimator(model, model_parameters, **kwargs):
-    kwargs.update(model_parameters.get("kwargs", {}))
-    model_descriptor = get_model_descriptor(model)
-    estimator = model_descriptor.get(ESTIMATOR)
-    return None if estimator is None else estimator(**kwargs)
-
-
-def get_trainer(model, **kwargs):
-    model_descriptor = get_model_descriptor(model)
-    trainer = model_descriptor.get(TRAINER)
-    return None if trainer is None else trainer(**kwargs)
-
-def get_predictor(model, **kwargs):
-    model_descriptor = get_model_descriptor(model)
-    predictor = model_descriptor.get(PREDICTOR)
-    # return predictor
-    return None if predictor is None else predictor(**kwargs)
-
-def can_model_use_external_feature(model):
-    model_descriptor = get_model_descriptor(model)
-    return model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
 
 
 def evaluate_models(predictor_objects, test_dataset, evaluation_strategy="split", forecasting_horizon=1):
@@ -269,6 +184,7 @@ def check_continuous_time_column(dataframe, time_column_name, time_granularity_u
     if len(date_range_df.index) != len(dataframe.index) or not dataframe[time_column_name].equals(date_range_df[0]):
         return False
     return True
+
 
 def remove_timezone_information(dataframe, time_column_name):
     dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
