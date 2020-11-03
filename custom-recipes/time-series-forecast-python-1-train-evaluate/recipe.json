@@ -113,9 +113,7 @@
                 "int",
                 "bigint",
                 "float",
-                "double",
-                "boolean",
-                "string"
+                "double"
             ],
             "columnRole": "input_dataset",
             "mandatory": false,

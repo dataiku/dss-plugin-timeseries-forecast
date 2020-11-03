@@ -18,59 +18,66 @@ class Prediction():
 
     def predict(self):
         # prediction_dataset = self._create_gluonts_dataset()
-        long_format = bool('identifiers' in self.gluon_train_dataset.list_data[0])
-        if long_format and self.include_history:
-            raise ValueError("Cannot include history in long format")
+        # long_format = bool('identifiers' in self.gluon_train_dataset.list_data[0])
+        # if long_format and self.include_history:
+        #     raise ValueError("Cannot include history in long format")
+
+        # TODO include external feature dataset in self.gluon_train_dataset
 
         forecasts = self.predictor.predict(self.gluon_train_dataset)
         forecasts_list = list(forecasts)
 
-        if long_format:
-            multiple_df = []
-            # TODO copy code from single_model
-            for i, sample_forecasts in enumerate(forecasts_list):
-                df = pd.DataFrame()
-                for quantile in self.quantiles:
-                    sample_forecasts_df = sample_forecasts.quantile_ts(quantile).to_frame().reset_index().rename(
-                        columns={
-                            'index': 'time_column',
-                            0: f"{self.gluon_train_dataset.list_data[i]['target_column_name']}_forecasts_percentile_{int(quantile*100)}"
-                        }
-                    )
-                    if df.empty:
-                        df = sample_forecasts_df
-                    else:
-                        df = df.merge(sample_forecasts_df, on='time_column')
-                for category, value in self.gluon_train_dataset.list_data[i]['identifiers'].items():
-                    df[category] = value
-                multiple_df.append(df)
-            self.forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
-            
-        else:
-            series = []
-            for i, sample_forecasts in enumerate(forecasts_list):
-                is_median = False
-                for quantile in self.quantiles:
-                    # replace percentile_50 with median and always output the median
-                    if quantile == 0.5 or (quantile > 0.5 and not is_median):
-                        series.append(sample_forecasts.quantile_ts(0.5).rename("{}_forecasts_median".format(self.gluon_train_dataset.list_data[i]['target_name'])))
-                        is_median = True
-                    if quantile != 0.5:
-                        series.append(sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.gluon_train_dataset.list_data[i]['target_name'], int(quantile*100))))
+        all_timeseries = {}
+        for i, sample_forecasts in enumerate(forecasts_list):
+            if 'identifiers' in train_ds.list_data[i]:
+                timeseries_identifier_key = tuple(sorted(train_ds.list_data[i]['identifiers'].items()))
+            else:
+                timeseries_identifier_key = None
 
-            self.forecasts_df = pd.concat(series, axis=1).reset_index().rename(columns={'index': 'time_column'})
+            for quantile in self.quantiles:
+                series = sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.gluon_train_dataset.list_data[i]['target_name'], int(quantile*100))))
+                if timeseries_identifier_key in all_timeseries:
+                    all_timeseries[timeseries_identifier_key] += [series]
+                else:
+                    all_timeseries[timeseries_identifier_key] = [series]
 
-            # include history
-            if self.include_history:
-                self.forecasts_df = self.targets_train_df.append(self.forecasts_df).reset_index(drop=True)
+        multiple_df = []
+        for timeseries_identifier_key, series_list in all_timeseries.items():
+            unique_identifiers_df = pd.concat(series_list, axis=1).reset_index(drop=False)
+            if timeseries_identifier_key:
+                for identifier_key, identifier_value in timeseries_identifier_key:
+                    unique_identifiers_df[identifier_key] = identifier_value
+            multiple_df += [unique_identifiers_df]
 
-            if self.external_features_df is not None:
-                self.forecasts_df = self.forecasts_df.merge(self.external_features_df, on=self.time_column, how='left', suffixes=('', '_external_feat'))
+        self.forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True).rename(columns={'index': 'time_column'})
 
-            # only keep the first prediction_length predictions
-            if self.predictor.prediction_length > self.prediction_length:
-                diff = self.predictor.prediction_length - self.prediction_length
-                self.forecasts_df = self.forecasts_df.iloc[:-diff]
+        # TODO include history
+
+        # else:
+        #     series = []
+        #     for i, sample_forecasts in enumerate(forecasts_list):
+        #         is_median = False
+        #         for quantile in self.quantiles:
+        #             # replace percentile_50 with median and always output the median
+        #             if quantile == 0.5 or (quantile > 0.5 and not is_median):
+        #                 series.append(sample_forecasts.quantile_ts(0.5).rename("{}_forecasts_median".format(self.gluon_train_dataset.list_data[i]['target_name'])))
+        #                 is_median = True
+        #             if quantile != 0.5:
+        #                 series.append(sample_forecasts.quantile_ts(quantile).rename("{}_forecasts_percentile_{}".format(self.gluon_train_dataset.list_data[i]['target_name'], int(quantile*100))))
+
+        #     self.forecasts_df = pd.concat(series, axis=1).reset_index().rename(columns={'index': 'time_column'})
+
+            # # include history
+            # if self.include_history:
+            #     self.forecasts_df = self.targets_train_df.append(self.forecasts_df).reset_index(drop=True)
+
+            # if self.external_features_df is not None:
+            #     self.forecasts_df = self.forecasts_df.merge(self.external_features_df, on=self.time_column, how='left', suffixes=('', '_external_feat'))
+
+            # # only keep the first prediction_length predictions
+            # if self.predictor.prediction_length > self.prediction_length:
+            #     diff = self.predictor.prediction_length - self.prediction_length
+            #     self.forecasts_df = self.forecasts_df.iloc[:-diff]
 
     def get_forecasts_df(self):
         # TODO add to forecasts dataframe the selected model and session ?

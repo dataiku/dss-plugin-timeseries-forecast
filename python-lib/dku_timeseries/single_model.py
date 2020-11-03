@@ -89,21 +89,43 @@ class SingleModel():
         # TODO add params of model to item_metrics dataframe
 
         if make_forecasts:
-            multiple_df = []
+            all_timeseries = {}
             for i, sample_forecasts in enumerate(forecasts_list):
-                sample_forecasts_df = sample_forecasts.mean_ts.to_frame().reset_index().rename(
-                    columns={
-                        'index': 'time_column',
-                        0: f"{train_ds.list_data[i]['target_name']}_{self.model_name}"
-                    }
-                )
-                if len(identifiers_columns) > 0:
-                    for identifier, value in train_ds.list_data[i]['identifiers'].items():
-                        sample_forecasts_df[identifier] = value
-                multiple_df.append(sample_forecasts_df)
+                series = sample_forecasts.mean_ts.rename("{}_{}".format(train_ds.list_data[i]['target_name'], self.model_name))
+                if 'identifiers' in train_ds.list_data[i]:
+                    timeseries_identifier_key = tuple(sorted(train_ds.list_data[i]['identifiers'].items()))
+                else:
+                    timeseries_identifier_key = None
+                    
+                if timeseries_identifier_key in all_timeseries:
+                    all_timeseries[timeseries_identifier_key] += [series]
+                else:
+                    all_timeseries[timeseries_identifier_key] = [series]
+
+            multiple_df = []
+            for timeseries_identifier_key, series_list in all_timeseries.items():
+                unique_identifiers_df = pd.concat(series_list, axis=1).reset_index(drop=False)
+                if timeseries_identifier_key:
+                    for identifier_key, identifier_value in timeseries_identifier_key:
+                        unique_identifiers_df[identifier_key] = identifier_value
+                multiple_df += [unique_identifiers_df]
             forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
 
-            forecasts_df = forecasts_df.groupby(identifiers_columns + ['time_column']).max().reset_index(drop=False)
+            # multiple_df = []
+            # for i, sample_forecasts in enumerate(forecasts_list):
+            #     sample_forecasts_df = sample_forecasts.mean_ts.to_frame().reset_index().rename(
+            #         columns={
+            #             'index': 'time_column',
+            #             0: f"{train_ds.list_data[i]['target_name']}_{self.model_name}"
+            #         }
+            #     )
+            #     if len(identifiers_columns) > 0:
+            #         for identifier, value in train_ds.list_data[i]['identifiers'].items():
+            #             sample_forecasts_df[identifier] = value
+            #     multiple_df.append(sample_forecasts_df)
+            # forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
+
+            # forecasts_df = forecasts_df.groupby(identifiers_columns + ['time_column']).max().reset_index(drop=False)
 
             # series = []
             # forecasts_columns = ['time_column'] + identifiers_columns + [f"{name}_{self.model_name}" for name in target_columns]

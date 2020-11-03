@@ -20,7 +20,7 @@ class GlobalModels():
         self.epoch = epoch
         self.make_forecasts = make_forecasts
         self.external_features_columns_names = external_features_columns_names
-        self.use_external_features = (len(external_features_column_names) > 0)
+        self.use_external_features = (len(external_features_columns_names) > 0)
         self.timeseries_identifiers_names = timeseries_identifiers_names
 
     def init_all_models(self, version_name):
@@ -140,7 +140,7 @@ class GlobalModels():
                 # if self.timeseries_identifiers_names:
                 #     raise ValueError("Cannot output evaluation forecasts dataset with long format input.")
                 agg_metrics, item_metrics, forecasts_df, identifiers_columns = model.evaluate(self.train_ds, self.test_ds, make_forecasts=True)
-                forecasts_df = forecasts_df.rename(columns={'time_column': self.time_column_name})
+                forecasts_df = forecasts_df.rename(columns={'index': self.time_column_name})
                 if self.forecasts_df.empty:
                     self.forecasts_df = forecasts_df
                 else:
