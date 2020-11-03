@@ -22,7 +22,7 @@
         {
             "name": "external_features_future_dataset",
             "label": "Future values of external features (optional)",
-            "description": "Dataset with the date column and future values of external features if used in the previous \"Train and evaluate\" recipe",
+            "description": "Dataset with the date column and future values of external features if used in the previous \"Train and evaluate\" recipe. It should also contains timeseries identifiers if some were used.",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,

@@ -8,13 +8,9 @@ class PluginParamValidationError(ValueError):
 
 
 def assert_time_column_is_date(dku_dataset, time_column_name):
-    dataset_columns_schema = dku_dataset.read_schema()
-    for column_schema in dataset_columns_schema:
-        column_name = column_schema.get('name')
-        if column_name == time_column_name:
-            column_type = column_schema.get('type')
-            if column_type != 'date':
-                raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
+    for column_schema in dku_dataset.read_schema():
+        if column_schema.get('name') == time_column_name and column_schema.get('type') != 'date':
+            raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
 
 
 def load_predict_config():
@@ -90,8 +86,6 @@ def load_training_config(recipe_config):
     params['timeseries_identifiers_names'] = recipe_config.get('timeseries_identifiers', [])
     if not all(column in training_dataset_columns for column in params['timeseries_identifiers_names']):
         raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
-    # if params['timeseries_identifiers_names'] and params['make_forecasts']:
-    #     raise ValueError("Cannot output evaluation forecasts dataset with long format input.")
 
     params['external_features_columns_names'] = recipe_config.get('external_feature_columns', [])
     if not all(column in training_dataset_columns for column in params['external_features_columns_names']):
@@ -119,8 +113,5 @@ def load_training_config(recipe_config):
     params['evaluation_only'] = recipe_config.get("evaluation_only", False)
 
     assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
-
-    print("params: ", params)
-    # raise Exception('Done')
 
     return params

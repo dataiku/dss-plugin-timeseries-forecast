@@ -1,7 +1,7 @@
 from plugin_config_loading import load_predict_config
-from plugin_io_utils import set_column_description
+from plugin_io_utils import set_column_description, check_external_features_future_dataset_schema
 from dku_timeseries.model_selection import ModelSelection
-from dku_timeseries.prediction import Prediction
+from dku_timeseries.prediction import Prediction, add_future_external_features
 
 params = load_predict_config()
 
@@ -18,14 +18,16 @@ else:
 predictor = model_selection.get_model()  # => Predictor()
 
 gluon_train_dataset = model_selection.get_gluon_train_dataset()  # => ListDataset()
-# targets_train_df = model_selection.get_targets_train_dataframe()  # => DataFrame()
-# external_features_df = model_selection.get_external_features_dataframe()  # => DataFrame()
+
+if params['external_features_future_dataset']:
+    check_external_features_future_dataset_schema(gluon_train_dataset, params['external_features_future_dataset'])
+    external_features_future_df = params['external_features_future_dataset'].get_dataframe()
+
+gluon_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df)
 
 prediction = Prediction(
     predictor=predictor,
-    gluon_train_dataset=gluon_train_dataset,
-    # targets_train_df=targets_train_df,
-    # external_features_df=external_features_df,
+    gluon_dataset=gluon_dataset,
     prediction_length=params['prediction_length'],
     quantiles=params['quantiles'],
     include_history=params['include_history']
