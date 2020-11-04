@@ -35,6 +35,7 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
         # TODO check that length of feat_dynamic_real_future is equals to prediction_length of train recipe
         feat_dynamic_real_appended = np.append(feat_dynamic_real_train, feat_dynamic_real_future, axis=1)
 
+        # is it good practice to change object ?
         gluon_dataset.list_data[i]['feat_dynamic_real'] = feat_dynamic_real_appended
         
     return gluon_dataset
@@ -47,6 +48,7 @@ class Prediction():
         self.prediction_length = prediction_length
         self.quantiles = quantiles
         self.include_history = include_history
+        self.forecasts_df = None
         # self._check()
 
     def predict(self):
@@ -82,6 +84,12 @@ class Prediction():
         time_column_name = self.gluon_dataset.list_data[0]['time_column_name']
         self.forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True).rename(columns={'index': time_column_name})
 
+        if 'identifiers' in self.gluon_dataset.list_data[0]:
+            # reorder columns with timeseries_identifiers just after time column
+            timeseries_identifiers_columns = list(self.gluon_dataset.list_data[0]['identifiers'].keys())
+            forecasts_columns = [column for column in self.forecasts_df if column not in [time_column_name] + timeseries_identifiers_columns]
+            self.forecasts_df = self.forecasts_df[[time_column_name] + timeseries_identifiers_columns + forecasts_columns]
+
         # TODO include history
 
 
@@ -97,8 +105,11 @@ class Prediction():
             #     diff = self.predictor.prediction_length - self.prediction_length
             #     self.forecasts_df = self.forecasts_df.iloc[:-diff]
 
-    def get_forecasts_df(self):
-        # TODO add to forecasts dataframe the selected model and session ?
+    def get_forecasts_df(self, session=None, model_type=None):
+        if session:
+            self.forecasts_df['session'] = session
+        if model_type:
+            self.forecasts_df['model_type'] = model_type
         return self.forecasts_df
 
     def create_forecasts_column_description(self):

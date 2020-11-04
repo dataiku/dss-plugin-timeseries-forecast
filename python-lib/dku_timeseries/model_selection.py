@@ -3,7 +3,7 @@ from plugin_io_utils import read_from_folder, METRICS_DATASET
 import pandas as pd
 from dku_timeseries.model_descriptor import MODEL_DESCRIPTORS, CAN_USE_EXTERNAL_FEATURES
 
-
+# TODO move file outside of dku_timeseries as it interacts with dataiku folder
 class ModelSelection():
 
     def __init__(self, folder, external_features_future_dataset=None):

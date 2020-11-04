@@ -377,7 +377,8 @@
         {
             "name": "training_options_separator",
             "label": "Training options",
-            "type": "SEPARATOR"
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.adavanced_options == true"
         },
         {
             "name": "epoch",

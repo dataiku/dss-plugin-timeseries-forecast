@@ -46,6 +46,7 @@ class SingleModel():
         self.predictor = self.estimator.train(train_ds)
 
     def evaluate(self, train_ds, test_ds, make_forecasts=False):
+        # TODO split into multiple functions 
         logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
         if self.estimator is None:
             predictor = self.model_descriptor.get_predictor(freq=self.frequency, prediction_length=self.prediction_length)
@@ -78,6 +79,7 @@ class SingleModel():
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
 
         for identifiers_column in identifiers_columns:
+            # TODO integer are casted to float because of missing values in the 'AGGREGATED' rows
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
             # agg_metrics[identifiers_column] = METRICS_DATASET.AGGREGATED_ROW
 

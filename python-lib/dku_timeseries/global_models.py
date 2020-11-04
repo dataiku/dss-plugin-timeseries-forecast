@@ -23,6 +23,13 @@ class GlobalModels():
         self.use_external_features = (len(external_features_columns_names) > 0)
         self.timeseries_identifiers_names = timeseries_identifiers_names
         # TODO initialise all class field thta are defined later
+        self.version_name = None
+        if self.make_forecasts:
+            self.forecasts_df = pd.DataFrame()
+            self.evaluation_forecasts_df = None
+        self.train_ds = None
+        self.test_ds = None
+        self.metrics_df = None
 
     def init_all_models(self, version_name):
         self.version_name = version_name
@@ -41,8 +48,6 @@ class GlobalModels():
             )
         # already done in assert_continuous_time_column
         # self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
-        if self.make_forecasts:
-            self.forecasts_df = pd.DataFrame()
 
     def fit_all(self):
         for model in self.models:
@@ -54,6 +59,7 @@ class GlobalModels():
         print("self.timeseries_identifiers_names: ", self.timeseries_identifiers_names)
         if self.timeseries_identifiers_names:
             print("it's true")
+            # TODO check that all timeseries have same length
             for identifiers_names, identifiers_df in self.training_df.groupby(self.timeseries_identifiers_names):
                 multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_names=identifiers_names)
         else:
@@ -125,6 +131,7 @@ class GlobalModels():
         return orderd_metrics_df
 
     def save_all(self):
+        # TODO move outside of the class as it interacts with dataiku.Folder objects
         metrics_path = "{}/metrics.csv".format(self.version_name)
         write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
 

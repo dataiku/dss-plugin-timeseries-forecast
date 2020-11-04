@@ -36,7 +36,7 @@ prediction = Prediction(
 
 prediction.predict()
 
-forecasts_df = prediction.get_forecasts_df()
+forecasts_df = prediction.get_forecasts_df(session=model_selection.session, model_type=model_selection.model_type)
 params['output_dataset'].write_with_schema(forecasts_df)
 
 column_descriptions = prediction.create_forecasts_column_description()
