@@ -12,8 +12,7 @@ import gzip
 import logging
 
 AVAILABLE_MODELS = [
-    "naive", "simplefeedforward", "deepfactor", "deepar", "lstnet", "nbeats",
-    "transformer"
+    "naive", "simplefeedforward", "deepar", "transformer", "nbeats"
 ]
 
 EVALUATION_METRICS = [

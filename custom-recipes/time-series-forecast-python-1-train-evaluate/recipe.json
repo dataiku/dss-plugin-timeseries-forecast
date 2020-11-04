@@ -300,26 +300,6 @@
             "visibilityCondition": "model.forecasting_style == 'expert'"
         },
         {
-            "name": "deepfactor_model_activated",
-            "label": "- DeepFactor",
-            "description": "Based on the DeepFactorEstimator GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "mandatory": true
-        },
-        {
-            "name": "deepfactor_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deep_factor.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.deepfactor_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
-        },
-        {
             "name": "nbeats_model_activated",
             "label": "- NBEATS",
             "description": "Based on the NBEATSEnsembleEstimator GluonTS model",

@@ -29,7 +29,6 @@ global_models = GlobalModels(
     target_columns_names=params['target_columns_names'],
     time_column_name=params['time_column_name'],
     frequency=params['frequency'],
-    model_folder=params['model_folder'],
     epoch=params['epoch'],
     models_parameters=models_parameters,
     prediction_length=params['prediction_length'],
@@ -44,7 +43,7 @@ global_models.evaluate_all(params['evaluation_strategy'])
 
 if not params['evaluation_only']:
     global_models.fit_all()
-    global_models.save_all()
+    global_models.save_all(model_folder=params['model_folder'])
 
 metrics_df = global_models.get_metrics_df()
 

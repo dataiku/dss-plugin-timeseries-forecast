@@ -52,8 +52,6 @@ class Prediction():
         # self._check()
 
     def predict(self):
-        # TODO include external feature dataset in self.gluon_dataset
-
         forecasts = self.predictor.predict(self.gluon_dataset)
         forecasts_list = list(forecasts)
 
@@ -90,8 +88,7 @@ class Prediction():
             forecasts_columns = [column for column in self.forecasts_df if column not in [time_column_name] + timeseries_identifiers_columns]
             self.forecasts_df = self.forecasts_df[[time_column_name] + timeseries_identifiers_columns + forecasts_columns]
 
-        # TODO include history
-
+        # TODO ? include history
 
             # # include history
             # if self.include_history:

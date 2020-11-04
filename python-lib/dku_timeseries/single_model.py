@@ -1,6 +1,3 @@
-# import dill as pickle #todo: check whether or not dill still necessary
-#  from gluonts.trainer import Trainer
-from gluonts.model.naive_2 import Naive2Predictor
 from plugin_io_utils import write_to_folder, EVALUATION_METRICS, METRICS_DATASET
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
@@ -79,7 +76,7 @@ class SingleModel():
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
 
         for identifiers_column in identifiers_columns:
-            # TODO integer are casted to float because of missing values in the 'AGGREGATED' rows
+            # TODO ? integer are casted to float because of missing values in the 'AGGREGATED' rows
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
             # agg_metrics[identifiers_column] = METRICS_DATASET.AGGREGATED_ROW
 
@@ -89,6 +86,7 @@ class SingleModel():
             [METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS
         ]
         # TODO add params of model to item_metrics dataframe
+        # item_metrics['model_params'] = str(JSON_OF_PARAMS)
 
         if make_forecasts:
             all_timeseries = {}
@@ -113,46 +111,14 @@ class SingleModel():
                 multiple_df += [unique_identifiers_df]
             forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
 
-            # multiple_df = []
-            # for i, sample_forecasts in enumerate(forecasts_list):
-            #     sample_forecasts_df = sample_forecasts.mean_ts.to_frame().reset_index().rename(
-            #         columns={
-            #             'index': 'time_column',
-            #             0: f"{train_ds.list_data[i]['target_name']}_{self.model_name}"
-            #         }
-            #     )
-            #     if len(identifiers_columns) > 0:
-            #         for identifier, value in train_ds.list_data[i]['identifiers'].items():
-            #             sample_forecasts_df[identifier] = value
-            #     multiple_df.append(sample_forecasts_df)
-            # forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
-
-            # forecasts_df = forecasts_df.groupby(identifiers_columns + ['time_column']).max().reset_index(drop=False)
-
-            # series = []
-            # forecasts_columns = ['time_column'] + identifiers_columns + [f"{name}_{self.model_name}" for name in target_columns]
-            # forecasts_df = pd.DataFrame(columns=forecasts_columns)
-            # for i, sample_forecasts in enumerate(forecasts_list):
-            #     train_ds.list_data[i]
-            #     series += [sample_forecasts.mean_ts.rename("{}_{}".format(target_columns[i], self.model_name))]
-            # forecasts_df = pd.concat(series, axis=1).reset_index()
             return agg_metrics, item_metrics, forecasts_df, identifiers_columns
 
         return agg_metrics, item_metrics
 
-    def save(self, model_folder, version_name):  # todo: review how folder/paths are handled
+    def save(self, model_folder, version_name):
+        # TODO ? move outside of the class as it interacts with dataiku.Folder objects
         model_path = "{}/{}/model.pk.gz".format(version_name, self.model_name)
         write_to_folder(self.predictor, model_folder, model_path, 'pickle.gz')
 
         parameters_path = "{}/{}/params.json".format(version_name, self.model_name)
         write_to_folder(self.model_parameters, model_folder, parameters_path, 'json')
-
-# file structure:
-# Subfolder per timestamp (each time the recipe is run)
-# -> CSV with all model results (same as output dataset)
-# -> 1 subfolder per model
-#   -> model.pk (Predictor object = estimator.train output)
-#   -> params.json (local and global params, including external features)
-# model_folder/versions/ts/output.csv
-# model_folder/versions/ts/model-blaa/model.pk
-# model_folder/versions/ts/model-blaa/params.json

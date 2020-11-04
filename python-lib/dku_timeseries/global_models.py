@@ -5,7 +5,7 @@ from plugin_io_utils import write_to_folder, METRICS_DATASET
 
 
 class GlobalModels():
-    def __init__(self, target_columns_names, time_column_name, frequency, model_folder, epoch, models_parameters, prediction_length,
+    def __init__(self, target_columns_names, time_column_name, frequency, epoch, models_parameters, prediction_length,
                  training_df, make_forecasts, external_features_columns_names=None, timeseries_identifiers_names=None):
         self.models_parameters = models_parameters
         self.model_names = []
@@ -16,13 +16,11 @@ class GlobalModels():
         self.target_columns_names = target_columns_names
         self.time_column_name = time_column_name
         self.frequency = frequency
-        self.model_folder = model_folder
         self.epoch = epoch
         self.make_forecasts = make_forecasts
         self.external_features_columns_names = external_features_columns_names
         self.use_external_features = (len(external_features_columns_names) > 0)
         self.timeseries_identifiers_names = timeseries_identifiers_names
-        # TODO initialise all class field thta are defined later
         self.version_name = None
         if self.make_forecasts:
             self.forecasts_df = pd.DataFrame()
@@ -56,9 +54,7 @@ class GlobalModels():
     def create_gluon_dataset(self, remove_length=None):
         length = -remove_length if remove_length else None
         multivariate_timeseries = []
-        print("self.timeseries_identifiers_names: ", self.timeseries_identifiers_names)
         if self.timeseries_identifiers_names:
-            print("it's true")
             # TODO check that all timeseries have same length
             for identifiers_names, identifiers_df in self.training_df.groupby(self.timeseries_identifiers_names):
                 multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_names=identifiers_names)
@@ -88,10 +84,8 @@ class GlobalModels():
             identifiers_map = {self.timeseries_identifiers_names[i]: identifier_name for i, identifier_name in enumerate(identifiers_names)}
             univariate_timeseries['identifiers'] = identifiers_map
         return univariate_timeseries
-           
 
     def evaluate_all(self, evaluation_strategy):
-        # total_length = len(self.training_df.index)
         if evaluation_strategy == "split":
             self.train_ds = self.create_gluon_dataset(remove_length=self.prediction_length)  # remove last prediction_length time steps
             self.test_ds = self.create_gluon_dataset()  # all time steps
@@ -130,16 +124,16 @@ class GlobalModels():
         ], axis=0).reset_index(drop=True)
         return orderd_metrics_df
 
-    def save_all(self):
-        # TODO move outside of the class as it interacts with dataiku.Folder objects
+    def save_all(self, model_folder):
+        # TODO ? move outside of the class as it interacts with dataiku.Folder objects
         metrics_path = "{}/metrics.csv".format(self.version_name)
-        write_to_folder(self.metrics_df, self.model_folder, metrics_path, 'csv')
+        write_to_folder(self.metrics_df, model_folder, metrics_path, 'csv')
 
         gluon_train_dataset_path = "{}/gluon_train_dataset.pickle.gz".format(self.version_name)
-        write_to_folder(self.test_ds, self.model_folder, gluon_train_dataset_path, 'pickle.gz')
+        write_to_folder(self.test_ds, model_folder, gluon_train_dataset_path, 'pickle.gz')
 
         for model in self.models:
-            model.save(model_folder=self.model_folder, version_name=self.version_name)
+            model.save(model_folder=model_folder, version_name=self.version_name)
 
     def get_evaluation_forecasts_df(self):
         return self.evaluation_forecasts_df

@@ -1,45 +1,21 @@
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
-from gluonts.model.deep_factor import DeepFactorEstimator
-from gluonts.model.lstnet import LSTNetEstimator
 from gluonts.model.n_beats import NBEATSEstimator
-from gluonts.model.npts import NPTSEstimator
 from gluonts.model.transformer import TransformerEstimator
 from gluonts.trainer import Trainer
 # from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.naive_2 import Naive2Predictor
 
 ESTIMATOR = 'estimator'
-CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature' # TODO implement
+CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature'
 TRAINER = 'trainer'
 PREDICTOR = 'predictor'
 
 MODEL_DESCRIPTORS = {
     "default": {},
-    "deepar": {
-        CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: DeepAREstimator,
-        TRAINER: Trainer
-    },
-    "deepfactor": {
-        ESTIMATOR: DeepFactorEstimator,
-        TRAINER: Trainer
-    },
-    "lstnet": {
-        ESTIMATOR: LSTNetEstimator,
-        TRAINER: Trainer
-    },
     "naive": {
         ESTIMATOR: None,
         PREDICTOR: Naive2Predictor,
-        TRAINER: None
-    },
-    "nbeats": {
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-    },
-    "npts": {
-        ESTIMATOR: NPTSEstimator,
         TRAINER: None
     },
     "simplefeedforward": {
@@ -47,9 +23,18 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: SimpleFeedForwardEstimator,
         TRAINER: Trainer
     },
+    "deepar": {
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: DeepAREstimator,
+        TRAINER: Trainer
+    },
     "transformer": {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
+        TRAINER: Trainer
+    },
+    "nbeats": {
+        ESTIMATOR: NBEATSEstimator,
         TRAINER: Trainer
     }
 }

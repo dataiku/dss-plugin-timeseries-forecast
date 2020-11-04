@@ -151,7 +151,6 @@ def test_assert_continuous_time_column_valid_month_frequency():
         pytest.fail("Unexpected ValueError ..")
 
 
-# TODO unit test for add_future_external_features
 def test_add_future_external_features_with_identifiers():
     timeseries_0 = {
         'start': '2018-01-01',
