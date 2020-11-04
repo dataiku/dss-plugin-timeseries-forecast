@@ -47,11 +47,12 @@ class Prediction():
         self.gluon_dataset = gluon_dataset
         self.prediction_length = prediction_length
         self.quantiles = quantiles
-        self.include_history = include_history
+        self.include_history = include_history # TODO ? implement include history
         self.forecasts_df = None
-        # self._check()
+        self._check()
 
     def predict(self):
+        # TODO split into multiple functions
         forecasts = self.predictor.predict(self.gluon_dataset)
         forecasts_list = list(forecasts)
 
@@ -63,13 +64,13 @@ class Prediction():
                 timeseries_identifier_key = None
 
             for quantile in self.quantiles:
-                series = sample_forecasts.quantile_ts(quantile).rename(
+                forecasts_series = sample_forecasts.quantile_ts(quantile).rename(
                     "{}_forecasts_percentile_{}".format(self.gluon_dataset.list_data[i]['target_name'], int(quantile*100))
-                )
+                ).iloc[:self.prediction_length]
                 if timeseries_identifier_key in all_timeseries:
-                    all_timeseries[timeseries_identifier_key] += [series]
+                    all_timeseries[timeseries_identifier_key] += [forecasts_series]
                 else:
-                    all_timeseries[timeseries_identifier_key] = [series]
+                    all_timeseries[timeseries_identifier_key] = [forecasts_series]
 
         multiple_df = []
         for timeseries_identifier_key, series_list in all_timeseries.items():
@@ -88,21 +89,8 @@ class Prediction():
             forecasts_columns = [column for column in self.forecasts_df if column not in [time_column_name] + timeseries_identifiers_columns]
             self.forecasts_df = self.forecasts_df[[time_column_name] + timeseries_identifiers_columns + forecasts_columns]
 
-        # TODO ? include history
-
-            # # include history
-            # if self.include_history:
-            #     self.forecasts_df = self.targets_train_df.append(self.forecasts_df).reset_index(drop=True)
-
-            # if self.external_features_df is not None:
-            #     self.forecasts_df = self.forecasts_df.merge(self.external_features_df, on=self.time_column, how='left', suffixes=('', '_external_feat'))
-
-            # # only keep the first prediction_length predictions
-            # if self.predictor.prediction_length > self.prediction_length:
-            #     diff = self.predictor.prediction_length - self.prediction_length
-            #     self.forecasts_df = self.forecasts_df.iloc[:-diff]
-
     def get_forecasts_df(self, session=None, model_type=None):
+        """ add the session timestamp and model_type to forecasts dataframe """
         if session:
             self.forecasts_df['session'] = session
         if model_type:
@@ -110,6 +98,7 @@ class Prediction():
         return self.forecasts_df
 
     def create_forecasts_column_description(self):
+        """ explain the meaning of the forecasts columns """
         column_descriptions = {}
         for column in self.forecasts_df.columns:
             if '_forecasts_median' in column:
@@ -120,5 +109,8 @@ class Prediction():
 
     def _check(self):
         if self.predictor.prediction_length < self.prediction_length:
-            raise ValueError("Forecasting horizon cannot be higher than the prediction length ({}) used in training !".format(
-                self.predictor.prediction_length))
+            raise ValueError("The selected prediction length ({}) cannot be higher than the one ({}) used in training !".format(
+                self.prediction_length,
+                self.predictor.prediction_length
+                )
+            )

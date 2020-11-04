@@ -24,7 +24,6 @@ class ModelSelection():
             self.session = self._get_last_session()
             self.model_type = self._get_best_model()
 
-        # TODO raise explicit error if selected model is not in selected session
         model_path = "{}/{}/model.pk.gz".format(self.session, self.model_type)
         model = read_from_folder(self.folder, model_path, 'pickle.gz')
         return model

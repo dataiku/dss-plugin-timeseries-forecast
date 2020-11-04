@@ -13,47 +13,6 @@ def assert_time_column_is_date(dku_dataset, time_column_name):
             raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
 
 
-def load_predict_config():
-    """Utility function to load, resolve and validate all plugin config into a clean `params` dictionary
-
-    Returns:
-        Dictionary of parameter names (key) and values
-    """
-    params = {}
-    recipe_config = get_recipe_config()
-
-    # input folder
-    model_folder = dataiku.Folder(get_input_names_for_role('model_folder')[0])
-    params['model_folder'] = model_folder
-
-    params['external_features_future_dataset'] = None
-    external_features_future_dataset_names = get_input_names_for_role('external_features_future_dataset')
-    if len(external_features_future_dataset_names) > 0:
-        params['external_features_future_dataset'] = dataiku.Dataset(external_features_future_dataset_names[0])
-
-    # output dataset
-    output_dataset_names = get_output_names_for_role("output_dataset")
-    if len(output_dataset_names) == 0:
-        raise PluginParamValidationError("Please specify output dataset")
-    params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
-
-    params['manual_selection'] = True if recipe_config.get("model_selection_mode") == "manual" else False
-
-    params['performance_metric'] = recipe_config.get("performance_metric")
-    params['selected_session'] = recipe_config.get("manually_selected_session")
-    params['selected_model_type'] = recipe_config.get("manually_selected_model_type")
-
-    params['prediction_length'] = recipe_config.get("prediction_length")
-    params['quantiles'] = recipe_config.get("quantiles")
-    if any(x < 0 or x > 1 for x in params['quantiles']):
-        raise PluginParamValidationError("Quantiles must be between 0 and 1.")
-    params['quantiles'].sort()
-
-    params['include_history'] = recipe_config.get("include_history")
-
-    return params
-
-
 def load_training_config(recipe_config):
     params = {}
 
@@ -113,5 +72,46 @@ def load_training_config(recipe_config):
     params['evaluation_only'] = recipe_config.get("evaluation_only", False)
 
     assert_time_column_is_date(params['training_dataset'], params['time_column_name'])
+
+    return params
+
+
+def load_predict_config():
+    """Utility function to load, resolve and validate all plugin config into a clean `params` dictionary
+
+    Returns:
+        Dictionary of parameter names (key) and values
+    """
+    params = {}
+    recipe_config = get_recipe_config()
+
+    # input folder
+    model_folder = dataiku.Folder(get_input_names_for_role('model_folder')[0])
+    params['model_folder'] = model_folder
+
+    params['external_features_future_dataset'] = None
+    external_features_future_dataset_names = get_input_names_for_role('external_features_future_dataset')
+    if len(external_features_future_dataset_names) > 0:
+        params['external_features_future_dataset'] = dataiku.Dataset(external_features_future_dataset_names[0])
+
+    # output dataset
+    output_dataset_names = get_output_names_for_role("output_dataset")
+    if len(output_dataset_names) == 0:
+        raise PluginParamValidationError("Please specify output dataset")
+    params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
+
+    params['manual_selection'] = True if recipe_config.get("model_selection_mode") == "manual" else False
+
+    params['performance_metric'] = recipe_config.get("performance_metric")
+    params['selected_session'] = recipe_config.get("manually_selected_session")
+    params['selected_model_type'] = recipe_config.get("manually_selected_model_type")
+
+    params['prediction_length'] = recipe_config.get("prediction_length")
+    params['quantiles'] = recipe_config.get("quantiles")
+    if any(x < 0 or x > 1 for x in params['quantiles']):
+        raise PluginParamValidationError("Quantiles must be between 0 and 1.")
+    params['quantiles'].sort()
+
+    params['include_history'] = recipe_config.get("include_history")
 
     return params
