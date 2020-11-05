@@ -14,10 +14,6 @@ version_name = datetime.utcnow().isoformat()+'Z'
 
 models_parameters = get_models_parameters(config)
 
-# print("models_parameters: ", models_parameters)
-# print("params: ", params)
-# raise Exception('Done')
-
 training_df = params['training_dataset'].get_dataframe(columns=params['columns_to_keep'])
 
 remove_timezone_information(training_df, params['time_column_name'])
@@ -50,9 +46,6 @@ if not params['evaluation_only']:
 
 metrics_df = global_models.get_metrics_df()
 
-print("metrics_df.columns: ", metrics_df.columns)
-print("metrics_df.describe(): ", metrics_df.describe())
-
 params['evaluation_dataset'].write_with_schema(metrics_df)
 
 metrics_column_descriptions = global_models.create_metrics_column_description()
@@ -60,8 +53,6 @@ set_column_description(params['evaluation_dataset'], metrics_column_descriptions
 
 if params['make_forecasts']:
     evaluation_forecasts_df = global_models.get_evaluation_forecasts_df()
-    print("evaluation_forecasts_df.columns: ", evaluation_forecasts_df.columns)
-    print("evaluation_forecasts_df.describe(): ", evaluation_forecasts_df.describe())
     params['evaluation_forecasts'].write_with_schema(evaluation_forecasts_df)
 
     evaluation_forecasts_column_descriptions = global_models.create_evaluation_forecasts_column_description()

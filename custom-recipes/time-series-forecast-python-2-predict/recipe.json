@@ -131,9 +131,9 @@
             "label": "Prediction length",
             "type": "INT",
             "mandatory": true,
-            "defaultValue": 1,
-            "description": "In number of time steps",
-            "minI": 1
+            "defaultValue": 0,
+            "description": "In number of time steps. If 0, same as the prediction length used in training.",
+            "minI": 0
         },
         {
             "name": "quantiles",
