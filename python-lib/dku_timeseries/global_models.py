@@ -61,7 +61,6 @@ class GlobalModels():
         if self.timeseries_identifiers_names:
             # TODO check that all timeseries have same length
             for identifiers_values, identifiers_df in self.training_df.groupby(self.timeseries_identifiers_names):
-                print("identifiers_values: ", identifiers_values)
                 multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_values=identifiers_values)
         else:
             multivariate_timeseries += self._create_gluon_multivariate_timeseries(self.training_df, length)
