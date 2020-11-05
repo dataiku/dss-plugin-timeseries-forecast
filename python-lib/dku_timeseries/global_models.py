@@ -6,7 +6,7 @@ from plugin_io_utils import write_to_folder, METRICS_DATASET
 
 class GlobalModels():
     def __init__(self, target_columns_names, time_column_name, frequency, epoch, models_parameters, prediction_length,
-                 training_df, make_forecasts, external_features_columns_names=None, timeseries_identifiers_names=None):
+                 training_df, make_forecasts, external_features_columns_names=None, timeseries_identifiers_names=None, partition_root=None):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -28,9 +28,13 @@ class GlobalModels():
         self.train_ds = None
         self.test_ds = None
         self.metrics_df = None
+        self.partition_root = partition_root
 
     def init_all_models(self, version_name):
-        self.version_name = version_name
+        if self.partition_root is None:
+            self.version_name = version_name
+        else:
+            self.version_name = "{}/{}".format(self.partition_root, version_name)
         self.models = []
         for model_name in self.models_parameters:
             model_parameters = self.models_parameters.get(model_name)

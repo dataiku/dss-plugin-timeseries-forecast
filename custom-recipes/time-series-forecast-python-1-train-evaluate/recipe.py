@@ -7,6 +7,7 @@ from dku_timeseries.global_models import GlobalModels
 from plugin_config_loading import load_training_config
 
 config = get_recipe_config()
+partition_root = dataiku.dku_flow_variables.get('DKU_DST_Name', None)
 
 params = load_training_config(config)
 version_name = datetime.utcnow().isoformat()+'Z'
@@ -35,7 +36,8 @@ global_models = GlobalModels(
     training_df=training_df,
     make_forecasts=params['make_forecasts'],
     external_features_columns_names=params['external_features_columns_names'],
-    timeseries_identifiers_names=params['timeseries_identifiers_names']
+    timeseries_identifiers_names=params['timeseries_identifiers_names'],
+    partition_root=partition_root
 )
 global_models.init_all_models(version_name=version_name)
 
