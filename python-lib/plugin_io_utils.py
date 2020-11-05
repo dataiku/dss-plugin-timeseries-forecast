@@ -165,10 +165,10 @@ def assert_continuous_time_column(dataframe, time_column_name, time_granularity_
     is_continuous = check_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step)
     if not is_continuous:
         frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
-        error_message = f"Time column {time_column_name} doesn't have regular time intervals of frequency {frequency}."
+        error_message = "Time column {} doesn't have regular time intervals of frequency {}.".format(time_column_name, frequency)
         if time_granularity_unit in ['M', 'Y']:
             unit_name = 'Month' if time_granularity_step == 'M' else 'Year'
-            error_message += f"For {unit_name} frequency, timestamps must be end of {unit_name} (for e.g. '2020-12-31 00:00:00')"
+            error_message += "For {0} frequency, timestamps must be end of {0} (for e.g. '2020-12-31 00:00:00')".format(unit_name)
         raise ValueError(error_message)
 
 
