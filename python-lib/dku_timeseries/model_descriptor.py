@@ -3,7 +3,6 @@ from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
 from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.transformer import TransformerEstimator
 from gluonts.trainer import Trainer
-# from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.naive_2 import Naive2Predictor
 
 ESTIMATOR = 'estimator'
@@ -63,7 +62,6 @@ class ModelDescriptor():
 
     def get_predictor(self, **kwargs):
         predictor = self.model_descriptor.get(PREDICTOR)
-        # return predictor
         return None if predictor is None else predictor(**kwargs)
 
     def can_use_external_feature(self):

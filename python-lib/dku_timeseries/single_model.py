@@ -90,7 +90,6 @@ class SingleModel():
         item_metrics = item_metrics[
             [METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS
         ]
-        # TODO add params of model to item_metrics dataframe
         item_metrics['model_params'] = str({
             'model_name': self.model_name,
             'model_parameters': self.model_parameters,
