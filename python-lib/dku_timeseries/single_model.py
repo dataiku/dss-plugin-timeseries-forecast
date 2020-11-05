@@ -21,8 +21,9 @@ class SingleModel():
             "prediction_length": self.prediction_length
         }
         trainer_kwargs = {"epochs": self.epoch}
-        if batch_size is not None:
-            trainer_kwargs.update({"batch_size": batch_size})
+        self.batch_size = batch_size
+        if self.batch_size is not None:
+            trainer_kwargs.update({"batch_size": self.batch_size})
         trainer = self.model_descriptor.get_trainer(**trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
@@ -90,7 +91,15 @@ class SingleModel():
             [METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS
         ]
         # TODO add params of model to item_metrics dataframe
-        # item_metrics['model_params'] = str(JSON_OF_PARAMS)
+        item_metrics['model_params'] = str({
+            'model_name': self.model_name,
+            'model_parameters': self.model_parameters,
+            'frequency': self.frequency,
+            'prediction_length': self.prediction_length,
+            'epoch': self.epoch,
+            'use_external_features': self.use_external_features,
+            'batch_size': self.batch_size
+        })
 
         if make_forecasts:
             all_timeseries = {}
@@ -100,7 +109,7 @@ class SingleModel():
                     timeseries_identifier_key = tuple(sorted(train_ds.list_data[i]['identifiers'].items()))
                 else:
                     timeseries_identifier_key = None
-                    
+
                 if timeseries_identifier_key in all_timeseries:
                     all_timeseries[timeseries_identifier_key] += [series]
                 else:
