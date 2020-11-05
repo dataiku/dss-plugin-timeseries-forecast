@@ -56,20 +56,21 @@ class GlobalModels():
         multivariate_timeseries = []
         if self.timeseries_identifiers_names:
             # TODO check that all timeseries have same length
-            for identifiers_names, identifiers_df in self.training_df.groupby(self.timeseries_identifiers_names):
-                multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_names=identifiers_names)
+            for identifiers_values, identifiers_df in self.training_df.groupby(self.timeseries_identifiers_names):
+                print("identifiers_values: ", identifiers_values)
+                multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_values=identifiers_values)
         else:
             multivariate_timeseries += self._create_gluon_multivariate_timeseries(self.training_df, length)
         # return multivariate_timeseries
         return ListDataset(multivariate_timeseries, freq=self.frequency)
 
-    def _create_gluon_multivariate_timeseries(self, df, length, identifiers_names=None):
+    def _create_gluon_multivariate_timeseries(self, df, length, identifiers_values=None):
         multivariate_timeseries = []
         for target_column_name in self.target_columns_names:
-            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, length, identifiers_names))
+            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, length, identifiers_values))
         return multivariate_timeseries
     
-    def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_names=None):
+    def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_values=None):
         """ create dictionary for one timeseries and add extra features and identifiers if specified """
         univariate_timeseries = {
             'start': df[self.time_column_name].iloc[0],
@@ -80,8 +81,11 @@ class GlobalModels():
         if self.external_features_columns_names:
             univariate_timeseries['feat_dynamic_real'] = df[self.external_features_columns_names].iloc[:length].values.T
             univariate_timeseries['feat_dynamic_real_columns_names'] = self.external_features_columns_names
-        if identifiers_names:
-            identifiers_map = {self.timeseries_identifiers_names[i]: identifier_name for i, identifier_name in enumerate(identifiers_names)}
+        if identifiers_values:
+            if len(self.timeseries_identifiers_names) > 1:
+                identifiers_map = {self.timeseries_identifiers_names[i]: identifier_value for i, identifier_value in enumerate(identifiers_values)}
+            else:
+                identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
             univariate_timeseries['identifiers'] = identifiers_map
         return univariate_timeseries
 
