@@ -7,7 +7,8 @@ from dku_timeseries.model_descriptor import ModelDescriptor
 
 
 class SingleModel():
-    def __init__(self, model_name, model_parameters, frequency, prediction_length, epoch, use_external_features=False):
+    def __init__(self, model_name, model_parameters, frequency, prediction_length, epoch, use_external_features=False,
+                 batch_size=None, gpu=None):
         self.model_name = model_name
         self.model_parameters = model_parameters
         self.model_descriptor = ModelDescriptor(model_name)
@@ -19,7 +20,10 @@ class SingleModel():
             "freq": self.frequency,
             "prediction_length": self.prediction_length
         }
-        trainer = self.model_descriptor.get_trainer(epochs=self.epoch)
+        trainer_kwargs = {"epochs": self.epoch}
+        if batch_size is not None:
+            trainer_kwargs.update({"batch_size": batch_size})
+        trainer = self.model_descriptor.get_trainer(**trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
         if self.model_descriptor.can_use_external_feature() and self.use_external_features:

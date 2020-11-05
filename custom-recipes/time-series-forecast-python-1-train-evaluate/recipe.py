@@ -37,9 +37,10 @@ global_models = GlobalModels(
     make_forecasts=params['make_forecasts'],
     external_features_columns_names=params['external_features_columns_names'],
     timeseries_identifiers_names=params['timeseries_identifiers_names'],
-    partition_root=partition_root
+    batch_size=params['batch_size'],
+    gpu=params['gpu']
 )
-global_models.init_all_models(version_name=version_name)
+global_models.init_all_models(partition_root=partition_root, version_name=version_name)
 
 global_models.evaluate_all(params['evaluation_strategy'])
 
