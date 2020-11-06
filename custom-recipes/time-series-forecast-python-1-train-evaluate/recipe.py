@@ -34,7 +34,8 @@ global_models = GlobalModels(
     external_features_columns_names=params['external_features_columns_names'],
     timeseries_identifiers_names=params['timeseries_identifiers_names'],
     batch_size=params['batch_size'],
-    gpu=params['gpu']
+    gpu=params['gpu'],
+    context_length=params['context_length']
 )
 global_models.init_all_models(partition_root=partition_root, version_name=version_name)
 

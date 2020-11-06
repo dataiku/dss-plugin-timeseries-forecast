@@ -7,7 +7,7 @@ from plugin_io_utils import write_to_folder, METRICS_DATASET
 class GlobalModels():
     def __init__(self, target_columns_names, time_column_name, frequency, epoch, models_parameters, prediction_length,
                  training_df, make_forecasts, external_features_columns_names=None, timeseries_identifiers_names=None,
-                 batch_size=None, gpu=None):
+                 batch_size=None, gpu=None, context_length=None):
         self.models_parameters = models_parameters
         self.model_names = []
         self.models = None
@@ -31,6 +31,7 @@ class GlobalModels():
         self.metrics_df = None
         self.batch_size = batch_size
         self.gpu = gpu
+        self.context_length = context_length
 
     def init_all_models(self, version_name, partition_root=None):
         if partition_root is None:
@@ -49,7 +50,8 @@ class GlobalModels():
                     epoch=self.epoch,
                     use_external_features=self.use_external_features,
                     batch_size=self.batch_size,
-                    gpu=self.gpu
+                    gpu=self.gpu,
+                    context_length=self.context_length
                 )
             )
         # already done in assert_continuous_time_column
@@ -76,7 +78,7 @@ class GlobalModels():
         for target_column_name in self.target_columns_names:
             multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, length, identifiers_values))
         return multivariate_timeseries
-    
+
     def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_values=None):
         """ create dictionary for one timeseries and add extra features and identifiers if specified """
         univariate_timeseries = {
@@ -119,7 +121,7 @@ class GlobalModels():
             metrics_df = metrics_df.append(item_metrics)
         metrics_df['session'] = self.version_name
         orderd_metrics_df = self._reorder_metrics_df(metrics_df)
-        
+
         if self.make_forecasts:
             self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how='left')
             self.evaluation_forecasts_df['session'] = self.version_name
