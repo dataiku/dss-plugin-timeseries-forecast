@@ -1,7 +1,8 @@
 import pandas as pd
-from dku_timeseries.single_model import SingleModel
+from gluonts_forecasts.single_model import SingleModel
 from gluonts.dataset.common import ListDataset
-from plugin_io_utils import write_to_folder, METRICS_DATASET
+from constants import METRICS_DATASET
+from dku_io_utils.dku_io_utils import write_to_folder
 
 
 class GlobalModels():
@@ -54,8 +55,7 @@ class GlobalModels():
                     context_length=self.context_length
                 )
             )
-        # already done in assert_continuous_time_column
-        # self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
+        self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
 
     def fit_all(self):
         for model in self.models:

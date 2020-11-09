@@ -2,9 +2,9 @@
 import dataiku
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
-from plugin_io_utils import get_models_parameters, set_column_description, assert_continuous_time_column, remove_timezone_information
-from dku_timeseries.global_models import GlobalModels
-from plugin_config_loading import load_training_config
+from dku_io_utils.dku_io_utils import get_models_parameters, set_column_description
+from gluonts_forecasts.global_models import GlobalModels
+from dku_io_utils.dku_config_loading import load_training_config
 
 config = get_recipe_config()
 partition_root = dataiku.dku_flow_variables.get('DKU_DST_Name', None)
@@ -15,12 +15,6 @@ version_name = datetime.utcnow().isoformat()+'Z'
 models_parameters = get_models_parameters(config)
 
 training_df = params['training_dataset'].get_dataframe(columns=params['columns_to_keep'])
-
-remove_timezone_information(training_df, params['time_column_name'])
-
-# assert_continuous_time_column(
-#     training_df, params['time_column_name'], params['time_granularity_unit'], params['time_granularity_step']
-# )
 
 global_models = GlobalModels(
     target_columns_names=params['target_columns_names'],

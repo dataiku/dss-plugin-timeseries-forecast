@@ -1,7 +1,8 @@
-from plugin_config_loading import load_predict_config
-from plugin_io_utils import set_column_description, external_features_check
-from dku_timeseries.model_selection import ModelSelection
-from dku_timeseries.prediction import Prediction, add_future_external_features
+from dku_io_utils.dku_config_loading import load_predict_config
+from dku_io_utils.dku_io_utils import set_column_description
+from dku_io_utils.dku_checks_utils import external_features_check
+from dku_io_utils.model_selection import ModelSelection
+from gluonts_forecasts.prediction import Prediction, add_future_external_features
 
 params = load_predict_config()
 

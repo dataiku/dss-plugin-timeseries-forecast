@@ -1,9 +1,10 @@
-from plugin_io_utils import write_to_folder, EVALUATION_METRICS, METRICS_DATASET
+from constants import EVALUATION_METRICS, METRICS_DATASET
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import pandas as pd
 import logging
-from dku_timeseries.model_descriptor import ModelDescriptor
+from gluonts_forecasts.model_descriptor import ModelDescriptor
+from dku_io_utils.dku_io_utils import write_to_folder
 
 
 class SingleModel():

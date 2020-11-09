@@ -1,11 +1,11 @@
 from plugin_io_utils import check_continuous_time_column, assert_continuous_time_column
-from dku_timeseries.prediction import add_future_external_features 
+from gluonts_forecasts.prediction import add_future_external_features
 from gluonts.dataset.common import ListDataset
 import pandas as pd
 import numpy as np
 import pytest
 
-#dataset = {'time_column': ['', '', ''], 'data_column': [0, 1, 2]}
+# dataset = {'time_column': ['', '', ''], 'data_column': [0, 1, 2]}
 dataset_timeline_gap = {'time_column': ['2013-02-08T00:00:00.000Z', '2013-02-11T00:00:00.000Z', '2013-02-12T00:00:00.000Z'], 'data_column': [0, 1, 2]}
 dataset_timeline = {'time_column': ['2013-02-10T00:00:00.000Z', '2013-02-11T00:00:00.000Z', '2013-02-12T00:00:00.000Z'], 'data_column': [0, 1, 2]}
 
