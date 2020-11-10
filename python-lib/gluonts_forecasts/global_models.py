@@ -1,8 +1,24 @@
 import pandas as pd
+import numpy as np
 from gluonts_forecasts.single_model import SingleModel
 from gluonts.dataset.common import ListDataset
 from constants import METRICS_DATASET
 from dku_io_utils.dku_io_utils import write_to_folder
+
+
+def assert_time_column_valid(dataframe, time_column_name, frequency, periods=None):
+    start_date = dataframe[time_column_name].iloc[0]
+    if periods:
+        date_range_values = pd.date_range(start=start_date, periods=periods, freq=frequency).values
+    else:
+        end_date = dataframe[time_column_name].iloc[-1]
+        date_range_values = pd.date_range(start=start_date, end=end_date, freq=frequency).values
+
+    if not np.array_equal(dataframe[time_column_name].values, date_range_values):
+        error_message = "Time column {} doesn't have regular time intervals of frequency {}.".format(time_column_name, frequency)
+        if frequency.endswith(("M", "Y")):
+            error_message += "For Month (or Year) frequency, timestamps must be end of Month (or Year) (for e.g. '2020-12-31 00:00:00')"
+        raise ValueError(error_message)
 
 
 class GlobalModels():
@@ -65,12 +81,15 @@ class GlobalModels():
         length = -remove_length if remove_length else None
         multivariate_timeseries = []
         if self.timeseries_identifiers_names:
-            # TODO check that all timeseries have same length
-            for identifiers_values, identifiers_df in self.training_df.groupby(self.timeseries_identifiers_names):
+            periods = None
+            for i, (identifiers_values, identifiers_df) in enumerate(self.training_df.groupby(self.timeseries_identifiers_names)):
+                assert_time_column_valid(identifiers_df, self.time_column_name, self.frequency, periods=periods)
+                if i == 0:
+                    periods = len(identifiers_df.index)
                 multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_values=identifiers_values)
         else:
+            assert_time_column_valid(self.training_df, self.time_column_name, self.frequency)
             multivariate_timeseries += self._create_gluon_multivariate_timeseries(self.training_df, length)
-        # return multivariate_timeseries
         return ListDataset(multivariate_timeseries, freq=self.frequency)
 
     def _create_gluon_multivariate_timeseries(self, df, length, identifiers_values=None):

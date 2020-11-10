@@ -1,33 +1,3 @@
-import pandas as pd
-
-
-def assert_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step):
-    """ raise an explicit error message """
-    is_continuous = check_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step)
-    if not is_continuous:
-        frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
-        error_message = "Time column {} doesn't have regular time intervals of frequency {}.".format(time_column_name, frequency)
-        if time_granularity_unit in ['M', 'Y']:
-            unit_name = 'Month' if time_granularity_step == 'M' else 'Year'
-            error_message += "For {0} frequency, timestamps must be end of {0} (for e.g. '2020-12-31 00:00:00')".format(unit_name)
-        raise ValueError(error_message)
-
-
-def check_continuous_time_column(dataframe, time_column_name, time_granularity_unit, time_granularity_step):
-    """ check that all timesteps are identical and follow the chosen frequency """
-    dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
-    frequency = "{}{}".format(time_granularity_step, time_granularity_unit)
-
-    start_date = dataframe[time_column_name].iloc[0]
-    end_date = dataframe[time_column_name].iloc[-1]
-
-    date_range_df = pd.date_range(start=start_date, end=end_date, freq=frequency).to_frame(index=False)
-
-    if len(date_range_df.index) != len(dataframe.index) or not dataframe[time_column_name].equals(date_range_df[0]):
-        return False
-    return True
-
-
 def external_features_future_dataset_schema_check(train_data_sample, external_features_future_dataset):
     """
     check that schema of external_features_future_dataset contains exactly and only
