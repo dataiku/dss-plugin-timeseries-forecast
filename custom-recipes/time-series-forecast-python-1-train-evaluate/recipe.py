@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import dataiku
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
 from dku_io_utils.dku_io_utils import get_models_parameters, set_column_description
@@ -7,8 +6,6 @@ from gluonts_forecasts.global_models import GlobalModels
 from dku_io_utils.dku_config_loading import load_training_config
 
 config = get_recipe_config()
-partition_root = dataiku.dku_flow_variables.get('DKU_DST_Name', None)
-
 params = load_training_config(config)
 version_name = datetime.utcnow().isoformat()+'Z'
 
@@ -31,7 +28,7 @@ global_models = GlobalModels(
     gpu=params['gpu'],
     context_length=params['context_length']
 )
-global_models.init_all_models(partition_root=partition_root, version_name=version_name)
+global_models.init_all_models(partition_root=params['partition_root'], version_name=version_name)
 
 global_models.evaluate_all(params['evaluation_strategy'])
 

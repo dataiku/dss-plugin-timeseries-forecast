@@ -13,6 +13,41 @@ def assert_time_column_is_date(dku_dataset, time_column_name):
             raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
 
 
+def get_partition_root(dataset):
+    dku_flow_variables = dataiku.dku_flow_variables
+    file_path_pattern = dataset.get_config().get('partitioning').get('filePathPattern', None)
+    if file_path_pattern is None:
+        return '/'
+    dimensions = get_dimensions(dataset)
+    partitions = get_partitions(dku_flow_variables, dimensions)
+    file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions)
+    return file_path
+
+
+def get_dimensions(dataset):
+    dimensions_dict = dataset.get_config().get('partitioning').get('dimensions')
+    dimensions = []
+    for dimension in dimensions_dict:
+        if dimension.get('type') != 'value':
+            raise ValueError('Time partitions are not handled yet')
+        dimensions.append(dimension.get('name'))
+    return dimensions
+
+
+def get_partitions(dku_flow_variables, dimensions):
+    partitions = []
+    for dimension in dimensions:
+        partitions.append(dku_flow_variables.get('DKU_SRC_{}'.format(dimension)))
+    return partitions
+
+
+def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
+    file_path = file_path_pattern.replace('.*', '')
+    for partition, dimension in zip(partitions, dimensions):
+        file_path = file_path.replace('%{{{}}}'.format(dimension), partition)
+    return file_path
+
+
 def load_training_config(recipe_config):
     params = {}
 
@@ -21,6 +56,7 @@ def load_training_config(recipe_config):
     input_dataset_name = get_input_names_for_role('input_dataset')[0]
     params['training_dataset'] = dataiku.Dataset(input_dataset_name)
     training_dataset_columns = [p["name"] for p in params["training_dataset"].read_schema()]
+    params['partition_root'] = get_partition_root(params['training_dataset'])
 
     model_folder_name = get_output_names_for_role('model_folder')[0]
     params['model_folder'] = dataiku.Folder(model_folder_name)
@@ -99,6 +135,7 @@ def load_predict_config():
     if len(output_dataset_names) == 0:
         raise PluginParamValidationError("Please specify output dataset")
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
+    params['partition_root'] = get_partition_root(params['output_dataset'])
 
     params['manual_selection'] = True if recipe_config.get("model_selection_mode") == "manual" else False
 

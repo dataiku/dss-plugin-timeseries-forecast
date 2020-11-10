@@ -1,4 +1,3 @@
-import dataiku
 from dku_io_utils.dku_config_loading import load_predict_config
 from dku_io_utils.dku_io_utils import set_column_description
 from dku_io_utils.dku_checks_utils import external_features_check
@@ -6,12 +5,11 @@ from dku_io_utils.model_selection import ModelSelection
 from gluonts_forecasts.prediction import Prediction, add_future_external_features
 
 params = load_predict_config()
-partition = dataiku.dku_flow_variables.get('DKU_DST_Name', None)
 
 model_selection = ModelSelection(
     folder=params['model_folder'],
     external_features_future_dataset=params['external_features_future_dataset'],
-    partition=partition
+    partition=params['partition_root']
 )
 
 if params['manual_selection']:
