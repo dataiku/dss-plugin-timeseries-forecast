@@ -5,9 +5,10 @@ from constants import METRICS_DATASET
 
 class ModelSelection():
 
-    def __init__(self, folder, external_features_future_dataset=None):
+    def __init__(self, folder, external_features_future_dataset=None, partition=None):
         self.folder = folder
         self.external_features_future_dataset = external_features_future_dataset
+        self.root = '' if partition is None else "{}/".format(partition)
 
     def manual_params(self, session, model_type):
         self.manual_selection = True
@@ -34,11 +35,11 @@ class ModelSelection():
 
     def _get_last_session(self):
         session_timestamps = []
-        for child in self.folder.get_path_details(path='/')['children']:
+        for child in self.folder.get_path_details(path=self.root)['children']:
             if re.match(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z', child['name']):
                 session_timestamps += [child['name']]
         last_session = max(session_timestamps, key=lambda timestamp: timestamp)
-        return last_session
+        return "{}{}".format(self.root, last_session)
 
     def _get_best_model(self):
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), 'csv')

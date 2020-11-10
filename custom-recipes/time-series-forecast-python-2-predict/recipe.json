@@ -54,16 +54,7 @@
             "mandatory": true,
             "defaultValue": "auto",
             "description": "Manually select a model or use the best model from the last session",
-            "selectChoices": [
-                {
-                    "value": "auto",
-                    "label": "Automatic"
-                },
-                {
-                    "value": "manual",
-                    "label": "Manual"
-                }
-            ]
+            "getChoicesFromPython": true
         },
         {
             "name": "performance_metric",

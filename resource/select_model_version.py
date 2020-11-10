@@ -30,10 +30,12 @@ def do(payload, config, plugin_config, inputs):
                 if child['directory'] and child['name'] in AVAILABLE_MODELS:
                     model_types.add(child['name'])
 
-        if len(model_types) == 0:
-            raise ValueError("Unable to retrieve any model types from Input Folder!")
-
         for model in model_types:
             choices += [{'label': model, 'value': model}]
+
+    elif payload.get('parameterName') == 'model_selection_mode':
+        choices = [{'label': 'Automatic', 'value': 'auto'}]
+        if len(sessions) > 0:
+            choices += [{'label': 'Manual', 'value': 'manual'}]
 
     return {"choices": choices}
