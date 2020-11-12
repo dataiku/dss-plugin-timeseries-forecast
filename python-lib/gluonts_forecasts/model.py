@@ -51,23 +51,23 @@ class Model:
     def get_name(self):
         return self.model_name
 
-    def train(self, train_ds):
+    def train(self, train_list_dataset):
         if self.estimator is None:
             print("No training: {} model not implemented yet".format(self.model_name))
             return
         logging.info("Timeseries forecast - Training model {} on all data".format(self.model_name))
-        self.predictor = self.estimator.train(train_ds)
+        self.predictor = self.estimator.train(train_list_dataset)
 
-    def evaluate(self, train_ds, test_ds, make_forecasts=False):
+    def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
         # TODO split into multiple functions
         logging.info(
             "Timeseries forecast - Training model {} for evaluation".format(self.model_name)
         )
-        predictor = self._get_predictor(train_ds)
+        predictor = self._get_predictor(train_list_dataset)
         evaluator = Evaluator()
 
         forecast_it, ts_it = make_evaluation_predictions(
-            dataset=test_ds,  # test dataset
+            dataset=test_list_dataset,  # test dataset
             predictor=predictor,  # predictor
             num_samples=100,  # number of sample paths we want for evaluation
         )
@@ -75,20 +75,20 @@ class Model:
         forecasts_list = list(forecast_it)
 
         agg_metrics, item_metrics = evaluator(
-            iter(ts_list), iter(forecasts_list), num_series=len(test_ds)
+            iter(ts_list), iter(forecasts_list), num_series=len(test_list_dataset)
         )
 
         item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
         agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
 
         identifiers_columns = (
-            list(train_ds.list_data[0]["identifiers"].keys())
-            if "identifiers" in train_ds.list_data[0]
+            list(train_list_dataset.list_data[0]["identifiers"].keys())
+            if "identifiers" in train_list_dataset.list_data[0]
             else []
         )
         identifiers_values = {identifiers_column: [] for identifiers_column in identifiers_columns}
         target_columns = []
-        for univariate_timeseries in train_ds.list_data:
+        for univariate_timeseries in train_list_dataset.list_data:
             target_columns += [univariate_timeseries["target_name"]]
             for identifiers_column in identifiers_columns:
                 identifiers_values[identifiers_column] += [
@@ -114,18 +114,18 @@ class Model:
         item_metrics["model_params"] = self._get_model_parameters_json()
 
         if make_forecasts:
-            forecasts_df = self._get_forecasts_df(forecasts_list, train_ds)
+            forecasts_df = self._get_forecasts_df(forecasts_list, train_list_dataset)
             return agg_metrics, item_metrics, forecasts_df, identifiers_columns
 
         return agg_metrics, item_metrics
 
-    def _get_predictor(self, train_ds):
+    def _get_predictor(self, train_list_dataset):
         if self.estimator is None:
             predictor = self.model_descriptor.get_predictor(
                 freq=self.frequency, prediction_length=self.prediction_length
             )
         else:
-            predictor = self.estimator.train(train_ds)
+            predictor = self.estimator.train(train_list_dataset)
         return predictor
 
     def _get_model_parameters_json(self):
@@ -141,15 +141,15 @@ class Model:
             }
         )
 
-    def _get_forecasts_df(self, forecasts_list, train_ds):
+    def _get_forecasts_df(self, forecasts_list, train_list_dataset):
         all_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = sample_forecasts.mean_ts.rename(
-                "{}_{}".format(train_ds.list_data[i]["target_name"], self.model_name)
+                "{}_{}".format(train_list_dataset.list_data[i]["target_name"], self.model_name)
             )
-            if "identifiers" in train_ds.list_data[i]:
+            if "identifiers" in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(
-                    sorted(train_ds.list_data[i]["identifiers"].items())
+                    sorted(train_list_dataset.list_data[i]["identifiers"].items())
                 )
             else:
                 timeseries_identifier_key = None

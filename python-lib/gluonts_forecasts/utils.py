@@ -56,8 +56,9 @@ def add_future_external_features(
     return gluon_dataset
 
 
-def assert_time_column_valid(dataframe, time_column_name, frequency, periods=None):
-    start_date = dataframe[time_column_name].iloc[0]
+def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=None, periods=None):
+    if not start_date:
+        start_date = dataframe[time_column_name].iloc[0]
     if periods:
         date_range_values = pd.date_range(start=start_date, periods=periods, freq=frequency).values
     else:
