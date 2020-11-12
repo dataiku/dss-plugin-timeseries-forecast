@@ -131,7 +131,11 @@
             "label": "Quantiles",
             "type": "DOUBLES",
             "mandatory": true,
-            "defaultValue": [0.1, 0.5, 0.9],
+            "defaultValue": [
+                0.1,
+                0.5,
+                0.9
+            ],
             "description": "Quantiles of forecasts to output. 0.5-quantile is the median."
         },
         {

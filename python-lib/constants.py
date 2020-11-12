@@ -1,10 +1,6 @@
-AVAILABLE_MODELS = [
-    "naive", "simplefeedforward", "deepar", "transformer", "nbeats"
-]
+AVAILABLE_MODELS = ["naive", "simplefeedforward", "deepar", "transformer", "nbeats"]
 
-EVALUATION_METRICS = [
-    "MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"
-]
+EVALUATION_METRICS = ["MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"]
 
 
 class METRICS_DATASET:

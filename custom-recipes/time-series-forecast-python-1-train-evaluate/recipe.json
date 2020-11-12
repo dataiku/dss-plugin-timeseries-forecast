@@ -101,7 +101,7 @@
             "columnRole": "input_dataset",
             "mandatory": false,
             "visibilityCondition": "model.additional_columns == true"
-        },        
+        },
         {
             "name": "external_feature_columns",
             "label": "External features",

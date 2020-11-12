@@ -5,41 +5,34 @@ from gluonts.model.transformer import TransformerEstimator
 from gluonts.trainer import Trainer
 from gluonts.model.naive_2 import Naive2Predictor
 
-ESTIMATOR = 'estimator'
-CAN_USE_EXTERNAL_FEATURES = 'can_use_external_feature'
-TRAINER = 'trainer'
-PREDICTOR = 'predictor'
+ESTIMATOR = "estimator"
+CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
+TRAINER = "trainer"
+PREDICTOR = "predictor"
 
 MODEL_DESCRIPTORS = {
     "default": {},
-    "naive": {
-        ESTIMATOR: None,
-        PREDICTOR: Naive2Predictor,
-        TRAINER: None
-    },
+    "naive": {ESTIMATOR: None, PREDICTOR: Naive2Predictor, TRAINER: None},
     "simplefeedforward": {
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: SimpleFeedForwardEstimator,
-        TRAINER: Trainer
+        TRAINER: Trainer,
     },
     "deepar": {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
-        TRAINER: Trainer
+        TRAINER: Trainer,
     },
     "transformer": {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
-        TRAINER: Trainer
+        TRAINER: Trainer,
     },
-    "nbeats": {
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-    }
+    "nbeats": {ESTIMATOR: NBEATSEstimator, TRAINER: Trainer},
 }
 
 
-class ModelDescriptor():
+class ModelDescriptor:
     def __init__(self, model_name):
         self.model_name = model_name
         self.model_descriptor = self.get_model_descriptor()
@@ -47,7 +40,7 @@ class ModelDescriptor():
     def get_model_descriptor(self):
         model_descriptor = MODEL_DESCRIPTORS.get(self.model_name)
         if model_descriptor is None:
-            return MODEL_DESCRIPTORS.get('default')
+            return MODEL_DESCRIPTORS.get("default")
         else:
             return model_descriptor
 
