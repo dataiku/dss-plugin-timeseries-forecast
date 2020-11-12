@@ -10,9 +10,7 @@ def do(payload, config, plugin_config, inputs):
     """
     choices = []
 
-    input_folder_name = [
-        input["fullName"] for input in inputs if input["type"] == "MANAGED_FOLDER"
-    ][0]
+    input_folder_name = [input["fullName"] for input in inputs if input["type"] == "MANAGED_FOLDER"][0]
 
     input_folder = dataiku.Folder(input_folder_name)
 

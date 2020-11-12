@@ -184,11 +184,6 @@ def test_add_future_external_features_with_identifiers():
     )
 
     prediction_length = 3
-    gluon_dataset = add_future_external_features(
-        gluon_train_dataset, external_features_future_df, prediction_length
-    )
+    gluon_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length)
 
-    assert (
-        gluon_dataset.list_data[0]["feat_dynamic_real"]
-        == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])
-    ).all()
+    assert (gluon_dataset.list_data[0]["feat_dynamic_real"] == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])).all()

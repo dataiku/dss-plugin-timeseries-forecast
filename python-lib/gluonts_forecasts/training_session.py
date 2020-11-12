@@ -67,77 +67,11 @@ class TrainingSession:
                     context_length=self.context_length,
                 )
             )
-        self.training_df[self.time_column_name] = pd.to_datetime(
-            self.training_df[self.time_column_name]
-        ).dt.tz_localize(tz=None)
+        self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
 
     def train(self):
         for model in self.models:
             model.train(self.test_list_dataset)
-
-    # def create_gluon_dataset(self, remove_length=None):
-    #     length = -remove_length if remove_length else None
-    #     multivariate_timeseries = []
-    #     if self.timeseries_identifiers_names:
-    #         periods = None
-    #         for i, (identifiers_values, identifiers_df) in enumerate(
-    #             self.training_df.groupby(self.timeseries_identifiers_names)
-    #         ):
-    #             assert_time_column_valid(
-    #                 identifiers_df,
-    #                 self.time_column_name,
-    #                 self.frequency,
-    #                 periods=periods,
-    #             )
-    #             if i == 0:
-    #                 periods = len(identifiers_df.index)
-    #             multivariate_timeseries += self._create_gluon_multivariate_timeseries(
-    #                 identifiers_df, length, identifiers_values=identifiers_values
-    #             )
-    #     else:
-    #         assert_time_column_valid(self.training_df, self.time_column_name, self.frequency)
-    #         multivariate_timeseries += self._create_gluon_multivariate_timeseries(
-    #             self.training_df, length
-    #         )
-    #     return ListDataset(multivariate_timeseries, freq=self.frequency)
-
-    # def _create_gluon_multivariate_timeseries(self, df, length, identifiers_values=None):
-    #     multivariate_timeseries = []
-    #     for target_column_name in self.target_columns_names:
-    #         multivariate_timeseries.append(
-    #             self._create_gluon_univariate_timeseries(
-    #                 df, target_column_name, length, identifiers_values
-    #             )
-    #         )
-    #     return multivariate_timeseries
-
-    # def _create_gluon_univariate_timeseries(
-    #     self, df, target_column_name, length, identifiers_values=None
-    # ):
-    #     """ create dictionary for one timeseries and add extra features and identifiers if specified """
-    #     univariate_timeseries = {
-    #         "start": df[self.time_column_name].iloc[0],
-    #         "target": df[target_column_name].iloc[:length].values,
-    #         "target_name": target_column_name,
-    #         "time_column_name": self.time_column_name,
-    #     }
-    #     if self.external_features_columns_names:
-    #         univariate_timeseries["feat_dynamic_real"] = (
-    #             df[self.external_features_columns_names].iloc[:length].values.T
-    #         )
-    #         univariate_timeseries[
-    #             "feat_dynamic_real_columns_names"
-    #         ] = self.external_features_columns_names
-    #     if identifiers_values:
-    #         if len(self.timeseries_identifiers_names) > 1:
-    #             identifiers_map = {
-    #                 self.timeseries_identifiers_names[i]: identifier_value
-    #                 for i, identifier_value in enumerate(identifiers_values)
-    #             }
-    #         else:
-    #             identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
-    #         univariate_timeseries["identifiers"] = identifiers_map
-    #     return univariate_timeseries
 
     def evaluate(self, evaluation_strategy):
         gluon_dataset = GluonDataset(
@@ -150,9 +84,7 @@ class TrainingSession:
         )
 
         if evaluation_strategy == "split":
-            self.train_list_dataset = gluon_dataset.create_list_dataset(
-                cut_length=self.prediction_length
-            )
+            self.train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
             self.test_list_dataset = gluon_dataset.create_list_dataset()
         else:
             raise Exception("{} evaluation strategy not implemented".format(evaluation_strategy))
@@ -162,20 +94,19 @@ class TrainingSession:
         metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
-                (agg_metrics, item_metrics, forecasts_df, identifiers_columns,) = model.evaluate(
-                    self.train_list_dataset, self.test_list_dataset, make_forecasts=True
-                )
+                (
+                    agg_metrics,
+                    item_metrics,
+                    forecasts_df,
+                    identifiers_columns,
+                ) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
                 forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
                 if self.forecasts_df.empty:
                     self.forecasts_df = forecasts_df
                 else:
-                    self.forecasts_df = self.forecasts_df.merge(
-                        forecasts_df, on=[self.time_column_name] + identifiers_columns
-                    )
+                    self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
             else:
-                agg_metrics, item_metrics = model.evaluate(
-                    self.train_list_dataset, self.test_list_dataset
-                )
+                agg_metrics, item_metrics = model.evaluate(self.train_list_dataset, self.test_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df["session"] = self.version_name
         orderd_metrics_df = self._reorder_metrics_df(metrics_df)
@@ -195,12 +126,8 @@ class TrainingSession:
         metrics_df = metrics_df.sort_values(by=[METRICS_DATASET.TARGET_COLUMN], ascending=True)
         orderd_metrics_df = pd.concat(
             [
-                metrics_df[
-                    metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW
-                ],
-                metrics_df[
-                    metrics_df[METRICS_DATASET.TARGET_COLUMN] != METRICS_DATASET.AGGREGATED_ROW
-                ],
+                metrics_df[metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW],
+                metrics_df[metrics_df[METRICS_DATASET.TARGET_COLUMN] != METRICS_DATASET.AGGREGATED_ROW],
             ],
             axis=0,
         ).reset_index(drop=True)

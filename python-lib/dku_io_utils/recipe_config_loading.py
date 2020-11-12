@@ -15,9 +15,7 @@ class PluginParamValidationError(ValueError):
 def assert_time_column_is_date(dku_dataset, time_column_name):
     for column_schema in dku_dataset.read_schema():
         if column_schema.get("name") == time_column_name and column_schema.get("type") != "date":
-            raise ValueError(
-                "The '{}' time column is not parsed as date by DSS.".format(time_column_name)
-            )
+            raise ValueError("The '{}' time column is not parsed as date by DSS.".format(time_column_name))
 
 
 def get_partition_root(dataset):
@@ -82,36 +80,25 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError("Invalid time column selection")
 
     params["target_columns_names"] = recipe_config.get("target_columns")
-    if len(params["target_columns_names"]) == 0 or not all(
-        column in training_dataset_columns for column in params["target_columns_names"]
-    ):
+    if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError("Invalid target column(s) selection")
 
     params["timeseries_identifiers_names"] = recipe_config.get("timeseries_identifiers", [])
-    if not all(
-        column in training_dataset_columns for column in params["timeseries_identifiers_names"]
-    ):
+    if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
         raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
 
     params["external_features_columns_names"] = recipe_config.get("external_feature_columns", [])
-    if not all(
-        column in training_dataset_columns for column in params["external_features_columns_names"]
-    ):
+    if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
         raise PluginParamValidationError("Invalid external features column(s) selection")
 
     params["deepar_model_activated"] = recipe_config.get("deepar_model_activated", False)
     params["time_granularity_unit"] = recipe_config.get("time_granularity_unit")
     params["time_granularity_step"] = recipe_config.get("time_granularity_step", 1)
-    params["frequency"] = "{}{}".format(
-        params["time_granularity_step"], params["time_granularity_unit"]
-    )
+    params["frequency"] = "{}{}".format(params["time_granularity_step"], params["time_granularity_unit"])
 
     # order of cols is important (for the predict recipe)
     params["columns_to_keep"] = (
-        [params["time_column_name"]]
-        + params["target_columns_names"]
-        + params["timeseries_identifiers_names"]
-        + params["external_features_columns_names"]
+        [params["time_column_name"]] + params["target_columns_names"] + params["timeseries_identifiers_names"] + params["external_features_columns_names"]
     )
 
     params["prediction_length"] = recipe_config.get("prediction_length", 30)
@@ -146,13 +133,9 @@ def load_predict_config():
     params["model_folder"] = model_folder
 
     params["external_features_future_dataset"] = None
-    external_features_future_dataset_names = get_input_names_for_role(
-        "external_features_future_dataset"
-    )
+    external_features_future_dataset_names = get_input_names_for_role("external_features_future_dataset")
     if len(external_features_future_dataset_names) > 0:
-        params["external_features_future_dataset"] = dataiku.Dataset(
-            external_features_future_dataset_names[0]
-        )
+        params["external_features_future_dataset"] = dataiku.Dataset(external_features_future_dataset_names[0])
 
     # output dataset
     output_dataset_names = get_output_names_for_role("output_dataset")
@@ -161,9 +144,7 @@ def load_predict_config():
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
     params["partition_root"] = get_partition_root(params["output_dataset"])
 
-    params["manual_selection"] = (
-        True if recipe_config.get("model_selection_mode") == "manual" else False
-    )
+    params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
     params["performance_metric"] = recipe_config.get("performance_metric")
     params["selected_session"] = recipe_config.get("manually_selected_session")

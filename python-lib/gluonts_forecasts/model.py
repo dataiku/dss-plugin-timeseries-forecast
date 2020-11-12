@@ -41,9 +41,7 @@ class Model:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
         if context_length is not None:
             estimator_kwargs.update({"context_length": context_length})
-        self.estimator = self.model_descriptor.get_estimator(
-            self.model_parameters, **estimator_kwargs
-        )
+        self.estimator = self.model_descriptor.get_estimator(self.model_parameters, **estimator_kwargs)
         self.predictor = None
         if self.estimator is None:
             print("{} model is not implemented yet".format(model_name))
@@ -60,9 +58,7 @@ class Model:
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
         # TODO split into multiple functions
-        logging.info(
-            "Timeseries forecast - Training model {} for evaluation".format(self.model_name)
-        )
+        logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
         predictor = self._get_predictor(train_list_dataset)
         evaluator = Evaluator()
 
@@ -74,26 +70,18 @@ class Model:
         ts_list = list(ts_it)
         forecasts_list = list(forecast_it)
 
-        agg_metrics, item_metrics = evaluator(
-            iter(ts_list), iter(forecasts_list), num_series=len(test_list_dataset)
-        )
+        agg_metrics, item_metrics = evaluator(iter(ts_list), iter(forecasts_list), num_series=len(test_list_dataset))
 
         item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
         agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
 
-        identifiers_columns = (
-            list(train_list_dataset.list_data[0]["identifiers"].keys())
-            if "identifiers" in train_list_dataset.list_data[0]
-            else []
-        )
+        identifiers_columns = list(train_list_dataset.list_data[0]["identifiers"].keys()) if "identifiers" in train_list_dataset.list_data[0] else []
         identifiers_values = {identifiers_column: [] for identifiers_column in identifiers_columns}
         target_columns = []
         for univariate_timeseries in train_list_dataset.list_data:
             target_columns += [univariate_timeseries["target_name"]]
             for identifiers_column in identifiers_columns:
-                identifiers_values[identifiers_column] += [
-                    univariate_timeseries["identifiers"][identifiers_column]
-                ]
+                identifiers_values[identifiers_column] += [univariate_timeseries["identifiers"][identifiers_column]]
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
@@ -105,12 +93,7 @@ class Model:
 
         item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-        item_metrics = item_metrics[
-            [METRICS_DATASET.TARGET_COLUMN]
-            + identifiers_columns
-            + [METRICS_DATASET.MODEL_COLUMN]
-            + EVALUATION_METRICS
-        ]
+        item_metrics = item_metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS]
         item_metrics["model_params"] = self._get_model_parameters_json()
 
         if make_forecasts:
@@ -121,9 +104,7 @@ class Model:
 
     def _get_predictor(self, train_list_dataset):
         if self.estimator is None:
-            predictor = self.model_descriptor.get_predictor(
-                freq=self.frequency, prediction_length=self.prediction_length
-            )
+            predictor = self.model_descriptor.get_predictor(freq=self.frequency, prediction_length=self.prediction_length)
         else:
             predictor = self.estimator.train(train_list_dataset)
         return predictor
@@ -144,13 +125,9 @@ class Model:
     def _get_forecasts_df(self, forecasts_list, train_list_dataset):
         all_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.mean_ts.rename(
-                "{}_{}".format(train_list_dataset.list_data[i]["target_name"], self.model_name)
-            )
+            series = sample_forecasts.mean_ts.rename("{}_{}".format(train_list_dataset.list_data[i]["target_name"], self.model_name))
             if "identifiers" in train_list_dataset.list_data[i]:
-                timeseries_identifier_key = tuple(
-                    sorted(train_list_dataset.list_data[i]["identifiers"].items())
-                )
+                timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i]["identifiers"].items()))
             else:
                 timeseries_identifier_key = None
 

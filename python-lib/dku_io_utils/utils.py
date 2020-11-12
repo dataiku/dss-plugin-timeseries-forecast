@@ -12,9 +12,7 @@ import logging
 def read_from_folder(folder, path, obj_type):
     logging.info("Timeseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
     if not folder.get_path_details(path=path)["exists"]:
-        raise ValueError(
-            "File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"])
-        )
+        raise ValueError("File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"]))
     with folder.get_download_stream(path) as stream:
         if obj_type == "pickle":
             return pickle.loads(stream.read())
@@ -28,11 +26,7 @@ def read_from_folder(folder, path, obj_type):
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pd.read_csv(fgzip)
         else:
-            raise ValueError(
-                "Can only read objects of type ['pickle', 'pickle.gz', 'csv', 'csv.gz'] from folder, not '{}'".format(
-                    obj_type
-                )
-            )
+            raise ValueError("Can only read objects of type ['pickle', 'pickle.gz', 'csv', 'csv.gz'] from folder, not '{}'".format(obj_type))
 
 
 def write_to_folder(obj, folder, path, obj_type):
@@ -55,11 +49,7 @@ def write_to_folder(obj, folder, path, obj_type):
             with gzip.GzipFile(fileobj=writer, mode="wb") as fgzip:
                 fgzip.write(obj.to_csv(index=False).encode())
         else:
-            raise ValueError(
-                "Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(
-                    obj_type
-                )
-            )
+            raise ValueError("Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(obj_type))
 
 
 def get_models_parameters(config):
@@ -113,11 +103,7 @@ def set_column_description(output_dataset, column_description_dict, input_datase
         output_col_name = output_col_info.get("name", "")
         output_col_info["comment"] = column_description_dict.get(output_col_name)
         if output_col_name in input_columns_names:
-            matched_comment = [
-                input_col_info.get("comment", "")
-                for input_col_info in input_dataset_schema
-                if input_col_info.get("name") == output_col_name
-            ]
+            matched_comment = [input_col_info.get("comment", "") for input_col_info in input_dataset_schema if input_col_info.get("name") == output_col_name]
             if len(matched_comment) != 0:
                 output_col_info["comment"] = matched_comment[0]
     output_dataset.write_schema(output_dataset_schema)

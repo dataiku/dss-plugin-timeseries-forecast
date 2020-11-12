@@ -14,9 +14,7 @@ model_selection = ModelSelection(
 )
 
 if params["manual_selection"]:
-    model_selection.manual_params(
-        session=params["selected_session"], model_type=params["selected_model_type"]
-    )
+    model_selection.manual_params(session=params["selected_session"], model_type=params["selected_model_type"])
 else:
     model_selection.auto_params(performance_metric=params["performance_metric"])
 
@@ -24,15 +22,11 @@ predictor = model_selection.get_model()
 
 gluon_train_dataset = model_selection.get_gluon_train_dataset()
 
-external_features = external_features_check(
-    gluon_train_dataset, params["external_features_future_dataset"]
-)
+external_features = external_features_check(gluon_train_dataset, params["external_features_future_dataset"])
 
 if external_features:
     external_features_future_df = params["external_features_future_dataset"].get_dataframe()
-    gluon_train_dataset = add_future_external_features(
-        gluon_train_dataset, external_features_future_df, predictor.prediction_length
-    )
+    gluon_train_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, predictor.prediction_length)
 
 trained_model = TrainedModel(
     predictor=predictor,
@@ -44,9 +38,7 @@ trained_model = TrainedModel(
 
 trained_model.predict()
 
-forecasts_df = trained_model.get_forecasts_df(
-    session=model_selection.session, model_type=model_selection.model_type
-)
+forecasts_df = trained_model.get_forecasts_df(session=model_selection.session, model_type=model_selection.model_type)
 params["output_dataset"].write_with_schema(forecasts_df)
 
 column_descriptions = trained_model.create_forecasts_column_description()

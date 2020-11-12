@@ -6,9 +6,7 @@ class TrainedModel:
     def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history):
         self.predictor = predictor
         self.gluon_dataset = gluon_dataset
-        self.prediction_length = (
-            predictor.prediction_length if prediction_length == 0 else prediction_length
-        )
+        self.prediction_length = predictor.prediction_length if prediction_length == 0 else prediction_length
         self.quantiles = quantiles
         self.include_history = include_history
         self.forecasts_df = None
@@ -29,11 +27,7 @@ class TrainedModel:
         self.forecasts_df = self._concat_all_timeseries(multiple_df)
 
         time_column_name = self.gluon_dataset.list_data[0]["time_column_name"]
-        identifiers_columns = (
-            list(self.gluon_dataset.list_data[0]["identifiers"].keys())
-            if "identifiers" in self.gluon_dataset.list_data[0]
-            else []
-        )
+        identifiers_columns = list(self.gluon_dataset.list_data[0]["identifiers"].keys()) if "identifiers" in self.gluon_dataset.list_data[0] else []
 
         if self.include_history:
             frequency = forecasts_list[0].freq
@@ -91,14 +85,9 @@ class TrainedModel:
             target_series = self._generate_history_target_series(timeseries, frequency)
 
             if "feat_dynamic_real_columns_names" in timeseries:
-                assert (
-                    timeseries["feat_dynamic_real"].shape[1]
-                    >= len(timeseries["target"]) + self.prediction_length
-                )
+                assert timeseries["feat_dynamic_real"].shape[1] >= len(timeseries["target"]) + self.prediction_length
                 if timeseries_identifier_key not in history_timeseries:
-                    external_features_df = self._generate_history_external_features_dataframe(
-                        timeseries, frequency
-                    )
+                    external_features_df = self._generate_history_external_features_dataframe(timeseries, frequency)
                     history_timeseries[timeseries_identifier_key] = [external_features_df]
 
             if timeseries_identifier_key in history_timeseries:
@@ -115,9 +104,7 @@ class TrainedModel:
         forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             if "identifiers" in self.gluon_dataset.list_data[i]:
-                timeseries_identifier_key = tuple(
-                    sorted(self.gluon_dataset.list_data[i]["identifiers"].items())
-                )
+                timeseries_identifier_key = tuple(sorted(self.gluon_dataset.list_data[i]["identifiers"].items()))
             else:
                 timeseries_identifier_key = None
 
@@ -158,14 +145,8 @@ class TrainedModel:
 
     def _reorder_forecasts_df(self, time_column_name, identifiers_columns):
         """ reorder columns with timeseries_identifiers just after time column """
-        forecasts_columns = [
-            column
-            for column in self.forecasts_df
-            if column not in [time_column_name] + identifiers_columns
-        ]
-        self.forecasts_df = self.forecasts_df[
-            [time_column_name] + identifiers_columns + forecasts_columns
-        ]
+        forecasts_columns = [column for column in self.forecasts_df if column not in [time_column_name] + identifiers_columns]
+        self.forecasts_df = self.forecasts_df[[time_column_name] + identifiers_columns + forecasts_columns]
 
     def get_forecasts_df(self, session=None, model_type=None):
         """ add the session timestamp and model_type to forecasts dataframe """
@@ -182,11 +163,7 @@ class TrainedModel:
             if "_forecasts_median" in column:
                 column_descriptions[column] = "Median of all sample predictions."
             elif "_forecasts_percentile_" in column:
-                column_descriptions[
-                    column
-                ] = "{}% of sample predictions are below these values.".format(
-                    column.split("_")[-1]
-                )
+                column_descriptions[column] = "{}% of sample predictions are below these values.".format(column.split("_")[-1])
         return column_descriptions
 
     def _check(self):

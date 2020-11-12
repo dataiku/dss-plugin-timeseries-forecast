@@ -44,10 +44,6 @@ class ModelSelection:
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), "csv")
         if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
             df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
-        assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(
-            df.index
-        ), "More than one row per model"
-        model_type = df.loc[df[self.performance_metric].idxmin()][
-            METRICS_DATASET.MODEL_COLUMN
-        ]  # or idxmax() if maximize metric
+        assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
+        model_type = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
         return model_type

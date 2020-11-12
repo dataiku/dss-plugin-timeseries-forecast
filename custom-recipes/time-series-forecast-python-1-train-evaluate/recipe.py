@@ -46,9 +46,7 @@ if not params["evaluation_only"]:
     write_to_folder(metrics_df, model_folder, metrics_path, "csv")
 
     gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(version_name)
-    write_to_folder(
-        training_session.test_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz"
-    )
+    write_to_folder(training_session.test_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
 
     for model in training_session.models:
         model_path = "{}/{}/model.pk.gz".format(version_name, model.model_name)
@@ -65,7 +63,5 @@ if params["make_forecasts"]:
     evaluation_forecasts_df = training_session.get_evaluation_forecasts_df()
     params["evaluation_forecasts"].write_with_schema(evaluation_forecasts_df)
 
-    evaluation_forecasts_column_descriptions = (
-        training_session.create_evaluation_forecasts_column_description()
-    )
+    evaluation_forecasts_column_descriptions = training_session.create_evaluation_forecasts_column_description()
     set_column_description(params["evaluation_forecasts"], evaluation_forecasts_column_descriptions)
