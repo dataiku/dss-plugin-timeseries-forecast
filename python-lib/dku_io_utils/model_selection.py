@@ -28,7 +28,7 @@ class ModelSelection:
         return model
 
     def get_gluon_train_dataset(self):
-        gluon_train_dataset_path = "{}/gluon_train_dataset.pickle.gz".format(self.session)
+        gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(self.session)
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, "pickle.gz")
         return gluon_train_dataset
 

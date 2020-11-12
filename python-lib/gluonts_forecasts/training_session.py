@@ -2,7 +2,6 @@ import pandas as pd
 from gluonts_forecasts.model import Model
 from gluonts.dataset.common import ListDataset
 from constants import METRICS_DATASET
-from dku_io_utils.utils import write_to_folder
 from gluonts_forecasts.utils import assert_time_column_valid
 
 
@@ -199,18 +198,6 @@ class TrainingSession:
             axis=0,
         ).reset_index(drop=True)
         return orderd_metrics_df
-
-    def save(self, model_folder):
-        # TODO ? move outside of the class as it interacts with dataiku.Folder objects
-
-        metrics_path = "{}/metrics.csv".format(self.version_name)
-        write_to_folder(self.metrics_df, model_folder, metrics_path, "csv")
-
-        gluon_train_dataset_path = "{}/gluon_train_dataset.pickle.gz".format(self.version_name)
-        write_to_folder(self.test_ds, model_folder, gluon_train_dataset_path, "pickle.gz")
-
-        for model in self.models:
-            model.save(model_folder=model_folder, version_name=self.version_name)
 
     def get_evaluation_forecasts_df(self):
         return self.evaluation_forecasts_df

@@ -4,6 +4,7 @@ from datetime import datetime
 from dku_io_utils.utils import get_models_parameters, set_column_description
 from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config
+from dku_io_utils.utils import write_to_folder
 
 config = get_recipe_config()
 params = load_training_config(config)
@@ -32,13 +33,28 @@ training_session.init(partition_root=params["partition_root"], version_name=vers
 
 training_session.evaluate(params["evaluation_strategy"])
 
+metrics_df = training_session.get_metrics_df()
+params["evaluation_dataset"].write_with_schema(metrics_df)
+
 if not params["evaluation_only"]:
     training_session.train()
-    training_session.save(model_folder=params["model_folder"])
+    # training_session.save(model_folder=params["model_folder"])
 
-metrics_df = training_session.get_metrics_df()
+    model_folder = params["model_folder"]
 
-params["evaluation_dataset"].write_with_schema(metrics_df)
+    metrics_path = "{}/metrics.csv".format(version_name)
+    write_to_folder(metrics_df, model_folder, metrics_path, "csv")
+
+    gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(version_name)
+    write_to_folder(training_session.test_ds, model_folder, gluon_train_dataset_path, "pickle.gz")
+
+    for model in training_session.models:
+        model_path = "{}/{}/model.pk.gz".format(version_name, model.model_name)
+        write_to_folder(model.predictor, model_folder, model_path, "pickle.gz")
+
+        parameters_path = "{}/{}/params.json".format(version_name, model.model_name)
+        write_to_folder(model.model_parameters, model_folder, parameters_path, "json")
+
 
 metrics_column_descriptions = training_session.create_metrics_column_description()
 set_column_description(params["evaluation_dataset"], metrics_column_descriptions)

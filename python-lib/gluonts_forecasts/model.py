@@ -4,7 +4,6 @@ from gluonts.evaluation import Evaluator
 import pandas as pd
 import logging
 from gluonts_forecasts.model_descriptor import ModelDescriptor
-from dku_io_utils.utils import write_to_folder
 
 
 class Model:
@@ -169,11 +168,3 @@ class Model:
             multiple_df += [unique_identifiers_df]
         forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
         return forecasts_df
-
-    def save(self, model_folder, version_name):
-        # TODO ? move outside of the class as it interacts with dataiku.Folder objects
-        model_path = "{}/{}/model.pk.gz".format(version_name, self.model_name)
-        write_to_folder(self.predictor, model_folder, model_path, "pickle.gz")
-
-        parameters_path = "{}/{}/params.json".format(version_name, self.model_name)
-        write_to_folder(self.model_parameters, model_folder, parameters_path, "json")
