@@ -20,6 +20,10 @@ class GluonDataset:
         self.external_features_columns_names = external_features_columns_names
 
     def create_list_dataset(self, cut_length=None):
+        """
+        return a GluonTS ListDataset of timeseries for each identifier tuple and each target
+        and remove the last cut_length time steps of each timeseries
+        """
         length = -cut_length if cut_length else None
         multivariate_timeseries = []
         if self.timeseries_identifiers_names:
@@ -42,13 +46,14 @@ class GluonDataset:
         return ListDataset(multivariate_timeseries, freq=self.frequency)
 
     def _create_gluon_multivariate_timeseries(self, df, length, identifiers_values=None):
+        """ return a list of timeseries dictionaries for each target column """
         multivariate_timeseries = []
         for target_column_name in self.target_columns_names:
             multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, length, identifiers_values))
         return multivariate_timeseries
 
     def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_values=None):
-        """ create dictionary for one timeseries and add extra features and identifiers if specified """
+        """ return a dictionary for one timeseries and add extra features and identifiers columns if specified """
         univariate_timeseries = {
             "start": df[self.time_column_name].iloc[0],
             "target": df[target_column_name].iloc[:length].values,

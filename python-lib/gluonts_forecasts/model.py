@@ -57,21 +57,37 @@ class Model:
         self.predictor = self.estimator.train(train_list_dataset)
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
-        # TODO split into multiple functions
+        """
+        train model on train_list_dataset and evaluate it on test_list_dataset
+        return evaluation metrics for each target and aggregated
+        return a dataframe of predictions if make_forecasts is True
+        """
         logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
-        predictor = self._get_predictor(train_list_dataset)
+        evaluation_predictor = self._get_predictor(train_list_dataset)
+
+        agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
+
+        metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
+
+        if make_forecasts:
+            forecasts_df = self._get_forecasts_df(forecasts, train_list_dataset)
+            return metrics, identifiers_columns, forecasts_df
+
+        return metrics, identifiers_columns
+
+    def _make_evaluation_predictions(self, predictor, test_list_dataset):
+        forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
+        timeseries = list(ts_it)
+        forecasts = list(forecast_it)
         evaluator = Evaluator()
+        agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(test_list_dataset))
+        return agg_metrics, item_metrics, forecasts
 
-        forecast_it, ts_it = make_evaluation_predictions(
-            dataset=test_list_dataset,  # test dataset
-            predictor=predictor,  # predictor
-            num_samples=100,  # number of sample paths we want for evaluation
-        )
-        ts_list = list(ts_it)
-        forecasts_list = list(forecast_it)
-
-        agg_metrics, item_metrics = evaluator(iter(ts_list), iter(forecasts_list), num_series=len(test_list_dataset))
-
+    def _format_metrics(self, agg_metrics, item_metrics, train_list_dataset):
+        """
+        return a metrics dataframe with both item_metrics and agg_metrics concatenated and the identifiers columns
+        and add new columns: model_name, target_column, identifiers_columns
+        """
         item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
         agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
 
@@ -87,20 +103,15 @@ class Model:
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
 
         for identifiers_column in identifiers_columns:
-            # TODO ? integer are casted to float because of missing values in the 'AGGREGATED' rows
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
-            # agg_metrics[identifiers_column] = METRICS_DATASET.AGGREGATED_ROW
+            agg_metrics[identifiers_column] = METRICS_DATASET.AGGREGATED_ROW  # or keep empty but will cast integer to float
 
-        item_metrics = item_metrics.append(agg_metrics, ignore_index=True)
+        metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-        item_metrics = item_metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS]
-        item_metrics["model_params"] = self._get_model_parameters_json()
+        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS]
+        metrics["model_params"] = self._get_model_parameters_json()
 
-        if make_forecasts:
-            forecasts_df = self._get_forecasts_df(forecasts_list, train_list_dataset)
-            return agg_metrics, item_metrics, forecasts_df, identifiers_columns
-
-        return agg_metrics, item_metrics
+        return metrics, identifiers_columns
 
     def _get_predictor(self, train_list_dataset):
         if self.estimator is None:

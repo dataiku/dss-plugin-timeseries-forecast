@@ -94,19 +94,14 @@ class TrainingSession:
         metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
-                (
-                    agg_metrics,
-                    item_metrics,
-                    forecasts_df,
-                    identifiers_columns,
-                ) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+                (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
                 forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
                 if self.forecasts_df.empty:
                     self.forecasts_df = forecasts_df
                 else:
                     self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
             else:
-                agg_metrics, item_metrics = model.evaluate(self.train_list_dataset, self.test_list_dataset)
+                (item_metrics, identifiers_columns) = model.evaluate(self.train_list_dataset, self.test_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df["session"] = self.version_name
         orderd_metrics_df = self._reorder_metrics_df(metrics_df)
