@@ -3,6 +3,19 @@ from gluonts.dataset.common import ListDataset
 
 
 class GluonDataset:
+    """
+    Wrapper class to generate a GluonTS ListDataset with multiple time series based on the target and identifiers columns
+    Each timeseries stores information about its target(s), time and external features column names as well as its identifiers values
+
+    Attributes:
+        dataframe (Pandas.DataFrame)
+        time_column_name (list)
+        frequency (str): Pandas timeseries frequency (e.g. '3M')
+        target_columns_names (list): List of column names to predict
+        timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
+        external_features_columns_names (list): List of columns with dynamic real features over time
+    """
+
     def __init__(
         self,
         dataframe,

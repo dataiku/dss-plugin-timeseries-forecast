@@ -3,6 +3,18 @@ import numpy as np
 
 
 class TrainedModel:
+    """
+    Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
+
+    Attributes:
+        predictor (gluonts.model.predictor.Predictor)
+        gluon_dataset (gluonts.dataset.common.ListDataset):
+        prediction_length (int): Number of time steps to predict
+        quantiles (list): List of forecasts quantiles to output in the forecasts_df
+        include_history (bool): True to append to the forecasts dataframe the training data
+        forecasts_df (Pandas.DataFrame): Dataframe with the different quantiles forecasts and the training data if include_history is True
+    """
+
     def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history):
         self.predictor = predictor
         self.gluon_dataset = gluon_dataset

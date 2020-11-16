@@ -33,6 +33,13 @@ MODEL_DESCRIPTORS = {
 
 
 class ModelDescriptor:
+    """
+    Class to retrieve the estimator, trainer or descriptor of a GluonTS model
+
+    Attributes:
+        model_name (str)
+    """
+
     def __init__(self, model_name):
         self.model_name = model_name
         self.model_descriptor = self.get_model_descriptor()

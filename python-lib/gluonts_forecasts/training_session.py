@@ -6,6 +6,25 @@ from gluonts_forecasts.gluon_dataset import GluonDataset
 
 
 class TrainingSession:
+    """
+    Class to train and evaluate multiple GluonTS estimators on a training dataframe, and to retrieve an aggregated metrics dataframe
+
+    Attributes:
+        target_columns_names (list): List of column names to predict
+        time_column_name (str)
+        frequency (str): Pandas timeseries frequency (e.g. '3M')
+        epoch (int): Number of epochs used by the GluonTS Trainer class
+        models_parameters (dict): Dictionary of model names (key) and their parameters (value)
+        prediction_length (int): Number of time steps to predict
+        training_df (Pandas.DataFrame): Training dataframe
+        make_forecasts (bool): True to output the evaluation predictions of the last prediction_length time steps
+        external_features_columns_names (list): List of columns with dynamic real features over time
+        timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
+        batch_size (int): Size of batch used by the GluonTS Trainer class
+        gpu (str): Not implemented
+        context_length (int): Number of time steps used by model to make predictions
+    """
+
     def __init__(
         self,
         target_columns_names,
@@ -80,10 +99,15 @@ class TrainingSession:
         self._check_timeseries_identifiers_columns_types()
 
     def train(self):
+        """ Train all the selected models on all data """
         for model in self.models:
             model.train(self.test_list_dataset)
 
     def evaluate(self, evaluation_strategy):
+        """
+        Train all the selected models on all but the last prediction_length time steps,
+        and evaluate on all data according to the selected evaluation_strategy
+        """
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,
@@ -101,6 +125,7 @@ class TrainingSession:
         self.metrics_df = self._compute_all_evaluation_metrics()
 
     def _compute_all_evaluation_metrics(self):
+        """ Evaluate all the selected models, output the metrics dataframe and create the forecasts dataframe if make_forecasts is True """
         metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
@@ -143,12 +168,6 @@ class TrainingSession:
 
     def get_metrics_df(self):
         return self.metrics_df
-
-    def create_metrics_column_description(self):
-        column_descriptions = {}
-        for column in self.metrics_df.columns:
-            column_descriptions[column] = "TO FILL"
-        return column_descriptions
 
     def _check_target_columns_types(self):
         for column_name in self.target_columns_names:

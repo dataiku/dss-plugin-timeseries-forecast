@@ -7,6 +7,21 @@ from gluonts_forecasts.model_descriptor import ModelDescriptor
 
 
 class Model:
+    """
+    Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
+
+    Attributes:
+        model_name (str): Model name belonging to Constants.AVAILABLE_MODELS
+        model_parameters (dict): Kwargs of model parameters
+        frequency (str): Pandas timeseries frequency (e.g. '3M')
+        prediction_length (int): Number of time steps to predict
+        epoch (int): Number of epochs used by the GluonTS Trainer class
+        use_external_features (bool)
+        batch_size (int): Size of batch used by the GluonTS Trainer class
+        gpu (str): Not implemented
+        context_length (int): Number of time steps used by model to make predictions
+    """
+
     def __init__(
         self,
         model_name,
