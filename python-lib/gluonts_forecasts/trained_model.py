@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
 
 
 class TrainedModel:
@@ -35,9 +36,9 @@ class TrainedModel:
 
         forecasts_timeseries = self._compute_forecasts_timeseries(forecasts_list)
 
-        multiple_df = self._concat_timeseries_per_identifiers(forecasts_timeseries)
+        multiple_df = concat_timeseries_per_identifiers(forecasts_timeseries)
 
-        self.forecasts_df = self._concat_all_timeseries(multiple_df)
+        self.forecasts_df = concat_all_timeseries(multiple_df)
 
         time_column_name = self.gluon_dataset.list_data[0]["time_column_name"]
         identifiers_columns = list(self.gluon_dataset.list_data[0]["identifiers"].keys()) if "identifiers" in self.gluon_dataset.list_data[0] else []
@@ -53,8 +54,8 @@ class TrainedModel:
 
     def _include_history(self, frequency, identifiers_columns):
         history_timeseries = self._retrieve_history_timeseries(frequency)
-        multiple_df = self._concat_timeseries_per_identifiers(history_timeseries)
-        history_df = self._concat_all_timeseries(multiple_df)
+        multiple_df = concat_timeseries_per_identifiers(history_timeseries)
+        history_df = concat_all_timeseries(multiple_df)
         return history_df.merge(self.forecasts_df, on=["index"] + identifiers_columns, how="left")
 
     def _generate_history_target_series(self, timeseries, frequency):
@@ -137,24 +138,6 @@ class TrainedModel:
                 else:
                     forecasts_timeseries[timeseries_identifier_key] = [forecasts_series]
         return forecasts_timeseries
-
-    def _concat_timeseries_per_identifiers(self, all_timeseries):
-        """
-        concat on columns all forecasts timeseries with same identifiers
-        return a list of timeseries with multiple forecasts for each identifiers
-        """
-        multiple_df = []
-        for timeseries_identifier_key, series_list in all_timeseries.items():
-            unique_identifiers_df = pd.concat(series_list, axis=1).reset_index(drop=False)
-            if timeseries_identifier_key:
-                for identifier_key, identifier_value in timeseries_identifier_key:
-                    unique_identifiers_df[identifier_key] = identifier_value
-            multiple_df += [unique_identifiers_df]
-        return multiple_df
-
-    def _concat_all_timeseries(self, multiple_df):
-        """ concat on rows all forecasts (one identifiers timeseries after the other) and rename time column """
-        return pd.concat(multiple_df, axis=0).reset_index(drop=True)
 
     def _reorder_forecasts_df(self, time_column_name, identifiers_columns):
         """ reorder columns with timeseries_identifiers just after time column """

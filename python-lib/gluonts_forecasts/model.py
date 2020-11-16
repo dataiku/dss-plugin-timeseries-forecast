@@ -1,9 +1,9 @@
 from constants import EVALUATION_METRICS, METRICS_DATASET
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
-import pandas as pd
 import logging
 from gluonts_forecasts.model_descriptor import ModelDescriptor
+from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
 
 
 class Model:
@@ -85,7 +85,9 @@ class Model:
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
         if make_forecasts:
-            forecasts_df = self._get_forecasts_df(forecasts, train_list_dataset)
+            mean_forecasts_timeseries = self._compute_mean_forecasts_timeseries(forecasts, train_list_dataset)
+            multiple_df = concat_timeseries_per_identifiers(mean_forecasts_timeseries)
+            forecasts_df = concat_all_timeseries(multiple_df)
             return metrics, identifiers_columns, forecasts_df
 
         return metrics, identifiers_columns
@@ -152,8 +154,12 @@ class Model:
             }
         )
 
-    def _get_forecasts_df(self, forecasts_list, train_list_dataset):
-        all_timeseries = {}
+    def _compute_mean_forecasts_timeseries(self, forecasts_list, train_list_dataset):
+        """
+        compute mean forecasts timeseries
+        return a dictionary of list of forecasts timeseries by identifiers (None if no identifiers)
+        """
+        mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = sample_forecasts.mean_ts.rename("{}_{}".format(train_list_dataset.list_data[i]["target_name"], self.model_name))
             if "identifiers" in train_list_dataset.list_data[i]:
@@ -161,17 +167,8 @@ class Model:
             else:
                 timeseries_identifier_key = None
 
-            if timeseries_identifier_key in all_timeseries:
-                all_timeseries[timeseries_identifier_key] += [series]
+            if timeseries_identifier_key in mean_forecasts_timeseries:
+                mean_forecasts_timeseries[timeseries_identifier_key] += [series]
             else:
-                all_timeseries[timeseries_identifier_key] = [series]
-
-        multiple_df = []
-        for timeseries_identifier_key, series_list in all_timeseries.items():
-            unique_identifiers_df = pd.concat(series_list, axis=1).reset_index(drop=False)
-            if timeseries_identifier_key:
-                for identifier_key, identifier_value in timeseries_identifier_key:
-                    unique_identifiers_df[identifier_key] = identifier_value
-            multiple_df += [unique_identifiers_df]
-        forecasts_df = pd.concat(multiple_df, axis=0).reset_index(drop=True)
-        return forecasts_df
+                mean_forecasts_timeseries[timeseries_identifier_key] = [series]
+        return mean_forecasts_timeseries

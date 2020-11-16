@@ -56,3 +56,23 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
         if frequency.endswith(("M", "Y")):
             error_message += "For Month (or Year) frequency, timestamps must be end of Month (or Year) (for e.g. '2020-12-31 00:00:00')"
         raise ValueError(error_message)
+
+
+def concat_timeseries_per_identifiers(all_timeseries):
+    """
+    concat on columns all forecasts timeseries with same identifiers
+    return a list of timeseries with multiple forecasts for each identifiers
+    """
+    multiple_df = []
+    for timeseries_identifier_key, series_list in all_timeseries.items():
+        unique_identifiers_df = pd.concat(series_list, axis=1).reset_index(drop=False)
+        if timeseries_identifier_key:
+            for identifier_key, identifier_value in timeseries_identifier_key:
+                unique_identifiers_df[identifier_key] = identifier_value
+        multiple_df += [unique_identifiers_df]
+    return multiple_df
+
+
+def concat_all_timeseries(multiple_df):
+    """ concat on rows all forecasts (one identifiers timeseries after the other) and rename time column """
+    return pd.concat(multiple_df, axis=0).reset_index(drop=True)
