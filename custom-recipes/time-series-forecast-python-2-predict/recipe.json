@@ -1,7 +1,7 @@
 {
     "meta": {
         "label": "Forecast future values",
-        "description": "Use previously trained models to predict future values",
+        "description": "Use previously trained models to forecast time series",
         "icon": "icon-signal",
         "displayOrderRank": 2
     },
@@ -11,8 +11,8 @@
     "inputRoles": [
         {
             "name": "model_folder",
-            "label": "Trained model folder",
-            "description": "Folder with trained models saved by the \"Train and evaluate\" recipe",
+            "label": "Trained models folder",
+            "description": "The folder containing models stored by the \"Train\" recipe",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": false,
@@ -21,8 +21,8 @@
         },
         {
             "name": "external_features_future_dataset",
-            "label": "Future values of external features (optional)",
-            "description": "Dataset with the date column and future values of external features if used in the previous \"Train and evaluate\" recipe. It should also contains timeseries identifiers if some were used.",
+            "label": "External features (optional)",
+            "description": "If you passed external features to the \"Train\" recipe, this dataset must provide their values for the range of dates to forecast.",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
@@ -33,7 +33,7 @@
         {
             "name": "output_dataset",
             "label": "Forecast dataset",
-            "description": "Output dataset with future values",
+            "description": "This dataset will store forecast values",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -53,7 +53,7 @@
             "type": "SELECT",
             "mandatory": true,
             "defaultValue": "auto",
-            "description": "Manually select a model or use the best model from the last session",
+            "description": "Auto mode selects the best model from the latest train session",
             "getChoicesFromPython": true
         },
         {
@@ -94,7 +94,7 @@
                 },
                 {
                     "value": "mean_wQuantileLoss",
-                    "label": "Mean weighted Qauntile Loss"
+                    "label": "Mean weighted Quantile Loss"
                 }
             ]
         },
@@ -119,11 +119,11 @@
         },
         {
             "name": "prediction_length",
-            "label": "Prediction length",
+            "label": "Forecast horizon",
             "type": "INT",
             "mandatory": true,
             "defaultValue": 0,
-            "description": "In number of time steps. If 0, same as the prediction length used in training.",
+            "description": "A value of 0 sets the horizon to the one used at training time. Expressed in number of time steps, it must be smaller than the horizon used at training time.",
             "minI": 0
         },
         {
@@ -136,12 +136,12 @@
                 0.5,
                 0.9
             ],
-            "description": "Quantiles of forecasts to output. 0.5-quantile is the median."
+            "description": "Quantiles are values that divide a distribution such that there is a given proportion of observations below them. The median corresponds to the quantile of value 0.5."
         },
         {
             "name": "include_history",
-            "label": "Include history",
-            "description": "Whether to include past values in addition to the forecasted values.",
+            "label": "Include history?",
+            "description": "Whether to include past values in addition to the forecast values.",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true

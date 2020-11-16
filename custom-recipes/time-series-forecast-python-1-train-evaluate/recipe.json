@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "Train and evaluate models on historical data",
-        "description": "Train forecasting models and evaluate their performance on historical data",
+        "label": "Train forecast models",
+        "description": "Train forecast models and evaluate their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
     },
@@ -19,27 +19,27 @@
     ],
     "outputRoles": [
         {
-            "name": "evaluation_dataset",
-            "label": "Evaluation results",
-            "description": "Dataset with performance evaluation results on historical data",
-            "arity": "UNARY",
-            "required": true,
-            "acceptsDataset": true,
-            "acceptsFolder": false
-        },
-        {
             "name": "model_folder",
             "label": "Trained model folder",
-            "description": "Folder to save trained models",
+            "description": "This folder will be used to store trained models.",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": false,
             "acceptsManagedFolder": true
         },
         {
+            "name": "evaluation_dataset",
+            "label": "Evaluation results",
+            "description": "This dataset will store the results of model performance evaluation on historical data.",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsFolder": false
+        },
+        {
             "name": "evaluation_forecasts",
             "label": "Evaluation forecasts",
-            "description": "Dataset with forecasts made for evaluation",
+            "description": "This dataset stores train and test data along with the forecasts used to evaluate metrics.",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
@@ -79,7 +79,7 @@
         },
         {
             "name": "additional_columns",
-            "label": "Additional columns",
+            "label": "Additional columns?",
             "description": "",
             "type": "BOOLEAN",
             "defaultValue": false,
@@ -88,7 +88,7 @@
         {
             "name": "timeseries_identifiers",
             "label": "Timeseries identifiers",
-            "description": "For long-format input dataset",
+            "description": "For long-format input data",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -105,7 +105,7 @@
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Useable only by DeepAR and Transformer",
+            "description": "Used for training only by DeepAR and Transformer models",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -171,7 +171,7 @@
         },
         {
             "name": "prediction_length",
-            "label": "Prediction length",
+            "label": "Forecast horizon",
             "type": "INT",
             "defaultValue": 1,
             "mandatory": true,
@@ -179,17 +179,17 @@
         },
         {
             "name": "forecasting_style",
-            "label": "Forecasting style",
+            "label": "Forecast mode",
             "type": "SELECT",
             "mandatory": true,
             "selectChoices": [
                 {
                     "value": "auto",
-                    "label": "Automated mode"
+                    "label": "Auto"
                 },
                 {
                     "value": "expert",
-                    "label": "Expert mode"
+                    "label": "Expert"
                 }
             ],
             "defaultValue": "auto"
@@ -212,7 +212,7 @@
             "type": "SELECT",
             "mandatory": true,
             "defaultValue": "trivial",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.NAIVE_MODEL_ACTIVATED",
+            "visibilityCondition": "model.forecasting_style == 'expert' && model.naive_model_activated",
             "selectChoices": [
                 {
                     "value": "trivial",
@@ -340,25 +340,23 @@
             "type": "SEPARATOR"
         },
         {
-            "name": "adavanced_options",
-            "label": "Display advanced options",
-            "description": "Options of Trainer",
+            "name": "evaluation_only",
+            "label": "Evaluation only",
+            "description": "Store evaluation results but do not save trained models",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
-            "name": "evaluation_only",
-            "label": "Only evaluation",
-            "description": "Don't save models retrained on all data.",
+            "name": "advanced_options",
+            "label": "Display advanced training options?",
             "type": "BOOLEAN",
-            "defaultValue": false,
-            "visibilityCondition": "model.adavanced_options == true"
+            "defaultValue": false
         },
         {
             "name": "training_options_separator",
             "label": "Training options",
             "type": "SEPARATOR",
-            "visibilityCondition": "model.adavanced_options == true"
+            "visibilityCondition": "model.advanced_options == true"
         },
         {
             "name": "epoch",
@@ -367,7 +365,7 @@
             "defaultValue": 1,
             "mandatory": false,
             "minI": 1,
-            "visibilityCondition": "model.adavanced_options == true"
+            "visibilityCondition": "model.advanced_options == true"
         },
         {
             "name": "context_length",
@@ -377,7 +375,7 @@
             "defaultValue": 0,
             "mandatory": false,
             "minI": 0,
-            "visibilityCondition": "model.adavanced_options == true"
+            "visibilityCondition": "model.advanced_options == true"
         },
         {
             "name": "gpu",
@@ -390,7 +388,7 @@
                 }
             ],
             "defaultValue": "no_gpu",
-            "visibilityCondition": "model.adavanced_options == true"
+            "visibilityCondition": "model.advanced_options == true"
         },
         {
             "name": "batch_size",
@@ -400,7 +398,7 @@
             "defaultValue": 32,
             "mandatory": false,
             "minI": 0,
-            "visibilityCondition": "model.adavanced_options == true"
+            "visibilityCondition": "model.advanced_options == true"
         }
     ],
     "resourceKeys": []
