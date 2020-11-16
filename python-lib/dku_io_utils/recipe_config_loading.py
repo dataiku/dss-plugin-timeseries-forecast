@@ -22,7 +22,7 @@ def get_partition_root(dataset):
     dku_flow_variables = dataiku.dku_flow_variables
     file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
     if file_path_pattern is None:
-        return "/"
+        return None
     dimensions = get_dimensions(dataset)
     partitions = get_partitions(dku_flow_variables, dimensions)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions)
