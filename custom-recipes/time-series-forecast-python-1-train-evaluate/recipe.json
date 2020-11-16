@@ -378,6 +378,16 @@
             "visibilityCondition": "model.advanced_options == true"
         },
         {
+            "name": "batch_size",
+            "label": "Batch size",
+            "type": "INT",
+            "description": "",
+            "defaultValue": 32,
+            "mandatory": false,
+            "minI": 0,
+            "visibilityCondition": "model.advanced_options == true"
+        },
+        {
             "name": "gpu",
             "label": "GPU",
             "type": "SELECT",
@@ -388,17 +398,7 @@
                 }
             ],
             "defaultValue": "no_gpu",
-            "visibilityCondition": "model.advanced_options == true"
-        },
-        {
-            "name": "batch_size",
-            "label": "Batch size",
-            "type": "INT",
-            "description": "",
-            "defaultValue": 32,
-            "mandatory": false,
-            "minI": 0,
-            "visibilityCondition": "model.advanced_options == true"
+            "visibilityCondition": "false"
         }
     ],
     "resourceKeys": []

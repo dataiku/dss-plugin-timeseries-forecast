@@ -3,6 +3,7 @@ import io
 import os
 import dill as pickle
 from constants import AVAILABLE_MODELS
+import dataiku
 import pandas as pd
 import json
 import gzip
@@ -107,3 +108,38 @@ def set_column_description(output_dataset, column_description_dict, input_datase
             if len(matched_comment) != 0:
                 output_col_info["comment"] = matched_comment[0]
     output_dataset.write_schema(output_dataset_schema)
+
+
+def get_partition_root(dataset):
+    dku_flow_variables = dataiku.dku_flow_variables
+    file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
+    if file_path_pattern is None:
+        return None
+    dimensions = get_dimensions(dataset)
+    partitions = get_partitions(dku_flow_variables, dimensions)
+    file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions)
+    return file_path
+
+
+def get_dimensions(dataset):
+    dimensions_dict = dataset.get_config().get("partitioning").get("dimensions")
+    dimensions = []
+    for dimension in dimensions_dict:
+        if dimension.get("type") != "value":
+            raise ValueError("Time partitions are not handled yet")
+        dimensions.append(dimension.get("name"))
+    return dimensions
+
+
+def get_partitions(dku_flow_variables, dimensions):
+    partitions = []
+    for dimension in dimensions:
+        partitions.append(dku_flow_variables.get("DKU_SRC_{}".format(dimension)))
+    return partitions
+
+
+def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
+    file_path = file_path_pattern.replace(".*", "")
+    for partition, dimension in zip(partitions, dimensions):
+        file_path = file_path.replace("%{{{}}}".format(dimension), partition)
+    return file_path

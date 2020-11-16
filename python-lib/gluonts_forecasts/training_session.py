@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET
 from gluonts_forecasts.gluon_dataset import GluonDataset
@@ -35,7 +36,8 @@ class TrainingSession:
         self.external_features_columns_names = external_features_columns_names
         self.use_external_features = len(external_features_columns_names) > 0
         self.timeseries_identifiers_names = timeseries_identifiers_names
-        self.version_name = None
+        self.session_name = None
+        self.session_path = None
         if self.make_forecasts:
             self.forecasts_df = pd.DataFrame()
             self.evaluation_forecasts_df = None
@@ -46,11 +48,12 @@ class TrainingSession:
         self.gpu = gpu
         self.context_length = context_length
 
-    def init(self, version_name, partition_root=None):
+    def init(self, session_name, partition_root=None):
+        self.session_name = session_name
         if partition_root is None:
-            self.version_name = version_name
+            self.session_path = session_name
         else:
-            self.version_name = "{}/{}".format(partition_root, version_name)
+            self.session_path = "{}/{}".format(partition_root, session_name)
         self.models = []
         for model_name in self.models_parameters:
             model_parameters = self.models_parameters.get(model_name)
@@ -67,7 +70,14 @@ class TrainingSession:
                     context_length=self.context_length,
                 )
             )
-        self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
+        try:
+            self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
+        except Exception:
+            raise ValueError("Time column '{}' cannot be parsed as date.".format(self.time_column_name))
+
+        self._check_target_columns_types()
+        self._check_external_features_columns_types()
+        self._check_timeseries_identifiers_columns_types()
 
     def train(self):
         for model in self.models:
@@ -103,7 +113,7 @@ class TrainingSession:
             else:
                 (item_metrics, identifiers_columns) = model.evaluate(self.train_list_dataset, self.test_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
-        metrics_df["session"] = self.version_name
+        metrics_df["session"] = self.session_name
         orderd_metrics_df = self._reorder_metrics_df(metrics_df)
 
         if self.make_forecasts:
@@ -112,7 +122,7 @@ class TrainingSession:
                 on=[self.time_column_name] + identifiers_columns,
                 how="left",
             )
-            self.evaluation_forecasts_df["session"] = self.version_name
+            self.evaluation_forecasts_df["session"] = self.session_name
 
         return orderd_metrics_df
 
@@ -140,8 +150,17 @@ class TrainingSession:
             column_descriptions[column] = "TO FILL"
         return column_descriptions
 
-    def create_evaluation_forecasts_column_description(self):
-        column_descriptions = {}
-        for column in self.evaluation_forecasts_df.columns:
-            column_descriptions[column] = "TO FILL"
-        return column_descriptions
+    def _check_target_columns_types(self):
+        for column_name in self.target_columns_names:
+            if not is_numeric_dtype(self.training_df[column_name]):
+                raise ValueError("Target column '{}' must be of numerical data type.".format(column_name))
+
+    def _check_external_features_columns_types(self):
+        for column_name in self.external_features_columns_names:
+            if not is_numeric_dtype(self.training_df[column_name]):
+                raise ValueError("External feature column '{}' must be of numerical data type.".format(column_name))
+
+    def _check_timeseries_identifiers_columns_types(self):
+        for column_name in self.timeseries_identifiers_names:
+            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
+                raise ValueError("Timeseries identifiers column '{}' must be of numerical or string data type.".format(column_name))

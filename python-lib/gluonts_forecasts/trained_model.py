@@ -160,7 +160,7 @@ class TrainedModel:
         """ explain the meaning of the forecasts columns """
         column_descriptions = {}
         for column in self.forecasts_df.columns:
-            if "_forecasts_median" in column:
+            if "_forecasts_percentile_50" in column:
                 column_descriptions[column] = "Median of all sample predictions."
             elif "_forecasts_percentile_" in column:
                 column_descriptions[column] = "{}% of sample predictions are below these values.".format(column.split("_")[-1])

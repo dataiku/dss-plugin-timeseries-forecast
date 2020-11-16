@@ -114,6 +114,10 @@ class Model:
         return metrics, identifiers_columns
 
     def _get_predictor(self, train_list_dataset):
+        """
+        train a gluonTS estimator to get a predictor for models that can be trained
+        or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
+        """
         if self.estimator is None:
             predictor = self.model_descriptor.get_predictor(freq=self.frequency, prediction_length=self.prediction_length)
         else:
