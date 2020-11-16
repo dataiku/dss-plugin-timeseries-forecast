@@ -1,48 +1,8 @@
 import pandas as pd
 import numpy as np
-import copy
-from functools import reduce
 
 
-def apply_filter_conditions(df, conditions):
-    """
-    return a function to apply filtering conditions on df
-    """
-    if len(conditions) == 0:
-        return df
-    elif len(conditions) == 1:
-        return df[conditions[0]]
-    else:
-        return df[reduce(lambda c1, c2: c1 & c2, conditions[1:], conditions[0])]
-
-
-def add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length):
-    """ append the future external features to the gluonTS ListDataset used for training """
-    gluon_dataset = copy.deepcopy(gluon_train_dataset)
-    for i, timeseries in enumerate(gluon_train_dataset):
-        if 'identifiers' in timeseries:
-            timeseries_identifiers = timeseries['identifiers']
-            conditions = [external_features_future_df[k] == v for k, v in timeseries_identifiers.items()]
-            timeseries_external_features_future_df = apply_filter_conditions(external_features_future_df, conditions)
-        else:
-            timeseries_external_features_future_df = external_features_future_df
-
-        feat_dynamic_real_train = timeseries['feat_dynamic_real']
-        feat_dynamic_real_columns_names = timeseries['feat_dynamic_real_columns_names']
-
-        feat_dynamic_real_future = timeseries_external_features_future_df[feat_dynamic_real_columns_names].values.T
-
-        if feat_dynamic_real_future.shape[1] != prediction_length:
-            raise ValueError("Length of future external features timeseries must be equal to the training prediction length ({})".format(prediction_length))
-
-        feat_dynamic_real_appended = np.append(feat_dynamic_real_train, feat_dynamic_real_future, axis=1)
-
-        gluon_dataset.list_data[i]['feat_dynamic_real'] = feat_dynamic_real_appended
-
-    return gluon_dataset
-
-
-class Prediction():
+class TrainedModel:
     def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history):
         self.predictor = predictor
         self.gluon_dataset = gluon_dataset
@@ -66,39 +26,47 @@ class Prediction():
 
         self.forecasts_df = self._concat_all_timeseries(multiple_df)
 
-        time_column_name = self.gluon_dataset.list_data[0]['time_column_name']
-        identifiers_columns = list(self.gluon_dataset.list_data[0]['identifiers'].keys()) if 'identifiers' in self.gluon_dataset.list_data[0] else []
+        time_column_name = self.gluon_dataset.list_data[0]["time_column_name"]
+        identifiers_columns = list(self.gluon_dataset.list_data[0]["identifiers"].keys()) if "identifiers" in self.gluon_dataset.list_data[0] else []
 
         if self.include_history:
             frequency = forecasts_list[0].freq
             self.forecasts_df = self._include_history(frequency, identifiers_columns)
 
-        self.forecasts_df = self.forecasts_df.rename(columns={'index': time_column_name})
+        self.forecasts_df = self.forecasts_df.rename(columns={"index": time_column_name})
 
-        if 'identifiers' in self.gluon_dataset.list_data[0]:
+        if "identifiers" in self.gluon_dataset.list_data[0]:
             self._reorder_forecasts_df(time_column_name, identifiers_columns)
 
     def _include_history(self, frequency, identifiers_columns):
         history_timeseries = self._retrieve_history_timeseries(frequency)
         multiple_df = self._concat_timeseries_per_identifiers(history_timeseries)
         history_df = self._concat_all_timeseries(multiple_df)
-        return history_df.merge(self.forecasts_df, on=['index'] + identifiers_columns, how='left')
+        return history_df.merge(self.forecasts_df, on=["index"] + identifiers_columns, how="left")
 
     def _generate_history_target_series(self, timeseries, frequency):
         """ return a pandas time series from the past target values with Nan values for the prediction_length future dates """
         target_series = pd.Series(
-            np.append(timeseries['target'], np.repeat(np.nan, self.prediction_length)),
-            name=timeseries['target_name'],
-            index=pd.date_range(start=timeseries['start'], periods=len(timeseries['target'])+self.prediction_length, freq=frequency)
+            np.append(timeseries["target"], np.repeat(np.nan, self.prediction_length)),
+            name=timeseries["target_name"],
+            index=pd.date_range(
+                start=timeseries["start"],
+                periods=len(timeseries["target"]) + self.prediction_length,
+                freq=frequency,
+            ),
         )
         return target_series
 
     def _generate_history_external_features_dataframe(self, timeseries, frequency):
         """ return a pandas time series from the past and future external features values """
         external_features_df = pd.DataFrame(
-            timeseries['feat_dynamic_real'].T[:len(timeseries['target'])+self.prediction_length],
-            columns=timeseries['feat_dynamic_real_columns_names'],
-            index=pd.date_range(start=timeseries['start'], periods=len(timeseries['target'])+self.prediction_length, freq=frequency)
+            timeseries["feat_dynamic_real"].T[: len(timeseries["target"]) + self.prediction_length],
+            columns=timeseries["feat_dynamic_real_columns_names"],
+            index=pd.date_range(
+                start=timeseries["start"],
+                periods=len(timeseries["target"]) + self.prediction_length,
+                freq=frequency,
+            ),
         )
         return external_features_df
 
@@ -109,15 +77,15 @@ class Prediction():
         """
         history_timeseries = {}
         for i, timeseries in enumerate(self.gluon_dataset.list_data):
-            if 'identifiers' in timeseries:
-                timeseries_identifier_key = tuple(sorted(timeseries['identifiers'].items()))
+            if "identifiers" in timeseries:
+                timeseries_identifier_key = tuple(sorted(timeseries["identifiers"].items()))
             else:
                 timeseries_identifier_key = None
 
             target_series = self._generate_history_target_series(timeseries, frequency)
 
-            if 'feat_dynamic_real_columns_names' in timeseries:
-                assert timeseries['feat_dynamic_real'].shape[1] >= len(timeseries['target'])+self.prediction_length
+            if "feat_dynamic_real_columns_names" in timeseries:
+                assert timeseries["feat_dynamic_real"].shape[1] >= len(timeseries["target"]) + self.prediction_length
                 if timeseries_identifier_key not in history_timeseries:
                     external_features_df = self._generate_history_external_features_dataframe(timeseries, frequency)
                     history_timeseries[timeseries_identifier_key] = [external_features_df]
@@ -135,15 +103,22 @@ class Prediction():
         """
         forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            if 'identifiers' in self.gluon_dataset.list_data[i]:
-                timeseries_identifier_key = tuple(sorted(self.gluon_dataset.list_data[i]['identifiers'].items()))
+            if "identifiers" in self.gluon_dataset.list_data[i]:
+                timeseries_identifier_key = tuple(sorted(self.gluon_dataset.list_data[i]["identifiers"].items()))
             else:
                 timeseries_identifier_key = None
 
             for quantile in self.quantiles:
-                forecasts_series = sample_forecasts.quantile_ts(quantile).rename(
-                    "{}_forecasts_percentile_{}".format(self.gluon_dataset.list_data[i]['target_name'], int(quantile*100))
-                ).iloc[:self.prediction_length]
+                forecasts_series = (
+                    sample_forecasts.quantile_ts(quantile)
+                    .rename(
+                        "{}_forecasts_percentile_{}".format(
+                            self.gluon_dataset.list_data[i]["target_name"],
+                            int(quantile * 100),
+                        )
+                    )
+                    .iloc[: self.prediction_length]
+                )
                 if timeseries_identifier_key in forecasts_timeseries:
                     forecasts_timeseries[timeseries_identifier_key] += [forecasts_series]
                 else:
@@ -176,25 +151,25 @@ class Prediction():
     def get_forecasts_df(self, session=None, model_type=None):
         """ add the session timestamp and model_type to forecasts dataframe """
         if session:
-            self.forecasts_df['session'] = session
+            self.forecasts_df["session"] = session
         if model_type:
-            self.forecasts_df['model_type'] = model_type
+            self.forecasts_df["model_type"] = model_type
         return self.forecasts_df
 
     def create_forecasts_column_description(self):
         """ explain the meaning of the forecasts columns """
         column_descriptions = {}
         for column in self.forecasts_df.columns:
-            if '_forecasts_median' in column:
+            if "_forecasts_median" in column:
                 column_descriptions[column] = "Median of all sample predictions."
-            elif '_forecasts_percentile_' in column:
-                column_descriptions[column] = "{}% of sample predictions are below these values.".format(column.split('_')[-1])
+            elif "_forecasts_percentile_" in column:
+                column_descriptions[column] = "{}% of sample predictions are below these values.".format(column.split("_")[-1])
         return column_descriptions
 
     def _check(self):
         if self.predictor.prediction_length < self.prediction_length:
-            raise ValueError("The selected prediction length ({}) cannot be higher than the one ({}) used in training !".format(
-                self.prediction_length,
-                self.predictor.prediction_length
+            raise ValueError(
+                "The selected prediction length ({}) cannot be higher than the one ({}) used in training !".format(
+                    self.prediction_length, self.predictor.prediction_length
                 )
             )

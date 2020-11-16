@@ -131,7 +131,11 @@
             "label": "Quantiles",
             "type": "DOUBLES",
             "mandatory": true,
-            "defaultValue": [0.1, 0.5, 0.9],
+            "defaultValue": [
+                0.1,
+                0.5,
+                0.9
+            ],
             "description": "Quantiles are values that divide a distribution such that there is a given proportion of observations below them. The median corresponds to the quantile of value 0.5."
         },
         {
