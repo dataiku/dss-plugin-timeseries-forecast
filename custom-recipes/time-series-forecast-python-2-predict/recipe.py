@@ -9,7 +9,6 @@ params = load_predict_config()
 
 model_selection = ModelSelection(
     folder=params["model_folder"],
-    external_features_future_dataset=params["external_features_future_dataset"],
     partition=params["partition_root"],
 )
 
