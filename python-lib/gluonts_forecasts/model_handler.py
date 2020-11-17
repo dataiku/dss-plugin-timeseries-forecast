@@ -32,7 +32,7 @@ MODEL_DESCRIPTORS = {
 }
 
 
-class ModelDescriptor:
+class ModelHandler:
     """
     Class to retrieve the estimator, trainer or descriptor of a GluonTS model
 
@@ -42,25 +42,25 @@ class ModelDescriptor:
 
     def __init__(self, model_name):
         self.model_name = model_name
-        self.model_descriptor = self.get_model_descriptor()
+        self.model_descriptor = self._get_model_descriptor()
 
-    def get_model_descriptor(self):
+    def _get_model_descriptor(self):
         model_descriptor = MODEL_DESCRIPTORS.get(self.model_name)
         if model_descriptor is None:
             return MODEL_DESCRIPTORS.get("default")
         else:
             return model_descriptor
 
-    def get_estimator(self, model_parameters, **kwargs):
+    def estimator(self, model_parameters, **kwargs):
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
         return None if estimator is None else estimator(**kwargs)
 
-    def get_trainer(self, **kwargs):
+    def trainer(self, **kwargs):
         trainer = self.model_descriptor.get(TRAINER)
         return None if trainer is None else trainer(**kwargs)
 
-    def get_predictor(self, **kwargs):
+    def predictor(self, **kwargs):
         predictor = self.model_descriptor.get(PREDICTOR)
         return None if predictor is None else predictor(**kwargs)
 

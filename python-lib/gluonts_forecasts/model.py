@@ -2,7 +2,7 @@ from constants import EVALUATION_METRICS, METRICS_DATASET
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import logging
-from gluonts_forecasts.model_descriptor import ModelDescriptor
+from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
 
 
@@ -36,7 +36,7 @@ class Model:
     ):
         self.model_name = model_name
         self.model_parameters = model_parameters
-        self.model_descriptor = ModelDescriptor(model_name)
+        self.model_handler = ModelHandler(model_name)
         self.frequency = frequency
         self.prediction_length = prediction_length
         self.epoch = epoch
@@ -49,14 +49,14 @@ class Model:
         self.batch_size = batch_size
         if self.batch_size is not None:
             trainer_kwargs.update({"batch_size": self.batch_size})
-        trainer = self.model_descriptor.get_trainer(**trainer_kwargs)
+        trainer = self.model_handler.trainer(**trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
-        if self.model_descriptor.can_use_external_feature() and self.use_external_features:
+        if self.model_handler.can_use_external_feature() and self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
         if context_length is not None:
             estimator_kwargs.update({"context_length": context_length})
-        self.estimator = self.model_descriptor.get_estimator(self.model_parameters, **estimator_kwargs)
+        self.estimator = self.model_handler.estimator(self.model_parameters, **estimator_kwargs)
         self.predictor = None
         if self.estimator is None:
             print("{} model is not implemented yet".format(model_name))
@@ -136,7 +136,7 @@ class Model:
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
         """
         if self.estimator is None:
-            predictor = self.model_descriptor.get_predictor(freq=self.frequency, prediction_length=self.prediction_length)
+            predictor = self.model_handler.predictor(freq=self.frequency, prediction_length=self.prediction_length)
         else:
             predictor = self.estimator.train(train_list_dataset)
         return predictor
