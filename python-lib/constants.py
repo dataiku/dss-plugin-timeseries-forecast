@@ -7,9 +7,9 @@ EVALUATION_METRICS_DESCRIPTIONS = {
     "MASE": "Mean Absolute Scaled Error",
     "MAPE": "Mean Absolute Percentage Error",
     "sMAPE": "Symmetric Mean Absolute Percentage Error",
-    "MSIS": "",
+    "MSIS": "Mean Scaled Interval Score",
     "RMSE": "Root Mean Square Error",
-    "ND": "sum(abs_error)/sum(abs_target_sum)",
+    "ND": "Normalized Deviation",
     "mean_wQuantileLoss": "Mean Weight Quantile Loss",
 }
 
