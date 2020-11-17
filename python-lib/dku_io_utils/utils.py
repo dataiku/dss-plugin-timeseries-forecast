@@ -125,6 +125,8 @@ def get_dimensions(dataset):
     dimensions_dict = dataset.get_config().get("partitioning").get("dimensions")
     dimensions = []
     for dimension in dimensions_dict:
+        if dimension.get("type") != "value":
+            raise ValueError("Time partitions are not handled yet")
         dimensions.append(dimension.get("name"))
     return dimensions
 
