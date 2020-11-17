@@ -138,7 +138,7 @@ class TrainingSession:
             else:
                 (item_metrics, identifiers_columns) = model.evaluate(self.train_list_dataset, self.test_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
-        metrics_df["session"] = self.session_name
+        metrics_df[METRICS_DATASET.SESSION] = self.session_name
         orderd_metrics_df = self._reorder_metrics_df(metrics_df)
 
         if self.make_forecasts:
@@ -147,7 +147,7 @@ class TrainingSession:
                 on=[self.time_column_name] + identifiers_columns,
                 how="left",
             )
-            self.evaluation_forecasts_df["session"] = self.session_name
+            self.evaluation_forecasts_df[METRICS_DATASET.SESSION] = self.session_name
 
         return orderd_metrics_df
 
