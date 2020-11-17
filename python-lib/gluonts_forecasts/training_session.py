@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET
@@ -72,7 +73,7 @@ class TrainingSession:
         if partition_root is None:
             self.session_path = session_name
         else:
-            self.session_path = "{}/{}".format(partition_root, session_name)
+            self.session_path = os.path.join(partition_root, session_name)
         self.models = []
         for model_name in self.models_parameters:
             model_parameters = self.models_parameters.get(model_name)

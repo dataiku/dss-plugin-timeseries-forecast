@@ -1,4 +1,5 @@
 import re
+import os
 from dku_io_utils.utils import read_from_folder
 from constants import METRICS_DATASET
 
@@ -7,7 +8,7 @@ class ModelSelection:
     def __init__(self, folder, external_features_future_dataset=None, partition=None):
         self.folder = folder
         self.external_features_future_dataset = external_features_future_dataset
-        self.root = "" if partition is None else "{}/".format(partition)
+        self.root = "" if partition is None else partition
 
     def manual_params(self, session, model_label):
         self.manual_selection = True
@@ -23,8 +24,12 @@ class ModelSelection:
             self.session = self._get_last_session()
             self.model_label = self._get_best_model()
 
-        model_path = "{}/{}/model.pk.gz".format(self.session, self.model_label)
+        model_path = os.path.join(self.session, self.model_label, "model.pk.gz")
+        # "{}/{}/model.pk.gz".format(self.session, self.model_label)
         model = read_from_folder(self.folder, model_path, "pickle.gz")
+
+        print(f"session: {self.session}")
+        # raise ValueError(f"session: {self.session}")
         return model
 
     def get_gluon_train_dataset(self):
@@ -38,7 +43,8 @@ class ModelSelection:
             if re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z", child["name"]):
                 session_timestamps += [child["name"]]
         last_session = max(session_timestamps, key=lambda timestamp: timestamp)
-        return "{}{}".format(self.root, last_session)
+        return os.path.join(self.root, last_session)
+        # "{}{}".format(self.root, last_session)
 
     def _get_best_model(self):
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), "csv")
