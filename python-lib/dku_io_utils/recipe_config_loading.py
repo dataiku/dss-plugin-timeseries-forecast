@@ -104,7 +104,7 @@ def load_predict_config():
 
     params["performance_metric"] = recipe_config.get("performance_metric")
     params["selected_session"] = recipe_config.get("manually_selected_session")
-    params["selected_model_type"] = recipe_config.get("manually_selected_model_type")
+    params["selected_model_label"] = recipe_config.get("manually_selected_model_label")
 
     params["prediction_length"] = recipe_config.get("prediction_length")
     params["quantiles"] = recipe_config.get("quantiles")

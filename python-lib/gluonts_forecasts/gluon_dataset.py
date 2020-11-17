@@ -1,5 +1,6 @@
 from gluonts_forecasts.utils import assert_time_column_valid
 from gluonts.dataset.common import ListDataset
+from constants import TIMESERIES_KEYS
 
 
 class GluonDataset:
@@ -68,18 +69,18 @@ class GluonDataset:
     def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_values=None):
         """ return a dictionary for one timeseries and add extra features and identifiers columns if specified """
         univariate_timeseries = {
-            "start": df[self.time_column_name].iloc[0],
-            "target": df[target_column_name].iloc[:length].values,
-            "target_name": target_column_name,
-            "time_column_name": self.time_column_name,
+            TIMESERIES_KEYS.START: df[self.time_column_name].iloc[0],
+            TIMESERIES_KEYS.TARGET: df[target_column_name].iloc[:length].values,
+            TIMESERIES_KEYS.TARGET_NAME: target_column_name,
+            TIMESERIES_KEYS.TIME_COLUMN_NAME: self.time_column_name,
         }
         if self.external_features_columns_names:
-            univariate_timeseries["feat_dynamic_real"] = df[self.external_features_columns_names].iloc[:length].values.T
-            univariate_timeseries["feat_dynamic_real_columns_names"] = self.external_features_columns_names
+            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] = df[self.external_features_columns_names].iloc[:length].values.T
+            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES] = self.external_features_columns_names
         if identifiers_values:
             if len(self.timeseries_identifiers_names) > 1:
                 identifiers_map = {self.timeseries_identifiers_names[i]: identifier_value for i, identifier_value in enumerate(identifiers_values)}
             else:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
-            univariate_timeseries["identifiers"] = identifiers_map
+            univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
         return univariate_timeseries

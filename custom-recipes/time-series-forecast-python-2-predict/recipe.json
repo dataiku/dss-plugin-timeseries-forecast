@@ -6,7 +6,7 @@
         "displayOrderRank": 2
     },
     "kind": "PYTHON",
-    "selectableFromDataset": "evaluation_dataset",
+    "selectableFromDataset": "external_features_future_dataset",
     "selectableFromFolder": "model_folder",
     "inputRoles": [
         {
@@ -106,9 +106,9 @@
             "visibilityCondition": "model.model_selection_mode == 'manual'"
         },
         {
-            "name": "manually_selected_model_type",
+            "name": "manually_selected_model_label",
             "type": "SELECT",
-            "label": "Model type",
+            "label": "Model name",
             "getChoicesFromPython": true,
             "visibilityCondition": "model.model_selection_mode == 'manual'"
         },
@@ -122,9 +122,9 @@
             "label": "Forecast horizon",
             "type": "INT",
             "mandatory": true,
-            "defaultValue": 0,
-            "description": "A value of 0 sets the horizon to the one used at training time. Expressed in number of time steps, it must be smaller than the horizon used at training time.",
-            "minI": 0
+            "defaultValue": -1,
+            "description": "A value of -1 sets the horizon to the one used at training time. Expressed in number of time steps, it must be smaller than the horizon used at training time.",
+            "minI": -1
         },
         {
             "name": "quantiles",
@@ -141,7 +141,7 @@
         {
             "name": "include_history",
             "label": "Include history?",
-            "description": "Whether to include past values in addition to the forecast values.",
+            "description": "Keep historical data in addition to future values.",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true

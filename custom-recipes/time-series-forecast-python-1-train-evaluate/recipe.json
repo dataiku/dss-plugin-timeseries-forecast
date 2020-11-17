@@ -38,7 +38,7 @@
         },
         {
             "name": "evaluation_forecasts",
-            "label": "Evaluation forecasts",
+            "label": "Evaluation forecasts (optional)",
             "description": "This dataset stores train and test data along with the forecasts used to evaluate metrics.",
             "arity": "UNARY",
             "required": false,

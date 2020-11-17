@@ -14,11 +14,11 @@ model_selection = ModelSelection(
 )
 
 if params["manual_selection"]:
-    model_selection.manual_params(session=params["selected_session"], model_type=params["selected_model_type"])
+    model_selection.manual_params(session=params["selected_session"], model_label=params["selected_model_label"])
 else:
     model_selection.auto_params(performance_metric=params["performance_metric"])
 
-predictor = model_selection.get_model()
+predictor = model_selection.get_model_predictor()
 
 gluon_train_dataset = model_selection.get_gluon_train_dataset()
 
@@ -38,7 +38,7 @@ trained_model = TrainedModel(
 
 trained_model.predict()
 
-forecasts_df = trained_model.get_forecasts_df(session=model_selection.session, model_type=model_selection.model_type)
+forecasts_df = trained_model.get_forecasts_df(session=model_selection.session, model_label=model_selection.model_label)
 params["output_dataset"].write_with_schema(forecasts_df)
 
 column_descriptions = trained_model.create_forecasts_column_description()

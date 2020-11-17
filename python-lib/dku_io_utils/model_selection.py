@@ -9,21 +9,21 @@ class ModelSelection:
         self.external_features_future_dataset = external_features_future_dataset
         self.root = "" if partition is None else "{}/".format(partition)
 
-    def manual_params(self, session, model_type):
+    def manual_params(self, session, model_label):
         self.manual_selection = True
         self.session = session
-        self.model_type = model_type
+        self.model_label = model_label
 
     def auto_params(self, performance_metric):
         self.manual_selection = False
         self.performance_metric = performance_metric
 
-    def get_model(self):
+    def get_model_predictor(self):
         if not self.manual_selection:
             self.session = self._get_last_session()
-            self.model_type = self._get_best_model()
+            self.model_label = self._get_best_model()
 
-        model_path = "{}/{}/model.pk.gz".format(self.session, self.model_type)
+        model_path = "{}/{}/model.pk.gz".format(self.session, self.model_label)
         model = read_from_folder(self.folder, model_path, "pickle.gz")
         return model
 
@@ -45,5 +45,5 @@ class ModelSelection:
         if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
             df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
         assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
-        model_type = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
-        return model_type
+        model_label = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
+        return model_label

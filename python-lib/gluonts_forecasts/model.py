@@ -1,4 +1,4 @@
-from constants import EVALUATION_METRICS, METRICS_DATASET
+from constants import EVALUATION_METRICS, METRICS_DATASET, MODEL_LABELS, TIMESERIES_KEYS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import logging
@@ -105,16 +105,18 @@ class Model:
         return a metrics dataframe with both item_metrics and agg_metrics concatenated and the identifiers columns
         and add new columns: model_name, target_column, identifiers_columns
         """
-        item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
-        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_name
+        item_metrics[METRICS_DATASET.MODEL_COLUMN] = MODEL_LABELS[self.model_name]
+        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = MODEL_LABELS[self.model_name]
 
-        identifiers_columns = list(train_list_dataset.list_data[0]["identifiers"].keys()) if "identifiers" in train_list_dataset.list_data[0] else []
+        identifiers_columns = (
+            list(train_list_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys()) if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[0] else []
+        )
         identifiers_values = {identifiers_column: [] for identifiers_column in identifiers_columns}
         target_columns = []
         for univariate_timeseries in train_list_dataset.list_data:
-            target_columns += [univariate_timeseries["target_name"]]
+            target_columns += [univariate_timeseries[TIMESERIES_KEYS.TARGET_NAME]]
             for identifiers_column in identifiers_columns:
-                identifiers_values[identifiers_column] += [univariate_timeseries["identifiers"][identifiers_column]]
+                identifiers_values[identifiers_column] += [univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS][identifiers_column]]
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
@@ -144,7 +146,7 @@ class Model:
     def _get_model_parameters_json(self):
         return str(
             {
-                "model_name": self.model_name,
+                "model_name": MODEL_LABELS[self.model_name],
                 "model_parameters": self.model_parameters,
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
@@ -161,9 +163,11 @@ class Model:
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.mean_ts.rename("{}_{}".format(train_list_dataset.list_data[i]["target_name"], self.model_name))
-            if "identifiers" in train_list_dataset.list_data[i]:
-                timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i]["identifiers"].items()))
+            series = sample_forecasts.mean_ts.rename(
+                "{}_{}".format(train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME], MODEL_LABELS[self.model_name])
+            )
+            if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
+                timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
             else:
                 timeseries_identifier_key = None
 

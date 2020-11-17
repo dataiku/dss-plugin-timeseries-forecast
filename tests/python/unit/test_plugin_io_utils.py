@@ -1,5 +1,6 @@
 from gluonts.dataset.common import ListDataset
 from gluonts_forecasts.utils import assert_time_column_valid, add_future_external_features
+from constants import TIMESERIES_KEYS
 import pandas as pd
 import numpy as np
 import pytest
@@ -147,22 +148,22 @@ def test_invalid_year_frequency():
 
 def test_add_future_external_features_with_identifiers():
     timeseries_0 = {
-        "start": "2018-01-01",
-        "target": [12, 13, 14, 15, 16],
-        "target_name": "sales_0",
-        "time_column_name": "date",
-        "feat_dynamic_real": [[1, 0, 0, 0, 0], [0, 0, 0, 1, 1]],
-        "feat_dynamic_real_columns_names": ["is_holiday", "is_weekend"],
-        "identifiers": {"store": 1, "item": 1},
+        TIMESERIES_KEYS.START: "2018-01-01",
+        TIMESERIES_KEYS.TARGET: [12, 13, 14, 15, 16],
+        TIMESERIES_KEYS.TARGET_NAME: "sales_0",
+        TIMESERIES_KEYS.TIME_COLUMN_NAME: "date",
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: [[1, 0, 0, 0, 0], [0, 0, 0, 1, 1]],
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
+        TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 1},
     }
     timeseries_1 = {
-        "start": "2018-01-01",
-        "target": [2, 3, 4, 5, 6],
-        "target_name": "sales_1",
-        "time_column_name": "date",
-        "feat_dynamic_real": [[0, 0, 0, 0, 1], [0, 0, 0, 1, 1]],
-        "feat_dynamic_real_columns_names": ["is_holiday", "is_weekend"],
-        "identifiers": {"store": 1, "item": 2},
+        TIMESERIES_KEYS.START: "2018-01-01",
+        TIMESERIES_KEYS.TARGET: [2, 3, 4, 5, 6],
+        TIMESERIES_KEYS.TARGET_NAME: "sales_1",
+        TIMESERIES_KEYS.TIME_COLUMN_NAME: "date",
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: [[0, 0, 0, 0, 1], [0, 0, 0, 1, 1]],
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
+        TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 2},
     }
     gluon_train_dataset = ListDataset([timeseries_0, timeseries_1], freq="D")
 
@@ -186,4 +187,4 @@ def test_add_future_external_features_with_identifiers():
     prediction_length = 3
     gluon_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length)
 
-    assert (gluon_dataset.list_data[0]["feat_dynamic_real"] == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])).all()
+    assert (gluon_dataset.list_data[0][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])).all()

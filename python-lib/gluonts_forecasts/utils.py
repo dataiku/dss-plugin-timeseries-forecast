@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from functools import reduce
 import copy
+from constants import TIMESERIES_KEYS
 
 
 def apply_filter_conditions(df, conditions):
@@ -20,15 +21,15 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
     """ append the future external features to the gluonTS ListDataset used for training """
     gluon_dataset = copy.deepcopy(gluon_train_dataset)
     for i, timeseries in enumerate(gluon_train_dataset):
-        if "identifiers" in timeseries:
-            timeseries_identifiers = timeseries["identifiers"]
+        if TIMESERIES_KEYS.IDENTIFIERS in timeseries:
+            timeseries_identifiers = timeseries[TIMESERIES_KEYS.IDENTIFIERS]
             conditions = [external_features_future_df[k] == v for k, v in timeseries_identifiers.items()]
             timeseries_external_features_future_df = apply_filter_conditions(external_features_future_df, conditions)
         else:
             timeseries_external_features_future_df = external_features_future_df
 
-        feat_dynamic_real_train = timeseries["feat_dynamic_real"]
-        feat_dynamic_real_columns_names = timeseries["feat_dynamic_real_columns_names"]
+        feat_dynamic_real_train = timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL]
+        feat_dynamic_real_columns_names = timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES]
 
         feat_dynamic_real_future = timeseries_external_features_future_df[feat_dynamic_real_columns_names].values.T
 
@@ -37,7 +38,7 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
 
         feat_dynamic_real_appended = np.append(feat_dynamic_real_train, feat_dynamic_real_future, axis=1)
 
-        gluon_dataset.list_data[i]["feat_dynamic_real"] = feat_dynamic_real_appended
+        gluon_dataset.list_data[i][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] = feat_dynamic_real_appended
 
     return gluon_dataset
 

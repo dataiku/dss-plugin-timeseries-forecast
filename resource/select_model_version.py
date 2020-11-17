@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import dataiku
-from constants import AVAILABLE_MODELS
+from constants import AVAILABLE_MODELS, MODEL_LABELS
 
 
 def do(payload, config, plugin_config, inputs):
@@ -20,17 +20,17 @@ def do(payload, config, plugin_config, inputs):
             sessions += [child["name"]]
 
     if payload.get("parameterName") == "manually_selected_session":
-        for session in sessions:
+        for session in sorted(sessions):
             choices += [{"label": session, "value": session}]
 
-    elif payload.get("parameterName") == "manually_selected_model_type":
-        model_types = set()
+    elif payload.get("parameterName") == "manually_selected_model_label":
+        model_labels = set()
         for session in sessions:
             for child in input_folder.get_path_details(path="/{}".format(session))["children"]:
-                if child["directory"] and child["name"] in AVAILABLE_MODELS:
-                    model_types.add(child["name"])
+                if child["directory"] and child["name"] in MODEL_LABELS.values():
+                    model_labels.add(child["name"])
 
-        for model in model_types:
+        for model in model_labels:
             choices += [{"label": model, "value": model}]
 
     elif payload.get("parameterName") == "model_selection_mode":
