@@ -61,6 +61,17 @@ def get_models_parameters(config):
             if "prediction_length" in model_presets.get("kwargs", {}):
                 raise ValueError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({model: model_presets})
+    models_parameters = set_naive_model_parameters(config, models_parameters)
+    return models_parameters
+
+
+def set_naive_model_parameters(config, models_parameters):
+    naive_model_parameters = models_parameters.get("naive")
+    if naive_model_parameters is not None:
+        model_name = config.get("naive_model_method")
+        models_parameters[model_name] = models_parameters.pop("naive")
+        if model_name in ["trivial_identity", "trivial_mean"]:
+            models_parameters[model_name]["kwargs"] = {"num_samples": 100}
     return models_parameters
 
 

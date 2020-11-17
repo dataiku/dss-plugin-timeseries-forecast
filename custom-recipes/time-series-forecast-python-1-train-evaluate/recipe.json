@@ -211,29 +211,22 @@
             "label": "  ↳ method",
             "type": "SELECT",
             "mandatory": true,
-            "defaultValue": "trivial",
+            "defaultValue": "trivial_identity",
             "visibilityCondition": "model.forecasting_style == 'expert' && model.naive_model_activated",
             "selectChoices": [
                 {
-                    "value": "trivial",
+                    "value": "trivial_identity",
                     "label": "Forecast preceding value"
                 },
                 {
-                    "value": "seasonal_naive",
-                    "label": "Forecast value at previous period"
+                    "value": "trivial_mean",
+                    "label": "Forecast average value"
                 },
                 {
-                    "value": "naive_2",
+                    "value": "seasonal_naive",
                     "label": "Forecast value at previous period with seasonal decomposition"
                 }
             ]
-        },
-        {
-            "name": "naive_model_kwargs",
-            "type": "MAP",
-            "label": "↳ additional parameters",
-            "visibilityCondition": "false",
-            "mandatory": false
         },
         {
             "type": "SEPARATOR",

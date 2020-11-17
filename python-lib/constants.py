@@ -20,9 +20,18 @@ class TIMESERIES_KEYS:
     IDENTIFIERS = "identifiers"
 
 
-AVAILABLE_MODELS = ["naive", "simplefeedforward", "deepar", "transformer", "nbeats"]
+AVAILABLE_MODELS = ["naive", "simplefeedforward", "deepar", "transformer", "nbeats", "seasonal_naive", "trivial_mean", "trivial_identity"]
 
-MODEL_LABELS = {"naive": "Baseline", "simplefeedforward": "FeedForward", "deepar": "DeepAR", "transformer": "Transformer", "nbeats": "NBEATS"}
+MODEL_LABELS = {
+    "naive": "Baseline",
+    "simplefeedforward": "FeedForward",
+    "deepar": "DeepAR",
+    "transformer": "Transformer",
+    "nbeats": "NBEATS",
+    "seasonal_naive": "SeasonalNaive",
+    "trivial_mean": "TrivialMean",
+    "trivial_identity": "TrivialIdentity"
+}
 
 EVALUATION_METRICS = ["MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"]
 

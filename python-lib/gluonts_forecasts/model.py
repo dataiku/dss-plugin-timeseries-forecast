@@ -32,7 +32,7 @@ class Model:
         use_external_features=False,
         batch_size=None,
         gpu=None,
-        context_length=None,
+        context_length=None
     ):
         self.model_name = model_name
         self.model_parameters = model_parameters
@@ -54,19 +54,17 @@ class Model:
             estimator_kwargs.update({"trainer": trainer})
         if self.model_handler.can_use_external_feature() and self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if context_length is not None:
+        if context_length is not None and self.model_handler.can_use_context_length():
             estimator_kwargs.update({"context_length": context_length})
         self.estimator = self.model_handler.estimator(self.model_parameters, **estimator_kwargs)
         self.predictor = None
-        if self.estimator is None:
-            print("{} model is not implemented yet".format(model_name))
 
     def get_name(self):
         return self.model_name
 
     def train(self, train_list_dataset):
         if self.estimator is None:
-            print("No training: {} model not implemented yet".format(self.model_name))
+            logging.info("Model '{}' has no estimator for training".format(self.model_name))
             return
         logging.info("Timeseries forecast - Training model {} on all data".format(self.model_name))
         self.predictor = self.estimator.train(train_list_dataset)
@@ -137,8 +135,14 @@ class Model:
         train a gluonTS estimator to get a predictor for models that can be trained
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
         """
+        kwargs = {
+            "freq": self.frequency,
+            "prediction_length": self.prediction_length
+        }
+        if self.model_handler.needs_num_samples():
+            kwargs.update({"num_samples": 100})
         if self.estimator is None:
-            predictor = self.model_handler.predictor(freq=self.frequency, prediction_length=self.prediction_length)
+            predictor = self.model_handler.predictor(**kwargs)
         else:
             predictor = self.estimator.train(train_list_dataset)
         return predictor
