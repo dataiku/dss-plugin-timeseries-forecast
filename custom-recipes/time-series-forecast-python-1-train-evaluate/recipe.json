@@ -78,8 +78,71 @@
             "mandatory": true
         },
         {
+            "name": "frequency_unit",
+            "label": "Frequency",
+            "type": "SELECT",
+            "mandatory": true,
+            "selectChoices": [
+                {
+                    "value": "min",
+                    "label": "Minute"
+                },
+                {
+                    "value": "H",
+                    "label": "Hour"
+                },
+                {
+                    "value": "D",
+                    "label": "Day"
+                },
+                {
+                    "value": "B",
+                    "label": "Business Day (Mon - Fri)"
+                },
+                {
+                    "value": "W",
+                    "label": "Week"
+                },
+                {
+                    "value": "M",
+                    "label": "Month"
+                },
+                {
+                    "value": "3M",
+                    "label": "Quarter"
+                },
+                {
+                    "value": "6M",
+                    "label": "Semester"
+                },
+                {
+                    "value": "Y",
+                    "label": "Year"
+                }
+            ],
+            "defaultValue": "D"
+        },
+        {
+            "name": "frequency_step_hours",
+            "label": "Number of hours",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.frequency_unit == 'H'"
+        },
+        {
+            "name": "frequency_step_minutes",
+            "label": "Number of minutes",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.frequency_unit == 'min'"
+        },
+        {
             "name": "additional_columns",
-            "label": "Additional columns?",
+            "label": "Long format",
             "description": "",
             "type": "BOOLEAN",
             "defaultValue": false,
@@ -87,8 +150,8 @@
         },
         {
             "name": "timeseries_identifiers",
-            "label": "Timeseries identifiers",
-            "description": "For long-format input data",
+            "label": "Time series identifiers",
+            "description": "",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -103,71 +166,17 @@
             "visibilityCondition": "model.additional_columns == true"
         },
         {
-            "name": "external_feature_columns",
-            "label": "External features",
-            "description": "Used for training only by DeepAR and Transformer models",
-            "type": "COLUMNS",
-            "allowedColumnTypes": [
-                "tinyint",
-                "smallint",
-                "int",
-                "bigint",
-                "float",
-                "double"
-            ],
-            "columnRole": "input_dataset",
-            "mandatory": false,
-            "visibilityCondition": "model.additional_columns == true"
-        },
-        {
-            "name": "time_granularity_step",
-            "label": "Time granularity step",
-            "type": "INT",
-            "defaultValue": 1,
-            "mandatory": true,
-            "minI": 1
-        },
-        {
-            "name": "time_granularity_unit",
-            "label": "Time granularity unit",
-            "type": "SELECT",
-            "mandatory": true,
-            "selectChoices": [
-                {
-                    "value": "Y",
-                    "label": "Year"
-                },
-                {
-                    "value": "M",
-                    "label": "Month"
-                },
-                {
-                    "value": "W",
-                    "label": "Week"
-                },
-                {
-                    "value": "D",
-                    "label": "Day"
-                },
-                {
-                    "value": "B",
-                    "label": "Business Day"
-                },
-                {
-                    "value": "H",
-                    "label": "Hour"
-                },
-                {
-                    "value": "min",
-                    "label": "Minute"
-                }
-            ],
-            "defaultValue": "D"
-        },
-        {
             "name": "separator_modeling",
             "label": "Modeling",
-            "type": "SEPARATOR"
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style != 'customize_algorithms'"
+        },
+        {
+            "name": "separator_modeling_customize_algorithms",
+            "label": "Modeling",
+            "type": "SEPARATOR",
+            "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.model.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "prediction_length",
@@ -185,18 +194,22 @@
             "selectChoices": [
                 {
                     "value": "auto",
-                    "label": "Auto"
+                    "label": "AutoML"
                 },
                 {
-                    "value": "expert",
-                    "label": "Expert"
+                    "value": "choose_algorithms",
+                    "label": "Choose algorithms"
+                },
+                {
+                    "value": "customize_algorithms",
+                    "label": "Customize algorithms"
                 }
             ],
             "defaultValue": "auto"
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "naive_model_activated",
@@ -204,15 +217,16 @@
             "description": "Based on the trivial/seasonal_naive/naive_2 GluonTS models",
             "type": "BOOLEAN",
             "defaultValue": false,
-            "mandatory": true
+            "mandatory": true,
+            "visibilityCondition": "model.forecasting_style != 'auto'"
         },
         {
             "name": "naive_model_method",
             "label": "  ↳ method",
             "type": "SELECT",
             "mandatory": true,
-            "defaultValue": "trivial_identity",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.naive_model_activated",
+            "defaultValue": "trivial",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.naive_model_activated",
             "selectChoices": [
                 {
                     "value": "trivial_identity",
@@ -230,7 +244,7 @@
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "simplefeedforward_model_activated",
@@ -238,19 +252,20 @@
             "description": "Based on the SimpleFeedForwardEstimator GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": true,
-            "mandatory": true
+            "mandatory": true,
+            "visibilityCondition": "model.forecasting_style != 'auto'"
         },
         {
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.simple_feedforward.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.simplefeedforward_model_activated",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
             "mandatory": false
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "deepar_model_activated",
@@ -258,19 +273,20 @@
             "description": "Based on the DeepAREstimator GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": true,
-            "mandatory": true
+            "mandatory": true,
+            "visibilityCondition": "model.forecasting_style != 'auto'"
         },
         {
             "name": "deepar_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deepar.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.deepar_model_activated",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.deepar_model_activated",
             "mandatory": false
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "transformer_model_activated",
@@ -278,19 +294,20 @@
             "description": "Based on the TransformerEstimator GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": true,
-            "mandatory": true
+            "mandatory": true,
+            "visibilityCondition": "model.forecasting_style != 'auto'"
         },
         {
             "name": "transformer_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.transformer.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.transformer_model_activated",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.transformer_model_activated",
             "mandatory": false
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'expert'"
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "nbeats_model_activated",
@@ -298,15 +315,51 @@
             "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": false,
-            "mandatory": true
+            "mandatory": true,
+            "visibilityCondition": "model.forecasting_style != 'auto'"
         },
         {
             "name": "nbeats_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.n_beats.html",
-            "visibilityCondition": "model.forecasting_style == 'expert' && model.nbeats_model_activated",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
             "mandatory": false
+        },
+        {
+            "name": "training_options_separator",
+            "label": "Training options",
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "epoch",
+            "label": "Epoch",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "context_length",
+            "label": "Context length",
+            "type": "INT",
+            "description": "If 0, same as prediction length.",
+            "defaultValue": 0,
+            "mandatory": false,
+            "minI": 0,
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "batch_size",
+            "label": "Batch size",
+            "type": "INT",
+            "description": "",
+            "defaultValue": 32,
+            "mandatory": false,
+            "minI": 0,
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "separator_evaluation",
@@ -333,52 +386,35 @@
             "type": "SEPARATOR"
         },
         {
+            "name": "advanced_options",
+            "label": "Display advanced options?",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
+            "name": "external_feature_columns",
+            "label": "External features",
+            "description": "Used only by DeepAR and Transformer models",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false,
+            "visibilityCondition": "model.advanced_options == true"
+        },
+        {
             "name": "evaluation_only",
             "label": "Evaluation only",
             "description": "Store evaluation results but do not save trained models",
             "type": "BOOLEAN",
-            "defaultValue": false
-        },
-        {
-            "name": "advanced_options",
-            "label": "Display advanced training options?",
-            "type": "BOOLEAN",
-            "defaultValue": false
-        },
-        {
-            "name": "training_options_separator",
-            "label": "Training options",
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.advanced_options == true"
-        },
-        {
-            "name": "epoch",
-            "label": "Epoch",
-            "type": "INT",
-            "defaultValue": 1,
-            "mandatory": false,
-            "minI": 1,
-            "visibilityCondition": "model.advanced_options == true"
-        },
-        {
-            "name": "context_length",
-            "label": "Context length",
-            "type": "INT",
-            "description": "If 0, same as prediction length.",
-            "defaultValue": 0,
-            "mandatory": false,
-            "minI": 0,
-            "visibilityCondition": "model.advanced_options == true"
-        },
-        {
-            "name": "batch_size",
-            "label": "Batch size",
-            "type": "INT",
-            "description": "",
-            "defaultValue": 32,
-            "mandatory": false,
-            "minI": 0,
-            "visibilityCondition": "model.advanced_options == true"
+            "defaultValue": false,
+            "visibilityCondition": "false"
         },
         {
             "name": "gpu",

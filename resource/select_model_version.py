@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import dataiku
-from constants import AVAILABLE_MODELS, MODEL_LABELS
+from constants import MODEL_LABELS
 
 
 def do(payload, config, plugin_config, inputs):

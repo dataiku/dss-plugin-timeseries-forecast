@@ -50,13 +50,16 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError("Invalid external features column(s) selection")
 
     params["deepar_model_activated"] = recipe_config.get("deepar_model_activated", False)
-    params["time_granularity_unit"] = recipe_config.get("time_granularity_unit")
+    params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    params["time_granularity_step"] = recipe_config.get("time_granularity_step")
-    if params["time_granularity_step"] is None:
-        raise PluginParamValidationError("Time granularity step is not set.")
-
-    params["frequency"] = "{}{}".format(params["time_granularity_step"], params["time_granularity_unit"])
+    if params["frequency_unit"] not in ["H", "min"]:
+        params["frequency"] = params["frequency_unit"]
+    else:
+        if params["frequency_unit"] == "H":
+            params["frequency_step"] = recipe_config.get("frequency_step_hours", 1)
+        elif params["frequency_unit"] == "min":
+            params["frequency_step"] = recipe_config.get("frequency_step_minutes", 1)
+        params["frequency"] = "{}{}".format(params["frequency_step"], params["frequency_unit"])
 
     params["columns_to_keep"] = (
         [params["time_column_name"]] + params["target_columns_names"] + params["timeseries_identifiers_names"] + params["external_features_columns_names"]
