@@ -2,9 +2,9 @@
     "id": "time-series-forecast-python",
     "version": "1.0.0",
     "meta": {
-        "label": "Forecast (Python)",
+        "label": "Forecast",
         "category": "Time Series",
-        "description": "Forecast time series using the GluonTS Python library. This plugin covers the full cycle of model training, evaluation and prediction.",
+        "description": "Forecast multivariate time series with Deep Learning models",
         "author": "Dataiku",
         "icon": "icon-calendar",
         "licenseInfo": "Apache Software License v2",
