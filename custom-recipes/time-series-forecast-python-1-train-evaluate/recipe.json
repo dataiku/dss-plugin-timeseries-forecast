@@ -225,7 +225,7 @@
             "label": "  ↳ method",
             "type": "SELECT",
             "mandatory": true,
-            "defaultValue": "trivial",
+            "defaultValue": "trivial_identity",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.naive_model_activated",
             "selectChoices": [
                 {
