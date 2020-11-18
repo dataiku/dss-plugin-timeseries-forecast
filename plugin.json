@@ -2,7 +2,7 @@
     "id": "time-series-forecast-python",
     "version": "1.0.0",
     "meta": {
-        "label": "Time Series Forecast",
+        "label": "Forecast",
         "category": "Time Series",
         "description": "Forecast multivariate time series from year to minute frequency with Deep Learning models",
         "author": "Dataiku",
