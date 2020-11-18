@@ -41,11 +41,14 @@ def load_training_config(recipe_config):
     if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError("Invalid target column(s) selection")
 
-    params["timeseries_identifiers_names"] = recipe_config.get("timeseries_identifiers", [])
-    if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
-        raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
-
     long_format = recipe_config.get("additional_columns", False)
+    if long_format:
+        params["timeseries_identifiers_names"] = recipe_config.get("timeseries_identifiers", [])
+        if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
+            raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
+    else:
+        params["timeseries_identifiers_names"] = []
+
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series idenfiers are selected")
 
