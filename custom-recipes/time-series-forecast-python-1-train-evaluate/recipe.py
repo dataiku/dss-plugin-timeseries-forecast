@@ -13,7 +13,7 @@ session_name = datetime.utcnow().isoformat() + "Z"
 
 models_parameters = get_models_parameters(config)
 
-training_df = params["training_dataset"].get_dataframe(columns=params["columns_to_keep"])
+training_df = params["training_dataset"].get_dataframe()
 
 training_session = TrainingSession(
     target_columns_names=params["target_columns_names"],
