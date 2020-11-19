@@ -13,9 +13,9 @@ model_selection = ModelSelection(
 )
 
 if params["manual_selection"]:
-    model_selection.manual_params(session=params["selected_session"], model_label=params["selected_model_label"])
+    model_selection.set_manual_selection_parameters(session=params["selected_session"], model_label=params["selected_model_label"])
 else:
-    model_selection.auto_params(performance_metric=params["performance_metric"])
+    model_selection.set_auto_selection_parameters(performance_metric=params["performance_metric"])
 
 predictor = model_selection.get_model_predictor()
 

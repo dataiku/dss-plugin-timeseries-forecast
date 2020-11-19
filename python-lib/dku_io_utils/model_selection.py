@@ -25,12 +25,12 @@ class ModelSelection:
         self.model_label = None
         self.performance_metric = None
 
-    def manual_params(self, session, model_label):
+    def set_manual_selection_parameters(self, session, model_label):
         self.manual_selection = True
         self.session = session
         self.model_label = model_label
 
-    def auto_params(self, performance_metric):
+    def set_auto_selection_parameters(self, performance_metric):
         self.manual_selection = False
         self.performance_metric = performance_metric
 
