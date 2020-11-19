@@ -1,8 +1,6 @@
-import re
 import io
 import os
 import dill as pickle
-from constants import MODEL_LABELS
 import dataiku
 import pandas as pd
 import json
@@ -53,47 +51,6 @@ def write_to_folder(object_to_save, folder, path, object_type):
                 fgzip.write(object_to_save.to_csv(index=False).encode())
         else:
             raise ValueError("Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(object_type))
-
-
-def get_models_parameters(config):
-    models_parameters = {}
-    for model in MODEL_LABELS:
-        if is_activated(config, model):
-            model_presets = get_model_presets(config, model)
-            if "prediction_length" in model_presets.get("kwargs", {}):
-                raise ValueError("The value for 'prediction_length' cannot be changed")
-            models_parameters.update({model: model_presets})
-    models_parameters = set_naive_model_parameters(config, models_parameters)
-    return models_parameters
-
-
-def set_naive_model_parameters(config, models_parameters):
-    naive_model_parameters = models_parameters.get("naive")
-    if naive_model_parameters is not None:
-        model_name = config.get("naive_model_method")
-        models_parameters[model_name] = models_parameters.pop("naive")
-        if model_name in ["trivial_identity", "trivial_mean"]:
-            models_parameters[model_name]["kwargs"] = {"num_samples": 100}
-    return models_parameters
-
-
-def is_activated(config, model):
-    return config.get("{}_model_activated".format(model), False)
-
-
-def get_model_kwargs(config, model):
-    return config.get("{}_model_kwargs".format(model))
-
-
-def get_model_presets(config, model):
-    model_presets = {}
-    matching_key = "{}_model_(.*)".format(model)
-    for key in config:
-        key_search = re.match(matching_key, key, re.IGNORECASE)
-        if key_search:
-            key_type = key_search.group(1)
-            model_presets.update({key_type: config[key]})
-    return model_presets
 
 
 def set_column_description(output_dataset, column_description_dict, input_dataset=None):

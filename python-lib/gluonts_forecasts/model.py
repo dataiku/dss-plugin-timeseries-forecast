@@ -11,7 +11,7 @@ class Model(ModelHandler):
     Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
 
     Attributes:
-        model_name (str): Model name belonging to Constants.MODEL_LABELS
+        model_name (str): Model name belonging to model_handler.MODEL_DESCRIPTORS
         model_parameters (dict): Kwargs of model parameters
         frequency (str): Pandas timeseries frequency (e.g. '3M')
         prediction_length (int): Number of time steps to predict
