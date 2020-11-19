@@ -94,7 +94,7 @@ class TrainingSession:
         try:
             self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
         except Exception:
-            raise ValueError("Time column '{}' cannot be parsed as date.".format(self.time_column_name))
+            raise ValueError("Time column '{}' cannot be parsed as date. You should parse the date column in a prepare recipe.".format(self.time_column_name))
 
         self._check_target_columns_types()
         self._check_external_features_columns_types()

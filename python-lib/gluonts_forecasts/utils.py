@@ -75,5 +75,5 @@ def concat_timeseries_per_identifiers(all_timeseries):
 
 
 def concat_all_timeseries(multiple_df):
-    """ concat on rows all forecasts (one identifiers timeseries after the other) and rename time column """
+    """ concat on rows all forecasts (one identifiers timeseries after the other) """
     return pd.concat(multiple_df, axis=0).reset_index(drop=True)
