@@ -2,8 +2,9 @@ import pandas as pd
 import os
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, MODEL_LABELS
+from constants import METRICS_DATASET
 from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.model_handler import list_available_models_labels
 
 
 class TrainingSession:
@@ -170,9 +171,10 @@ class TrainingSession:
     def create_evaluation_forecasts_column_description(self):
         """ explain the meaning of the forecasts columns """
         column_descriptions = {}
+        available_models_labels = list_available_models_labels()
         for column in self.evaluation_forecasts_df.columns:
             suffix = column.split("_")[-1]
-            if suffix in MODEL_LABELS.values():
+            if suffix in available_models_labels:
                 column_descriptions[column] = "Mean forecasts of {} using {} model".format(column.split("_{}".format(suffix))[0], suffix)
         return column_descriptions
 

@@ -86,7 +86,7 @@
                 },
                 {
                     "value": "ND",
-                    "label": "ND"
+                    "label": "Normalized Deviation"
                 },
                 {
                     "value": "RMSE",

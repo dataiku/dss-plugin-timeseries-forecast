@@ -2,12 +2,12 @@ import re
 import io
 import os
 import dill as pickle
-from constants import MODEL_LABELS
 import dataiku
 import pandas as pd
 import json
 import gzip
 import logging
+from gluonts_forecasts.model_handler import list_available_models
 
 
 def read_from_folder(folder, path, obj_type):
@@ -55,7 +55,7 @@ def write_to_folder(obj, folder, path, obj_type):
 
 def get_models_parameters(config):
     models_parameters = {}
-    for model in MODEL_LABELS:
+    for model in list_available_models():
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
@@ -137,7 +137,7 @@ def get_dimensions(dataset):
     dimensions = []
     for dimension in dimensions_dict:
         if dimension.get("type") != "value":
-            raise ValueError("Time partitions are not handled yet")
+            raise NotImplementedError("Time partitions are not handled yet")
         dimensions.append(dimension.get("name"))
     return dimensions
 

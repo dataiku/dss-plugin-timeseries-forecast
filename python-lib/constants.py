@@ -20,18 +20,7 @@ class TIMESERIES_KEYS:
     IDENTIFIERS = "identifiers"
 
 
-MODEL_LABELS = {
-    "naive": "Baseline",
-    "simplefeedforward": "FeedForward",
-    "deepar": "DeepAR",
-    "transformer": "Transformer",
-    "nbeats": "NBEATS",
-    "seasonal_naive": "SeasonalNaive",
-    "trivial_mean": "TrivialMean",
-    "trivial_identity": "TrivialIdentity",
-}
-
-EVALUATION_METRICS = {
+EVALUATION_METRICS_DESCRIPTIONS = {
     "MSE": "Mean Squared Error",
     "MASE": "Mean Absolute Scaled Error",
     "MAPE": "Mean Absolute Percentage Error",

@@ -1,4 +1,4 @@
-from constants import EVALUATION_METRICS, METRICS_DATASET, MODEL_LABELS, TIMESERIES_KEYS
+from constants import EVALUATION_METRICS, METRICS_DATASET, TIMESERIES_KEYS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import logging
@@ -6,7 +6,7 @@ from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
 
 
-class Model:
+class Model(ModelHandler):
     """
     Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
 
@@ -25,9 +25,9 @@ class Model:
     def __init__(
         self, model_name, model_parameters, frequency, prediction_length, epoch, use_external_features=False, batch_size=None, gpu=None, context_length=None
     ):
+        super().__init__(model_name)
         self.model_name = model_name
         self.model_parameters = model_parameters
-        self.model_handler = ModelHandler(model_name)
         self.frequency = frequency
         self.prediction_length = prediction_length
         self.epoch = epoch
@@ -40,14 +40,14 @@ class Model:
         self.batch_size = batch_size
         if self.batch_size is not None:
             trainer_kwargs.update({"batch_size": self.batch_size})
-        trainer = self.model_handler.trainer(**trainer_kwargs)
+        trainer = self.trainer(**trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
-        if self.model_handler.can_use_external_feature() and self.use_external_features:
+        if self.can_use_external_feature() and self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if context_length is not None and self.model_handler.can_use_context_length():
+        if context_length is not None and self.can_use_context_length():
             estimator_kwargs.update({"context_length": context_length})
-        self.estimator = self.model_handler.estimator(self.model_parameters, **estimator_kwargs)
+        self.estimator = self.estimator(self.model_parameters, **estimator_kwargs)
         self.predictor = None
 
     def get_name(self):
@@ -90,8 +90,8 @@ class Model:
         return a metrics dataframe with both item_metrics and agg_metrics concatenated and the identifiers columns
         and add new columns: model_name, target_column, identifiers_columns
         """
-        item_metrics[METRICS_DATASET.MODEL_COLUMN] = MODEL_LABELS[self.model_name]
-        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = MODEL_LABELS[self.model_name]
+        item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.get_label()
+        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.get_label()
 
         identifiers_columns = (
             list(train_list_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys()) if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[0] else []
@@ -123,10 +123,10 @@ class Model:
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
         """
         kwargs = {"freq": self.frequency, "prediction_length": self.prediction_length}
-        if self.model_handler.needs_num_samples():
+        if self.needs_num_samples():
             kwargs.update({"num_samples": 100})
         if self.estimator is None:
-            predictor = self.model_handler.predictor(**kwargs)
+            predictor = self.predictor(**kwargs)
         else:
             predictor = self.estimator.train(train_list_dataset)
         return predictor
@@ -134,7 +134,7 @@ class Model:
     def _get_model_parameters_json(self):
         return str(
             {
-                "model_name": MODEL_LABELS[self.model_name],
+                "model_name": self.get_label(),
                 "model_parameters": self.model_parameters,
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
@@ -152,7 +152,7 @@ class Model:
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = sample_forecasts.mean_ts.rename(
-                "{}_{}".format(train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME], MODEL_LABELS[self.model_name])
+                "{}_{}".format(train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME], self.get_label())
             )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))

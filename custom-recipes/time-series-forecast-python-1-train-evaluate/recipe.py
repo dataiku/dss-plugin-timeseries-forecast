@@ -5,7 +5,8 @@ from dku_io_utils.utils import get_models_parameters, set_column_description
 from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config
 from dku_io_utils.utils import write_to_folder
-from constants import EVALUATION_METRICS, METRICS_COLUMNS_DESCRIPTIONS, MODEL_LABELS
+from constants import EVALUATION_METRICS, METRICS_COLUMNS_DESCRIPTIONS
+from gluonts_forecasts.model_handler import get_model_label
 
 config = get_recipe_config()
 params = load_training_config(config)
@@ -49,10 +50,10 @@ if not params["evaluation_only"]:
     write_to_folder(training_session.test_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
 
     for model in training_session.models:
-        model_path = "{}/{}/model.pk.gz".format(training_session.session_path, MODEL_LABELS[model.model_name])
+        model_path = "{}/{}/model.pk.gz".format(training_session.session_path, get_model_label(model.model_name))
         write_to_folder(model.predictor, model_folder, model_path, "pickle.gz")
 
-        parameters_path = "{}/{}/params.json".format(training_session.session_path, MODEL_LABELS[model.model_name])
+        parameters_path = "{}/{}/params.json".format(training_session.session_path, get_model_label(model.model_name))
         write_to_folder(model.model_parameters, model_folder, parameters_path, "json")
 
 METRICS_COLUMNS_DESCRIPTIONS.update(EVALUATION_METRICS)
