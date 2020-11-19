@@ -112,7 +112,7 @@ class Model:
 
         metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + EVALUATION_METRICS]
+        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + list(EVALUATION_METRICS.keys())]
         metrics[METRICS_DATASET.MODEL_PARAMETERS] = self._get_model_parameters_json()
 
         return metrics, identifiers_columns

@@ -31,9 +31,7 @@ MODEL_LABELS = {
     "trivial_identity": "TrivialIdentity",
 }
 
-EVALUATION_METRICS = ["MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"]
-
-EVALUATION_METRICS_DESCRIPTIONS = {
+EVALUATION_METRICS = {
     "MSE": "Mean Squared Error",
     "MASE": "Mean Absolute Scaled Error",
     "MAPE": "Mean Absolute Percentage Error",
@@ -42,6 +40,9 @@ EVALUATION_METRICS_DESCRIPTIONS = {
     "RMSE": "Root Mean Square Error",
     "ND": "Normalized Deviation",
     "mean_wQuantileLoss": "Mean Weight Quantile Loss",
+}
+
+METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "'AGGREGATED' to aggregate metrics of different targets within a model",
