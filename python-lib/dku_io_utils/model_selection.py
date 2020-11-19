@@ -1,7 +1,7 @@
 import re
 import os
 from dku_io_utils.utils import read_from_folder
-from constants import METRICS_DATASET
+from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN
 
 
 class ModelSelection:
@@ -52,7 +52,7 @@ class ModelSelection:
         """ return timestamp of last training session using name of subfolders """
         session_timestamps = []
         for child in self.folder.get_path_details(path=self.root)["children"]:
-            if re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z", child["name"]):
+            if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
                 session_timestamps += [child["name"]]
         last_session = max(session_timestamps, key=lambda timestamp: timestamp)
         return os.path.join(self.root, last_session)

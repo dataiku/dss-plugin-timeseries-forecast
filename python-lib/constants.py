@@ -46,3 +46,5 @@ EVALUATION_METRICS_DESCRIPTIONS = {
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "'AGGREGATED' to aggregate metrics of different targets within a model",
 }
+
+TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"

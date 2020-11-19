@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import dataiku
-from constants import MODEL_LABELS
+from constants import MODEL_LABELS, TIMESTAMP_REGEX_PATTERN
 
 
 def do(payload, config, plugin_config, inputs):
@@ -16,7 +16,7 @@ def do(payload, config, plugin_config, inputs):
 
     sessions = []
     for child in input_folder.get_path_details(path="/")["children"]:
-        if re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z", child["name"]):
+        if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
             sessions += [child["name"]]
 
     if payload.get("parameterName") == "manually_selected_session":
