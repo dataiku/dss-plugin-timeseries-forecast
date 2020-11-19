@@ -56,6 +56,10 @@ class TrainedModel:
             self._reorder_forecasts_df(time_column_name, identifiers_columns)
 
     def _include_history(self, frequency, identifiers_columns):
+        """
+        include the history data on which the model was trained to the forecasts dataframe
+        frequency is used to reconstruct the date range because a gluon ListDataset only store the start date
+        """
         history_timeseries = self._retrieve_history_timeseries(frequency)
         multiple_df = concat_timeseries_per_identifiers(history_timeseries)
         history_df = concat_all_timeseries(multiple_df)

@@ -26,15 +26,18 @@ class ModelSelection:
         self.performance_metric = None
 
     def set_manual_selection_parameters(self, session, model_label):
+        """ set the session and model label if there were manually selected in the recipe form """
         self.manual_selection = True
         self.session = session
         self.model_label = model_label
 
     def set_auto_selection_parameters(self, performance_metric):
+        """ set the performance metric to use in order to retrieve the best model of the last session """
         self.manual_selection = False
         self.performance_metric = performance_metric
 
     def get_model_predictor(self):
+        """ retrieve the GluonTS Predictor object obtained during training and saved into the model folder """
         if not self.manual_selection:
             self.session = self._get_last_session()
             self.model_label = self._get_best_model()
@@ -44,6 +47,7 @@ class ModelSelection:
         return model
 
     def get_gluon_train_dataset(self):
+        """ retrieve the GluonDataset object with training data that was saved in the model folder during training """
         gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(self.session)
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, "pickle.gz")
         return gluon_train_dataset
