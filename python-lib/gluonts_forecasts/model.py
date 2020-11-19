@@ -11,7 +11,7 @@ class Model:
     Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
 
     Attributes:
-        model_name (str): Model name belonging to Constants.AVAILABLE_MODELS
+        model_name (str): Model name belonging to Constants.MODEL_LABELS
         model_parameters (dict): Kwargs of model parameters
         frequency (str): Pandas timeseries frequency (e.g. '3M')
         prediction_length (int): Number of time steps to predict
@@ -23,16 +23,7 @@ class Model:
     """
 
     def __init__(
-        self,
-        model_name,
-        model_parameters,
-        frequency,
-        prediction_length,
-        epoch,
-        use_external_features=False,
-        batch_size=None,
-        gpu=None,
-        context_length=None
+        self, model_name, model_parameters, frequency, prediction_length, epoch, use_external_features=False, batch_size=None, gpu=None, context_length=None
     ):
         self.model_name = model_name
         self.model_parameters = model_parameters
@@ -63,11 +54,7 @@ class Model:
         return self.model_name
 
     def train(self, train_list_dataset):
-        if self.estimator is None:
-            logging.info("Model '{}' has no estimator for training".format(self.model_name))
-            return
-        logging.info("Timeseries forecast - Training model {} on all data".format(self.model_name))
-        self.predictor = self.estimator.train(train_list_dataset)
+        self.predictor = self._get_predictor(train_list_dataset)
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
         """
@@ -135,10 +122,7 @@ class Model:
         train a gluonTS estimator to get a predictor for models that can be trained
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
         """
-        kwargs = {
-            "freq": self.frequency,
-            "prediction_length": self.prediction_length
-        }
+        kwargs = {"freq": self.frequency, "prediction_length": self.prediction_length}
         if self.model_handler.needs_num_samples():
             kwargs.update({"num_samples": 100})
         if self.estimator is None:
