@@ -25,22 +25,10 @@ MODEL_DESCRIPTORS = {
         PREDICTOR: IdentityPredictor,
         TRAINER: None,
         CAN_USE_CONTEXT_LENGTH: False,
-        NEEDS_NUM_SAMPLES: True
+        NEEDS_NUM_SAMPLES: True,
     },
-    "trivial_mean": {
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: MeanEstimator,
-        PREDICTOR: MeanPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False
-    },
-    "seasonal_naive": {
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: SeasonalNaivePredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False
-    },
+    "trivial_mean": {CAN_USE_EXTERNAL_FEATURES: False, ESTIMATOR: MeanEstimator, PREDICTOR: MeanPredictor, TRAINER: None, CAN_USE_CONTEXT_LENGTH: False},
+    "seasonal_naive": {CAN_USE_EXTERNAL_FEATURES: False, ESTIMATOR: None, PREDICTOR: SeasonalNaivePredictor, TRAINER: None, CAN_USE_CONTEXT_LENGTH: False},
     "simplefeedforward": {
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: SimpleFeedForwardEstimator,

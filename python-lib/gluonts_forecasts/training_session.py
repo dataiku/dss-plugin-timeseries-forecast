@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET
+from constants import METRICS_DATASET, MODEL_LABELS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 
 
@@ -166,6 +166,15 @@ class TrainingSession:
 
     def get_evaluation_forecasts_df(self):
         return self.evaluation_forecasts_df
+
+    def create_evaluation_forecasts_column_description(self):
+        """ explain the meaning of the forecasts columns """
+        column_descriptions = {}
+        for column in self.evaluation_forecasts_df.columns:
+            suffix = column.split("_")[-1]
+            if suffix in MODEL_LABELS.values():
+                column_descriptions[column] = "Mean forecasts of {} using {} model".format(column.split("_{}".format(suffix))[0], suffix)
+        return column_descriptions
 
     def get_metrics_df(self):
         return self.metrics_df

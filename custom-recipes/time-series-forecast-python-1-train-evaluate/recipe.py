@@ -60,3 +60,6 @@ set_column_description(params["evaluation_dataset"], EVALUATION_METRICS_DESCRIPT
 if params["make_forecasts"]:
     evaluation_forecasts_df = training_session.get_evaluation_forecasts_df()
     params["evaluation_forecasts"].write_with_schema(evaluation_forecasts_df)
+
+    column_descriptions = training_session.create_evaluation_forecasts_column_description()
+    set_column_description(params["evaluation_forecasts"], column_descriptions)

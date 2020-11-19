@@ -2,7 +2,7 @@ import re
 import io
 import os
 import dill as pickle
-from constants import AVAILABLE_MODELS
+from constants import MODEL_LABELS
 import dataiku
 import pandas as pd
 import json
@@ -55,7 +55,7 @@ def write_to_folder(obj, folder, path, obj_type):
 
 def get_models_parameters(config):
     models_parameters = {}
-    for model in AVAILABLE_MODELS:
+    for model in MODEL_LABELS:
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):

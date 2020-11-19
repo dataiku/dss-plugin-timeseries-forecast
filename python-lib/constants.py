@@ -20,8 +20,6 @@ class TIMESERIES_KEYS:
     IDENTIFIERS = "identifiers"
 
 
-AVAILABLE_MODELS = ["naive", "simplefeedforward", "deepar", "transformer", "nbeats", "seasonal_naive", "trivial_mean", "trivial_identity"]
-
 MODEL_LABELS = {
     "naive": "Baseline",
     "simplefeedforward": "FeedForward",
@@ -30,7 +28,7 @@ MODEL_LABELS = {
     "nbeats": "NBEATS",
     "seasonal_naive": "SeasonalNaive",
     "trivial_mean": "TrivialMean",
-    "trivial_identity": "TrivialIdentity"
+    "trivial_identity": "TrivialIdentity",
 }
 
 EVALUATION_METRICS = ["MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"]
@@ -46,4 +44,5 @@ EVALUATION_METRICS_DESCRIPTIONS = {
     "mean_wQuantileLoss": "Mean Weight Quantile Loss",
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
+    METRICS_DATASET.TARGET_COLUMN: "'AGGREGATED' to aggregate metrics of different targets within a model",
 }
