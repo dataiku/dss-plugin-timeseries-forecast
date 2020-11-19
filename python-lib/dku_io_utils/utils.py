@@ -139,7 +139,7 @@ def get_dimensions(dataset):
     dimensions = []
     for dimension in dimensions_dict:
         if dimension.get("type") != "value":
-            raise ValueError("Time partitions are not handled yet")
+            raise NotImplementedError("Time partitions are not handled yet")
         dimensions.append(dimension.get("name"))
     return dimensions
 
