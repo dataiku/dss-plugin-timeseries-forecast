@@ -2,60 +2,62 @@ import re
 import io
 import os
 import dill as pickle
+from constants import MODEL_LABELS
 import dataiku
 import pandas as pd
 import json
 import gzip
 import logging
-from gluonts_forecasts.model_handler import list_available_models
 
 
-def read_from_folder(folder, path, obj_type):
+def read_from_folder(folder, path, object_type):
+    """ read object from folder/path using the method correponding to object_type ('pickle', 'pickle.gz', 'csv', 'csv.gz') """
     logging.info("Timeseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
     if not folder.get_path_details(path=path)["exists"]:
         raise ValueError("File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"]))
     with folder.get_download_stream(path) as stream:
-        if obj_type == "pickle":
+        if object_type == "pickle":
             return pickle.loads(stream.read())
-        if obj_type == "pickle.gz":
+        if object_type == "pickle.gz":
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pickle.loads(fgzip.read())
-        elif obj_type == "csv":
+        elif object_type == "csv":
             data = io.StringIO(stream.read().decode())
             return pd.read_csv(data)
-        elif obj_type == "csv.gz":
+        elif object_type == "csv.gz":
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pd.read_csv(fgzip)
         else:
-            raise ValueError("Can only read objects of type ['pickle', 'pickle.gz', 'csv', 'csv.gz'] from folder, not '{}'".format(obj_type))
+            raise ValueError("Can only read objects of type ['pickle', 'pickle.gz', 'csv', 'csv.gz'] from folder, not '{}'".format(object_type))
 
 
-def write_to_folder(obj, folder, path, obj_type):
+def write_to_folder(object_to_save, folder, path, object_type):
+    """ write object_to_save to folder/path using the method correponding to object_type ('pickle', 'pickle.gz', 'csv', 'csv.gz') """
     logging.info("Timeseries forecast - Saving {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_writer(path) as writer:
-        if obj_type == "pickle":
-            writeable = pickle.dumps(obj)
+        if object_type == "pickle":
+            writeable = pickle.dumps(object_to_save)
             writer.write(writeable)
-        elif obj_type == "pickle.gz":
-            writeable = pickle.dumps(obj)
+        elif object_type == "pickle.gz":
+            writeable = pickle.dumps(object_to_save)
             with gzip.GzipFile(fileobj=writer, mode="wb", compresslevel=9) as fgzip:
                 fgzip.write(writeable)
-        elif obj_type == "json":
-            writeable = json.dumps(obj).encode()
+        elif object_type == "json":
+            writeable = json.dumps(object_to_save).encode()
             writer.write(writeable)
-        elif obj_type == "csv":
-            writeable = obj.to_csv(sep=",", na_rep="", header=True, index=False).encode()
+        elif object_type == "csv":
+            writeable = object_to_save.to_csv(sep=",", na_rep="", header=True, index=False).encode()
             writer.write(writeable)
-        elif obj_type == "csv.gz":
+        elif object_type == "csv.gz":
             with gzip.GzipFile(fileobj=writer, mode="wb") as fgzip:
-                fgzip.write(obj.to_csv(index=False).encode())
+                fgzip.write(object_to_save.to_csv(index=False).encode())
         else:
-            raise ValueError("Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(obj_type))
+            raise ValueError("Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(object_type))
 
 
 def get_models_parameters(config):
     models_parameters = {}
-    for model in list_available_models():
+    for model in MODEL_LABELS:
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
@@ -137,7 +139,7 @@ def get_dimensions(dataset):
     dimensions = []
     for dimension in dimensions_dict:
         if dimension.get("type") != "value":
-            raise NotImplementedError("Time partitions are not handled yet")
+            raise ValueError("Time partitions are not handled yet")
         dimensions.append(dimension.get("name"))
     return dimensions
 

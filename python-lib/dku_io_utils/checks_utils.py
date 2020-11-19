@@ -20,7 +20,7 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
     return True if external features are needed for prediction
     """
     train_data_sample = gluon_train_dataset.list_data[0]
-    trained_with_external_features = bool(TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES in train_data_sample)
+    trained_with_external_features = TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES in train_data_sample
     if trained_with_external_features and external_features_future_dataset:
         external_features_future_dataset_schema_check(train_data_sample, external_features_future_dataset)
         return True
