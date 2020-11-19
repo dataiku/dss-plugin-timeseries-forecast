@@ -15,11 +15,19 @@ CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
 NEEDS_NUM_SAMPLES = "needs_num_samples"
+LABEL = "label"
+
 
 MODEL_DESCRIPTORS = {
     "default": {},
-    "naive": {ESTIMATOR: None, PREDICTOR: Naive2Predictor, TRAINER: None},
+    "naive": {
+        LABEL: "Baseline",
+        ESTIMATOR: None,
+        PREDICTOR: Naive2Predictor,
+        TRAINER: None
+    },
     "trivial_identity": {
+        LABEL: "TrivialIdentity",
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: None,
         PREDICTOR: IdentityPredictor,
@@ -27,24 +35,45 @@ MODEL_DESCRIPTORS = {
         CAN_USE_CONTEXT_LENGTH: False,
         NEEDS_NUM_SAMPLES: True,
     },
-    "trivial_mean": {CAN_USE_EXTERNAL_FEATURES: False, ESTIMATOR: MeanEstimator, PREDICTOR: MeanPredictor, TRAINER: None, CAN_USE_CONTEXT_LENGTH: False},
-    "seasonal_naive": {CAN_USE_EXTERNAL_FEATURES: False, ESTIMATOR: None, PREDICTOR: SeasonalNaivePredictor, TRAINER: None, CAN_USE_CONTEXT_LENGTH: False},
+    "trivial_mean": {
+        LABEL: "TrivialMean",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: MeanEstimator,
+        PREDICTOR: MeanPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False
+    },
+    "seasonal_naive": {
+        LABEL: "SeasonalNaive",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: SeasonalNaivePredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False
+    },
     "simplefeedforward": {
+        LABEL: "FeedForward",
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: SimpleFeedForwardEstimator,
         TRAINER: Trainer,
     },
     "deepar": {
+        LABEL: "DeepAR",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
         TRAINER: Trainer,
     },
     "transformer": {
+        LABEL: "Transformer",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
     },
-    "nbeats": {ESTIMATOR: NBEATSEstimator, TRAINER: Trainer},
+    "nbeats": {
+        LABEL: "NBEATS",
+        ESTIMATOR: NBEATSEstimator,
+        TRAINER: Trainer
+    },
 }
 
 
@@ -88,3 +117,30 @@ class ModelHandler:
 
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)
+
+    def get_label(self):
+        return self.model_descriptor.get(LABEL, "")
+
+
+def list_available_models():
+    available_models = MODEL_DESCRIPTORS.copy()
+    available_models.pop('default')
+    return available_models.keys()
+
+
+def list_available_models_labels():
+    available_models = MODEL_DESCRIPTORS.copy()
+    available_models_labels = []
+    for model in available_models:
+        label = available_models[model].get(LABEL)
+        if label is not None:
+            available_models_labels.append(label)
+    return available_models_labels
+
+
+def get_model_label(model_name):
+    model_descriptor = MODEL_DESCRIPTORS.get(model_name)
+    if model_descriptor is None:
+        return None
+    else:
+        return model_descriptor.get(LABEL, "")

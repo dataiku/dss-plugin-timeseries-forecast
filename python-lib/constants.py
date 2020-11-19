@@ -19,18 +19,6 @@ class TIMESERIES_KEYS:
     FEAT_DYNAMIC_REAL_COLUMNS_NAMES = "feat_dynamic_real_columns_names"
     IDENTIFIERS = "identifiers"
 
-
-MODEL_LABELS = {
-    "naive": "Baseline",
-    "simplefeedforward": "FeedForward",
-    "deepar": "DeepAR",
-    "transformer": "Transformer",
-    "nbeats": "NBEATS",
-    "seasonal_naive": "SeasonalNaive",
-    "trivial_mean": "TrivialMean",
-    "trivial_identity": "TrivialIdentity",
-}
-
 EVALUATION_METRICS = ["MSE", "MASE", "MAPE", "sMAPE", "MSIS", "RMSE", "ND", "mean_wQuantileLoss"]
 
 EVALUATION_METRICS_DESCRIPTIONS = {
