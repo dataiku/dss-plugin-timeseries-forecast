@@ -214,7 +214,7 @@
         {
             "name": "naive_model_activated",
             "label": "- Baseline",
-            "description": "Based on the trivial/seasonal_naive/naive_2 GluonTS models",
+            "description": "Based on the trivial.identity/trivial.mean/seasonal_naive GluonTS models",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
