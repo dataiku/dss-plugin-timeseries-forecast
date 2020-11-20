@@ -63,21 +63,6 @@
             "mandatory": true
         },
         {
-            "name": "target_columns",
-            "label": "Target column(s)",
-            "type": "COLUMNS",
-            "allowedColumnTypes": [
-                "tinyint",
-                "smallint",
-                "int",
-                "bigint",
-                "float",
-                "double"
-            ],
-            "columnRole": "input_dataset",
-            "mandatory": true
-        },
-        {
             "name": "frequency_unit",
             "label": "Frequency",
             "type": "SELECT",
@@ -139,6 +124,21 @@
             "mandatory": false,
             "minI": 1,
             "visibilityCondition": "model.frequency_unit == 'min'"
+        },
+        {
+            "name": "target_columns",
+            "label": "Target column(s)",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": true
         },
         {
             "name": "additional_columns",
