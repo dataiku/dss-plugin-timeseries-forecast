@@ -40,14 +40,14 @@ class Model(ModelHandler):
         self.batch_size = batch_size
         if self.batch_size is not None:
             trainer_kwargs.update({"batch_size": self.batch_size})
-        trainer = self.trainer(**trainer_kwargs)
+        trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
-        if self.can_use_external_feature() and self.use_external_features:
+        if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if context_length is not None and self.can_use_context_length():
+        if context_length is not None and ModelHandler.can_use_context_length(self):
             estimator_kwargs.update({"context_length": context_length})
-        self.estimator = self.estimator(self.model_parameters, **estimator_kwargs)
+        self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
 
     def get_name(self):
@@ -90,8 +90,8 @@ class Model(ModelHandler):
         return a metrics dataframe with both item_metrics and agg_metrics concatenated and the identifiers columns
         and add new columns: model_name, target_column, identifiers_columns
         """
-        item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.get_label()
-        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.get_label()
+        item_metrics[METRICS_DATASET.MODEL_COLUMN] = ModelHandler.get_label(self)
+        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = ModelHandler.get_label(self)
 
         identifiers_columns = (
             list(train_list_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys()) if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[0] else []
@@ -123,10 +123,10 @@ class Model(ModelHandler):
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
         """
         kwargs = {"freq": self.frequency, "prediction_length": self.prediction_length}
-        if self.needs_num_samples():
+        if ModelHandler.needs_num_samples(self):
             kwargs.update({"num_samples": 100})
         if self.estimator is None:
-            predictor = self.predictor(**kwargs)
+            predictor = ModelHandler.predictor(self, **kwargs)
         else:
             predictor = self.estimator.train(train_list_dataset)
         return predictor
@@ -134,7 +134,7 @@ class Model(ModelHandler):
     def _get_model_parameters_json(self):
         return str(
             {
-                "model_name": self.get_label(),
+                "model_name": ModelHandler.get_label(self),
                 "model_parameters": self.model_parameters,
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
@@ -152,7 +152,7 @@ class Model(ModelHandler):
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = sample_forecasts.mean_ts.rename(
-                "{}_{}".format(train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME], self.get_label())
+                "{}_{}".format(train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME], ModelHandler.get_label(self))
             )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
