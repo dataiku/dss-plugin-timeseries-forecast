@@ -55,7 +55,8 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
     if not np.array_equal(dataframe[time_column_name].values, date_range_values):
         error_message = "Time column {} doesn't have regular time intervals of frequency {}.".format(time_column_name, frequency)
         if frequency.endswith(("M", "Y")):
-            error_message += "For Month (or Year) frequency, timestamps must be end of Month (or Year) (for e.g. '2020-12-31 00:00:00')"
+            error_message += " For Month (or Year) frequency, timestamps must be end of Month (or Year) (for e.g. '2020-12-31 00:00:00')."
+        error_message += " You should use the timeseries preparation plugin first to resample the date column."
         raise ValueError(error_message)
 
 
