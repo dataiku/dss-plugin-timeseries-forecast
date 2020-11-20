@@ -173,9 +173,9 @@ class TrainingSession:
         column_descriptions = {}
         available_models_labels = list_available_models_labels()
         for column in self.evaluation_forecasts_df.columns:
-            suffix = column.split("_")[-1]
-            if suffix in available_models_labels:
-                column_descriptions[column] = "Mean forecasts of {} using {} model".format(column.split("_{}".format(suffix))[0], suffix)
+            prefix = column.split("_")[0]
+            if prefix in available_models_labels:
+                column_descriptions[column] = "Mean forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
         return column_descriptions
 
     def get_metrics_df(self):

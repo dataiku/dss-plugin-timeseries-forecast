@@ -152,7 +152,7 @@ class Model(ModelHandler):
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = sample_forecasts.mean_ts.rename(
-                "{}_{}".format(train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME], ModelHandler.get_label(self))
+                "{}_{}".format(ModelHandler.get_label(self), train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME])
             )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
