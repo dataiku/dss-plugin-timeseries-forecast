@@ -1,4 +1,4 @@
-from constants import EVALUATION_METRICS, METRICS_DATASET, TIMESERIES_KEYS
+from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import logging
@@ -112,7 +112,7 @@ class Model(ModelHandler):
 
         metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + list(EVALUATION_METRICS.keys())]
+        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + list(EVALUATION_METRICS_DESCRIPTIONS.keys())]
         metrics[METRICS_DATASET.MODEL_PARAMETERS] = self._get_model_parameters_json()
 
         return metrics, identifiers_columns

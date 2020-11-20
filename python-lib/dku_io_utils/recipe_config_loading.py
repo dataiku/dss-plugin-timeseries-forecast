@@ -131,7 +131,7 @@ def load_predict_config():
 
 def get_models_parameters(config):
     models_parameters = {}
-    for model in list_available_models:
+    for model in list_available_models():
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):

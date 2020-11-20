@@ -5,7 +5,7 @@ from dku_io_utils.utils import set_column_description
 from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
-from constants import EVALUATION_METRICS, METRICS_COLUMNS_DESCRIPTIONS
+from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_COLUMNS_DESCRIPTIONS
 from gluonts_forecasts.model_handler import get_model_label
 
 config = get_recipe_config()
@@ -56,7 +56,7 @@ if not params["evaluation_only"]:
         parameters_path = "{}/{}/params.json".format(training_session.session_path, get_model_label(model.model_name))
         write_to_folder(model.model_parameters, model_folder, parameters_path, "json")
 
-METRICS_COLUMNS_DESCRIPTIONS.update(EVALUATION_METRICS)
+METRICS_COLUMNS_DESCRIPTIONS.update(EVALUATION_METRICS_DESCRIPTIONS)
 set_column_description(params["evaluation_dataset"], METRICS_COLUMNS_DESCRIPTIONS)
 
 if params["make_forecasts"]:
