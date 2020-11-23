@@ -130,6 +130,7 @@ def load_predict_config():
 
 
 def get_models_parameters(config):
+    """ Returns a dict with each activated model as key and its models parameters as value"""
     models_parameters = {}
     for model in list_available_models():
         if is_activated(config, model):
@@ -155,11 +156,8 @@ def is_activated(config, model):
     return config.get("{}_model_activated".format(model), False)
 
 
-# def get_model_kwargs(config, model):
-#     return config.get("{}_model_kwargs".format(model))
-
-
 def get_model_presets(config, model):
+    """ Collect all the parameters model from the UI and return them as a dict"""
     model_presets = {}
     matching_key = "{}_model_(.*)".format(model)
     for key in config:
