@@ -340,7 +340,7 @@
             "name": "epoch",
             "label": "Epoch",
             "type": "INT",
-            "defaultValue": 100,
+            "defaultValue": 10,
             "mandatory": false,
             "minI": 1,
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"

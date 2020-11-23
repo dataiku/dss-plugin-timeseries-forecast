@@ -83,7 +83,7 @@ def load_training_config(recipe_config):
         params["context_length"] = params["prediction_length"]
 
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
-    params["epoch"] = 100 if params["forecasting_style"].startswith("auto") else recipe_config.get("epoch", 100)
+    params["epoch"] = 100 if params["forecasting_style"].startswith("auto") else recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
     params["gpu"] = recipe_config.get("gpu", "no_gpu")  # V2 implement
 
