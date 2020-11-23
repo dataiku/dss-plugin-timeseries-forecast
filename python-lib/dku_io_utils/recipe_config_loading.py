@@ -82,7 +82,8 @@ def load_training_config(recipe_config):
     if params["context_length"] == 0:
         params["context_length"] = params["prediction_length"]
 
-    params["epoch"] = recipe_config.get("epoch", 1)
+    params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
+    params["epoch"] = 100 if params["forecasting_style"].startswith("auto") else recipe_config.get("epoch", 100)
     params["batch_size"] = recipe_config.get("batch_size", 32)
     params["gpu"] = recipe_config.get("gpu", "no_gpu")  # V2 implement
 
@@ -153,6 +154,14 @@ def set_naive_model_parameters(config, models_parameters):
 
 
 def is_activated(config, model):
+    forecasting_style = config.get("forecasting_style", "auto")
+    forecasting_style_preselected_models = {
+        "auto": ["naive_model", "naive", "deepar"],
+        "auto_performance": ["naive_model", "naive", "simplefeedforward", "deepar","transformer", "nbeats"]
+    }
+    if forecasting_style in forecasting_style_preselected_models:
+        preselected_models = forecasting_style_preselected_models.get(forecasting_style)
+        return model in preselected_models
     return config.get("{}_model_activated".format(model), False)
 
 
