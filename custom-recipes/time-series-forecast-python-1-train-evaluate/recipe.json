@@ -151,7 +151,7 @@
         {
             "name": "timeseries_identifiers",
             "label": "Time series identifiers",
-            "description": "",
+            "description": "Mandatory for long format",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
