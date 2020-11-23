@@ -387,7 +387,7 @@
         },
         {
             "name": "advanced_options",
-            "label": "Display advanced options?",
+            "label": "Expert",
             "type": "BOOLEAN",
             "defaultValue": false
         },
