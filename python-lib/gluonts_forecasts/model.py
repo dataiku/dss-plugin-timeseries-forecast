@@ -2,6 +2,7 @@ from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERI
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 import logging
+import time
 from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
 
@@ -49,6 +50,7 @@ class Model(ModelHandler):
             estimator_kwargs.update({"context_length": context_length})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
+        self.evaluation_time = None
 
     def get_name(self):
         return self.model_name
@@ -63,9 +65,11 @@ class Model(ModelHandler):
         return a dataframe of predictions if make_forecasts is True
         """
         logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
+        start_time = time.time()
         evaluation_predictor = self._get_predictor(train_list_dataset)
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
+        self.evaluation_time = time.time() - start_time
 
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
@@ -113,7 +117,7 @@ class Model(ModelHandler):
         metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
         metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + list(EVALUATION_METRICS_DESCRIPTIONS.keys())]
-        metrics[METRICS_DATASET.MODEL_PARAMETERS] = self._get_model_parameters_json()
+        metrics[METRICS_DATASET.MODEL_PARAMETERS] = self._get_model_parameters_json(train_list_dataset)
 
         return metrics, identifiers_columns
 
@@ -131,7 +135,7 @@ class Model(ModelHandler):
             predictor = self.estimator.train(train_list_dataset)
         return predictor
 
-    def _get_model_parameters_json(self):
+    def _get_model_parameters_json(self, train_list_dataset):
         return str(
             {
                 "model_name": ModelHandler.get_label(self),
@@ -141,6 +145,9 @@ class Model(ModelHandler):
                 "epoch": self.epoch,
                 "use_external_features": self.use_external_features,
                 "batch_size": self.batch_size,
+                "evaluation_time": round(self.evaluation_time, 2),
+                "timeseries_number": len(train_list_dataset.list_data),
+                "timeseries_length": len(train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
             }
         )
 
