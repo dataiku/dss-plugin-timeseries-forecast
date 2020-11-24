@@ -39,13 +39,13 @@ def load_training_config(recipe_config):
     if params["time_column_name"] not in training_dataset_columns:
         raise PluginParamValidationError("Invalid time column selection")
 
-    params["target_columns_names"] = recipe_config.get("target_columns")
+    params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
     if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError("Invalid target column(s) selection")
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
-        params["timeseries_identifiers_names"] = recipe_config.get("timeseries_identifiers", [])
+        params["timeseries_identifiers_names"] = sanitize_column_list(recipe_config.get("timeseries_identifiers", []))
         if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
             raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
     else:
@@ -54,7 +54,7 @@ def load_training_config(recipe_config):
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series idenfiers are selected")
 
-    params["external_features_columns_names"] = recipe_config.get("external_feature_columns", [])
+    params["external_features_columns_names"] = sanitize_column_list(recipe_config.get("external_feature_columns", []))
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
         raise PluginParamValidationError("Invalid external features column(s) selection")
 
@@ -154,6 +154,8 @@ def set_naive_model_parameters(config, models_parameters):
 
 
 def is_activated(config, model):
+    """ Returns the activation status for a model according to the selected forcasting style (auto / auto_performance) or UX config otherwise"""
+
     forecasting_style = config.get("forecasting_style", "auto")
     forecasting_style_preselected_models = {
         "auto": ["naive_model", "naive", "deepar"],
@@ -175,3 +177,9 @@ def get_model_presets(config, model):
             key_type = key_search.group(1)
             model_presets.update({key_type: config[key]})
     return model_presets
+
+
+def sanitize_column_list(input_column_list):
+    """ Remove empty elements (Nones, '') from input columns list"""
+    sanitized_column_list = [input for input in input_column_list if input]
+    return sanitized_column_list
