@@ -88,6 +88,7 @@ def get_partition_root(dataset):
     dimensions = get_dimensions(dataset)
     partitions = get_partitions(dku_flow_variables, dimensions)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions)
+    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
     return file_path
 
 
@@ -95,8 +96,6 @@ def get_dimensions(dataset):
     dimensions_dict = dataset.get_config().get("partitioning").get("dimensions")
     dimensions = []
     for dimension in dimensions_dict:
-        if dimension.get("type") != "value":
-            raise NotImplementedError("Time partitions are not handled yet")
         dimensions.append(dimension.get("name"))
     return dimensions
 
@@ -104,7 +103,9 @@ def get_dimensions(dataset):
 def get_partitions(dku_flow_variables, dimensions):
     partitions = []
     for dimension in dimensions:
-        partitions.append(dku_flow_variables.get("DKU_SRC_{}".format(dimension)))
+        partition = dku_flow_variables.get("DKU_SRC_{}".format(dimension))
+        if partition is not None:
+            partitions.append(partition)
     return partitions
 
 
@@ -112,4 +113,20 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
     file_path = file_path_pattern.replace(".*", "")
     for partition, dimension in zip(partitions, dimensions):
         file_path = file_path.replace("%{{{}}}".format(dimension), partition)
+    return file_path
+
+
+def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern):
+    file_path = file_path_pattern
+    time_dimension_patterns = {
+        "DKU_DST_YEAR": "%Y",
+        "DKU_DST_MONTH": "%M",
+        "DKU_DST_DAY": "%D",
+        "DKU_DST_HOUR": "%H"
+    }
+    for time_dimension in time_dimension_patterns:
+        time_value = dku_flow_variables.get(time_dimension)
+        if time_value is not None:
+            time_pattern = time_dimension_patterns.get(time_dimension)
+            file_path = file_path.replace(time_pattern, time_value)
     return file_path
