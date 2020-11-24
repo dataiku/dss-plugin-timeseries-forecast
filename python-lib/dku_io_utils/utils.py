@@ -9,7 +9,20 @@ import logging
 
 
 def read_from_folder(folder, path, object_type):
-    """ read object from folder/path using the method correponding to object_type ('pickle', 'pickle.gz', 'csv', 'csv.gz') """
+    """Read object from folder/path using the reading method correponding to object_type.
+
+    Args:
+        folder (dataiku.Folder)
+        path (str): Path within the folder.
+        object_type (str): Type of object to read. Must be one of ('pickle', 'pickle.gz', 'csv', 'csv.gz').
+
+    Raises:
+        ValueError: No file were found at the requested path.
+        ValueError: Object type is not supported.
+
+    Returns:
+        Object based on the requested type.
+    """
     logging.info("Timeseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
     if not folder.get_path_details(path=path)["exists"]:
         raise ValueError("File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"]))
@@ -30,7 +43,17 @@ def read_from_folder(folder, path, object_type):
 
 
 def write_to_folder(object_to_save, folder, path, object_type):
-    """ write object_to_save to folder/path using the method correponding to object_type ('pickle', 'pickle.gz', 'csv', 'csv.gz') """
+    """Write object_to_save to folder/path using the writing method correponding to object_type.
+
+    Args:
+        object_to_save (any type supported by the object type): Object that will be saved in the folder.
+        folder (dataiku.Folder)
+        path (str): Path within the folder.
+        object_type (str): Type of object to save. Must be one of ('pickle', 'pickle.gz', 'csv', 'csv.gz').
+
+    Raises:
+        ValueError: Object type is not supported.
+    """
     logging.info("Timeseries forecast - Saving {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_writer(path) as writer:
         if object_type == "pickle":

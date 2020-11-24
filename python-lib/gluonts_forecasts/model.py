@@ -59,10 +59,17 @@ class Model(ModelHandler):
         self.predictor = self._get_predictor(train_list_dataset)
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
-        """
-        train model on train_list_dataset and evaluate it on test_list_dataset
-        return evaluation metrics for each target and aggregated
-        return a dataframe of predictions if make_forecasts is True
+        """Train Model on train_list_dataset and evaluate it on test_list_dataset.
+
+        Args:
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            make_forecasts (bool, optional): [description]. Defaults to False.
+
+        Returns:
+            Evaluation metrics DataFrame for each target and aggregated.
+            List of timeseries identifiers column names. Empty list if none found in train_list_dataset.
+            DataFrame of predictions for the last prediction_length timesteps of the test_list_dataset timeseries if make_forecasts is True.
         """
         logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
         start_time = time.time()
@@ -82,6 +89,17 @@ class Model(ModelHandler):
         return metrics, identifiers_columns
 
     def _make_evaluation_predictions(self, predictor, test_list_dataset):
+        """Evaluate predictor and generate sample forecasts.
+
+        Args:
+            predictor (gluonts.model.predictor.Predictor): Trained object used to make forecasts.
+            test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+
+        Returns:
+            Dictionary of aggregated metrics over all timeseries.
+            DataFrame of metrics for each timeseries (i.e., each target column).
+            List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+        """
         forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
         forecasts = list(forecast_it)
@@ -90,9 +108,15 @@ class Model(ModelHandler):
         return agg_metrics, item_metrics, forecasts
 
     def _format_metrics(self, agg_metrics, item_metrics, train_list_dataset):
-        """
-        return a metrics dataframe with both item_metrics and agg_metrics concatenated and the identifiers columns
-        and add new columns: model_name, target_column, identifiers_columns
+        """Append agg_metrics to item_metrics and add new columns: model_name, target_column, identifiers_columns
+
+        Args:
+            agg_metrics (dict): Dictionary of aggregated metrics over all timeseries.
+            item_metrics (DataFrame): [description]
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+
+        Returns:
+            DataFrame of metrics, model name, target column and identifiers columns.
         """
         item_metrics[METRICS_DATASET.MODEL_COLUMN] = ModelHandler.get_label(self)
         agg_metrics[METRICS_DATASET.MODEL_COLUMN] = ModelHandler.get_label(self)
@@ -122,9 +146,14 @@ class Model(ModelHandler):
         return metrics, identifiers_columns
 
     def _get_predictor(self, train_list_dataset):
-        """
-        train a gluonTS estimator to get a predictor for models that can be trained
-        or directly get the existing gluonTS predictor (e.g. for models that don't need training like naive_2)
+        """Train a gluonTS estimator to get a predictor for models that can be trained
+        or directly get the existing gluonTS predictor (e.g. for models that don't need training like trivial.identity)
+
+        Args:
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+
+        Returns:
+            gluonts.model.predictor.Predictor
         """
         kwargs = {"freq": self.frequency, "prediction_length": self.prediction_length}
         if ModelHandler.needs_num_samples(self):
@@ -136,6 +165,7 @@ class Model(ModelHandler):
         return predictor
 
     def _get_model_parameters_json(self, train_list_dataset):
+        """ Returns a string containing a json of model parameters """
         return str(
             {
                 "model_name": ModelHandler.get_label(self),
@@ -152,9 +182,14 @@ class Model(ModelHandler):
         )
 
     def _compute_mean_forecasts_timeseries(self, forecasts_list, train_list_dataset):
-        """
-        compute mean forecasts timeseries
-        return a dictionary of list of forecasts timeseries by identifiers (None if no identifiers)
+        """Compute mean forecasts timeseries for each SampleForecast of forecasts_list.
+
+        Args:
+            forecasts_list (list): List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+
+        Returns:
+            Dictionary of list of forecasts timeseries (value) by identifiers (key). Key is None if no identifiers.
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):

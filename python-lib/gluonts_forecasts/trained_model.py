@@ -15,7 +15,7 @@ class TrainedModel:
         prediction_length (int): Number of time steps to predict (at most the prediction length used in training)
         quantiles (list): List of forecasts quantiles to output in the forecasts_df
         include_history (bool): True to append to the forecasts dataframe the training data
-        forecasts_df (Pandas.DataFrame): Dataframe with the different quantiles forecasts and the training data if include_history is True
+        forecasts_df (DataFrame): Dataframe with the different quantiles forecasts and the training data if include_history is True
     """
 
     def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history):
@@ -29,7 +29,7 @@ class TrainedModel:
 
     def predict(self):
         """
-        use the gluon dataset of training to predict future values and
+        Use the gluon dataset of training to predict future values and
         concat all forecasts timeseries of different identifiers and quantiles together
         """
         forecasts = self.predictor.predict(self.gluon_dataset)
@@ -56,9 +56,14 @@ class TrainedModel:
             self._reorder_forecasts_df(time_column_name, identifiers_columns)
 
     def _include_history(self, frequency, identifiers_columns):
-        """
-        include the history data on which the model was trained to the forecasts dataframe
-        frequency is used to reconstruct the date range because a gluon ListDataset only store the start date
+        """Include the historical data on which the model was trained to the forecasts dataframe.
+
+        Args:
+            frequency (str): Used to reconstruct the date range (because a gluon ListDataset only store the start date).
+            identifiers_columns (list): List of timeseries identifiers columns.
+
+        Returns:
+            DataFrame containing both the historical data and the forecasted values.
         """
         history_timeseries = self._retrieve_history_timeseries(frequency)
         multiple_df = concat_timeseries_per_identifiers(history_timeseries)
@@ -66,7 +71,15 @@ class TrainedModel:
         return history_df.merge(self.forecasts_df, on=["index"] + identifiers_columns, how="left")
 
     def _generate_history_target_series(self, timeseries, frequency):
-        """ return a pandas time series from the past target values with Nan values for the prediction_length future dates """
+        """Creates a pandas time series from the past target values with Nan values for the prediction_length future dates.
+
+        Args:
+            timeseries (dict): Univariate timeseries dictionary created with the GluonDataset class.
+            frequency (str): Used in pandas.date_range.
+
+        Returns:
+            Series with DatetimeIndex.
+        """
         target_series = pd.Series(
             np.append(timeseries[TIMESERIES_KEYS.TARGET], np.repeat(np.nan, self.prediction_length)),
             name=timeseries[TIMESERIES_KEYS.TARGET_NAME],
@@ -79,7 +92,15 @@ class TrainedModel:
         return target_series
 
     def _generate_history_external_features_dataframe(self, timeseries, frequency):
-        """ return a pandas time series from the past and future external features values """
+        """Creates a pandas time series from the past and future external features values.
+
+        Args:
+            timeseries (dict): Univariate timeseries dictionary created with the GluonDataset class.
+            frequency (str): Used in pandas.date_range.
+
+        Returns:
+            DataFrame with DatetimeIndex.
+        """
         external_features_df = pd.DataFrame(
             timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].T[: len(timeseries[TIMESERIES_KEYS.TARGET]) + self.prediction_length],
             columns=timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES],
@@ -92,9 +113,13 @@ class TrainedModel:
         return external_features_df
 
     def _retrieve_history_timeseries(self, frequency):
-        """
-        compute the history timeseries from the gluon_dataset object and fill the dates to predict with Nan values
-        return a dictionary of list of timeseries by identifiers (None if no identifiers)
+        """Reconstruct the history timeseries from the gluon_dataset object and fill the dates to predict with Nan values.
+
+        Args:
+            frequency (str)
+
+        Returns:
+            Dictionary of list of timeseries by identifiers (None if no identifiers)
         """
         history_timeseries = {}
         for i, timeseries in enumerate(self.gluon_dataset.list_data):
@@ -118,9 +143,13 @@ class TrainedModel:
         return history_timeseries
 
     def _compute_forecasts_timeseries(self, forecasts_list):
-        """
-        compute all forecasts timeseries for each quantile
-        return a dictionary of list of forecasts timeseries by identifiers (None if no identifiers)
+        """Compute all forecasts timeseries for each quantile.
+
+        Args:
+            forecasts_list (list): List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+
+        Returns:
+            Dictionary of list of forecasts timeseries by identifiers (None if no identifiers)
         """
         forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
@@ -147,12 +176,25 @@ class TrainedModel:
         return forecasts_timeseries
 
     def _reorder_forecasts_df(self, time_column_name, identifiers_columns):
-        """ reorder columns with timeseries_identifiers just after time column """
+        """Reorder columns with timeseries identifiers columns right after time column
+
+        Args:
+            time_column_name (str)
+            identifiers_columns (list)
+        """
         forecasts_columns = [column for column in self.forecasts_df if column not in [time_column_name] + identifiers_columns]
         self.forecasts_df = self.forecasts_df[[time_column_name] + identifiers_columns + forecasts_columns]
 
     def get_forecasts_df(self, session=None, model_label=None):
-        """ add the session timestamp and model_label to forecasts dataframe """
+        """Add the session timestamp and model label to the forecasts dataframe.
+
+        Args:
+            session (Timstamp, optional)
+            model_label (str, optional)
+
+        Returns:
+            Forecasts DaaFrame
+        """
         if session:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
         if model_label:
@@ -160,7 +202,7 @@ class TrainedModel:
         return self.forecasts_df
 
     def create_forecasts_column_description(self):
-        """ explain the meaning of the forecasts columns """
+        """ Explain the meaning of the forecasts columns """
         column_descriptions = {}
         for column in self.forecasts_df.columns:
             if "_forecasts_percentile_50" in column:
@@ -170,6 +212,7 @@ class TrainedModel:
         return column_descriptions
 
     def _check(self):
+        """ Raises ValueError if the selected prediction_length is higher than the one used in training """
         if self.predictor.prediction_length < self.prediction_length:
             raise ValueError(
                 "The selected prediction length ({}) cannot be higher than the one ({}) used in training !".format(

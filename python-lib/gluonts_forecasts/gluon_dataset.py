@@ -9,14 +9,13 @@ class GluonDataset:
     Each timeseries stores information about its target(s), time and external features column names as well as its identifiers values
 
     Attributes:
-        dataframe (Pandas.DataFrame)
+        dataframe (DataFrame)
         time_column_name (list)
         frequency (str): Pandas timeseries frequency (e.g. '3M')
         target_columns_names (list): List of column names to predict
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         external_features_columns_names (list): List of columns with dynamic real features over time
     """
-
     def __init__(
         self,
         dataframe,
@@ -34,9 +33,14 @@ class GluonDataset:
         self.external_features_columns_names = external_features_columns_names
 
     def create_list_dataset(self, cut_length=None):
-        """
-        return a GluonTS ListDataset of timeseries for each identifier tuple and each target
-        and remove the last cut_length time steps of each timeseries
+        """Create timeseries for each identifier tuple and each target.
+        Check that the time column is valid (regular time steps of the chosen frequency and they all have the same start date).
+
+        Args:
+            cut_length (int, optional): Remove the last cut_length time steps of each timeseries. Defaults to None.
+
+        Returns:
+            gluonts.dataset.common.ListDataset with extra keys for each timeseries
         """
         length = -cut_length if cut_length else None
         multivariate_timeseries = []
@@ -60,14 +64,40 @@ class GluonDataset:
         return ListDataset(multivariate_timeseries, freq=self.frequency)
 
     def _create_gluon_multivariate_timeseries(self, df, length, identifiers_values=None):
-        """ return a list of timeseries dictionaries for each target column """
+        """Create a list of timeseries dictionaries for each target column
+
+        Args:
+            df (DataFrame): timeseries dataframe with one or multiple target columns
+            length (int)
+            identifiers_values (obj/tuple, optional): Values or tuple of values of the groupby. Defaults to None.
+
+        Returns:
+            List of timeseries dictionaries
+        """
         multivariate_timeseries = []
         for target_column_name in self.target_columns_names:
             multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, length, identifiers_values))
         return multivariate_timeseries
 
     def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_values=None):
-        """ return a dictionary for one timeseries and add extra features and identifiers columns if specified """
+        """Create a dictionary with keys to store information about the timeseries:
+            - start (Pandas.Timestamp): start date of timeseries
+            - target (numpy.array): array of target values
+            - target_name (str): name of target column
+            - time_column_name (str)
+            - feat_dynamic_real (numpy.array, optional): array of external features of shape features x values
+            - feat_dynamic_real_columns_names (list, optional): list of external features column names
+            - identifiers (dict, optional): dictionary of identifiers values (value) by identifiers column name (key)
+
+        Args:
+            df (DataFrame): timeseries dataframe with one or multiple target columns
+            target_column_name (str)
+            length (int): None or negative integer used to slice the dataframe index (i.e., to remove the last time steps).
+            identifiers_values (obj/tuple, optional): Values or tuple of values of the groupby. Defaults to None.
+
+        Returns:
+            Dictionary for one timeseries
+        """
         univariate_timeseries = {
             TIMESERIES_KEYS.START: df[self.time_column_name].iloc[0],
             TIMESERIES_KEYS.TARGET: df[target_column_name].iloc[:length].values,

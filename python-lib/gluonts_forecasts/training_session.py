@@ -18,7 +18,7 @@ class TrainingSession:
         epoch (int): Number of epochs used by the GluonTS Trainer class
         models_parameters (dict): Dictionary of model names (key) and their parameters (value)
         prediction_length (int): Number of time steps to predict
-        training_df (Pandas.DataFrame): Training dataframe
+        training_df (DataFrame): Training dataframe
         make_forecasts (bool): True to output the evaluation predictions of the last prediction_length time steps
         external_features_columns_names (list): List of columns with dynamic real features over time
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
@@ -70,6 +70,16 @@ class TrainingSession:
         self.context_length = context_length
 
     def init(self, session_name, partition_root=None):
+        """Create the session_path. Instantiate all the selected models. Convert time column to pandas.Datetime without timezones.
+        Check types of target, external features and timeseries identifiers columns.
+
+        Args:
+            session_name (Timestamp)
+            partition_root (str, optional): Partition root path, concatenated to session_name to create the session_path. Defaults to None.
+
+        Raises:
+            ValueError: If the time column cannot be parsed as a date by pandas.
+        """
         self.session_name = session_name
         if partition_root is None:
             self.session_path = session_name
@@ -105,10 +115,9 @@ class TrainingSession:
         for model in self.models:
             model.train(self.test_list_dataset)
 
-    def evaluate(self, evaluation_strategy):
-        """
-        Train all the selected models on all but the last prediction_length time steps,
-        and evaluate on all data according to the selected evaluation_strategy
+    def evaluate(self, evaluation_strategy="split"):
+        """Train all the selected models on all but the last prediction_length time steps.
+        Evaluate on all data according to the selected evaluation_strategy
         """
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
@@ -127,7 +136,11 @@ class TrainingSession:
         self.metrics_df = self._compute_all_evaluation_metrics()
 
     def _compute_all_evaluation_metrics(self):
-        """ Evaluate all the selected models, output the metrics dataframe and create the forecasts dataframe if make_forecasts is True """
+        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe if self.make_forecasts is True.
+
+        Returns:
+            Metrics DataFrame.
+        """
         metrics_df = pd.DataFrame()
         for model in self.models:
             if self.make_forecasts:
@@ -154,7 +167,14 @@ class TrainingSession:
         return orderd_metrics_df
 
     def _reorder_metrics_df(self, metrics_df):
-        """ sort rows by target column and put aggregated rows on top """
+        """Sort rows by target column and put aggregated rows on top.
+
+        Args:
+            metrics_df (DataFrame): Dataframe of metrics of all timeseries.
+
+        Returns:
+            Ordered metrics DataFrame.
+        """
         metrics_df = metrics_df.sort_values(by=[METRICS_DATASET.TARGET_COLUMN], ascending=True)
         orderd_metrics_df = pd.concat(
             [
@@ -169,7 +189,11 @@ class TrainingSession:
         return self.evaluation_forecasts_df
 
     def create_evaluation_forecasts_column_description(self):
-        """ explain the meaning of the forecasts columns """
+        """Explain the meaning of the forecasts columns.
+
+        Returns:
+            Dictionary of description (value) by column (key).
+        """
         column_descriptions = {}
         available_models_labels = list_available_models_labels()
         for column in self.evaluation_forecasts_df.columns:
@@ -182,16 +206,19 @@ class TrainingSession:
         return self.metrics_df
 
     def _check_target_columns_types(self):
+        """ Raises ValueError if a target column is not numerical """
         for column_name in self.target_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
                 raise ValueError("Target column '{}' must be of numerical data type.".format(column_name))
 
     def _check_external_features_columns_types(self):
+        """ Raises ValueError if an external feature column is not numerical """
         for column_name in self.external_features_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
                 raise ValueError("External feature column '{}' must be of numerical data type.".format(column_name))
 
     def _check_timeseries_identifiers_columns_types(self):
+        """ Raises ValueError if a timeseries identifiers column is not numerical or string """
         for column_name in self.timeseries_identifiers_names:
             if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
                 raise ValueError("Timeseries identifiers column '{}' must be of numerical or string data type.".format(column_name))

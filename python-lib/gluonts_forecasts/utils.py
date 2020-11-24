@@ -6,8 +6,14 @@ from constants import TIMESERIES_KEYS
 
 
 def apply_filter_conditions(df, conditions):
-    """
-    return a function to apply filtering conditions on df
+    """Apply filter conditions on df.
+
+    Args:
+        df (DataFrame): Dataframe to filter.
+        conditions (list): List of DataFrame filtering conditions on df.
+
+    Returns:
+        Filtered DataFrame.
     """
     if len(conditions) == 0:
         return df
@@ -18,7 +24,19 @@ def apply_filter_conditions(df, conditions):
 
 
 def add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length):
-    """ append the future external features to the gluonTS ListDataset used for training """
+    """Append the future external features to the 'feat_dynamic_real' arrays of each timeseries of the ListDataset used for training.
+
+    Args:
+        gluon_train_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+        external_features_future_df (DataFrame): Dataframe of future (dated after timeseries of gluon_train_dataset) external features.
+        prediction_length (int): To check that external_features_future_df has the right length.
+
+    Raises:
+        ValueError: If the length of external_features_future_df is not prediction_length.
+
+    Returns:
+        gluonts.dataset.common.ListDataset with future external features.
+    """
     gluon_dataset = copy.deepcopy(gluon_train_dataset)
     for i, timeseries in enumerate(gluon_train_dataset):
         if TIMESERIES_KEYS.IDENTIFIERS in timeseries:
@@ -44,7 +62,20 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
 
 
 def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=None, periods=None):
-    if not start_date:
+    """Assert that the time column has the same values as the pandas.date_range generated with frequency and the first and last row of dataframe[time_column_name] 
+    (or with start_date and periods if specified).
+
+    Args:
+        dataframe (DataFrame)
+        time_column_name (str)
+        frequency (str): Use as frequency of pandas.date_range.
+        start_date (pandas.Timestamp, optional): Use as start_date of pandas.date_range if specified. Defaults to None.
+        periods (int, optional): Use as periods of pandas.date_range if specified. Defaults to None.
+
+    Raises:
+        ValueError: If the time column doesn't have regular time intervals of the chosen frequency.
+    """
+    if start_date is None:
         start_date = dataframe[time_column_name].iloc[0]
     if periods:
         date_range_values = pd.date_range(start=start_date, periods=periods, freq=frequency).values
@@ -61,9 +92,13 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
 
 
 def concat_timeseries_per_identifiers(all_timeseries):
-    """
-    concat on columns all forecasts timeseries with same identifiers
-    return a list of timeseries with multiple forecasts for each identifiers
+    """Concatenate on columns all forecasts timeseries with same identifiers.
+
+    Args:
+        all_timeseries (dict): Dictionary of timeseries (value) by identifiers dictionary (key).
+
+    Returns:
+        List of timeseries with multiple forecasts for each identifiers.
     """
     multiple_df = []
     for timeseries_identifier_key, series_list in all_timeseries.items():
@@ -76,5 +111,12 @@ def concat_timeseries_per_identifiers(all_timeseries):
 
 
 def concat_all_timeseries(multiple_df):
-    """ concat on rows all forecasts (one identifiers timeseries after the other) """
+    """Concatenate on rows all forecasts timeseries (one identifiers timeseries after the other).
+
+    Args:
+        multiple_df (list): List of multivariate timeseries DataFrame with identifiers columns.
+
+    Returns:
+        DataFrame of multivariate long format timeseries.
+    """
     return pd.concat(multiple_df, axis=0).reset_index(drop=True)
