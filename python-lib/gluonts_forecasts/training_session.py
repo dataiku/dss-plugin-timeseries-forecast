@@ -162,6 +162,10 @@ class TrainingSession:
                 on=[self.time_column_name] + identifiers_columns,
                 how="left",
             )
+            self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
+                by=identifiers_columns + [self.time_column_name],
+                ascending=[True] * len(identifiers_columns) + [False]
+            )
             self.evaluation_forecasts_df[METRICS_DATASET.SESSION] = self.session_name
 
         return orderd_metrics_df

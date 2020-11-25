@@ -192,10 +192,6 @@ class TrainedModel:
         """
         if TIMESERIES_KEYS.IDENTIFIERS in self.gluon_dataset.list_data[0]:
             self._reorder_forecasts_df()
-        # self.forecasts_df = self.forecasts_df.sort_values(
-        #     by=[self.time_column_name] + self.identifiers_columns,
-        #     ascending=[False] + [True] * len(self.identifiers_columns)
-        # )
         if session:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
         if model_label:

@@ -29,7 +29,12 @@ external_features = external_features_check(gluon_train_dataset, params["externa
 
 if external_features:
     external_features_future_df = params["external_features_future_dataset"].get_dataframe()
-    gluon_train_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, predictor.prediction_length)
+    gluon_train_dataset = add_future_external_features(
+        gluon_train_dataset,
+        external_features_future_df,
+        predictor.prediction_length,
+        predictor.freq
+    )
 
 trained_model = TrainedModel(
     predictor=predictor,
