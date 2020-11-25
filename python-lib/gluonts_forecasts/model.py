@@ -197,7 +197,7 @@ class Model(ModelHandler):
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.mean_ts.rename(
+            series = sample_forecasts.quantile_ts(0.5).rename(
                 "{}_{}".format(ModelHandler.get_label(self), train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME])
             )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:

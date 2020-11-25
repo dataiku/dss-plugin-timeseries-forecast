@@ -2,7 +2,8 @@ from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
 from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.transformer import TransformerEstimator
-from gluonts.trainer import Trainer
+from gluonts.model.tft import TemporalFusionTransformerEstimator
+from gluonts.mx.trainer import Trainer
 from gluonts.model.naive_2 import Naive2Predictor
 from gluonts.model.trivial.mean import MeanEstimator, MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
@@ -72,6 +73,11 @@ MODEL_DESCRIPTORS = {
     "nbeats": {
         LABEL: "NBEATS",
         ESTIMATOR: NBEATSEstimator,
+        TRAINER: Trainer
+    },
+    "tft": {
+        LABEL: "TemporalFusionTransformer",
+        ESTIMATOR: TemporalFusionTransformerEstimator,
         TRAINER: Trainer
     },
 }
