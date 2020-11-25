@@ -1,10 +1,12 @@
 from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
-import logging
-import time
 from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
+import time
+from safe_logger import SafeLogger
+
+logging = SafeLogger("Timeseries forecast")
 
 
 class Model(ModelHandler):
@@ -56,6 +58,7 @@ class Model(ModelHandler):
         return self.model_name
 
     def train(self, train_list_dataset):
+        logging.info("Starting training for model {}".format(self.model_name))
         self.predictor = self._get_predictor(train_list_dataset)
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
@@ -71,7 +74,7 @@ class Model(ModelHandler):
             List of timeseries identifiers column names. Empty list if none found in train_list_dataset.
             DataFrame of predictions for the last prediction_length timesteps of the test_list_dataset timeseries if make_forecasts is True.
         """
-        logging.info("Timeseries forecast - Training model {} for evaluation".format(self.model_name))
+        logging.info("Training model {} for evaluation".format(self.model_name))
         start_time = time.time()
         evaluation_predictor = self._get_predictor(train_list_dataset)
 
@@ -81,6 +84,7 @@ class Model(ModelHandler):
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
         if make_forecasts:
+            logging.info("Starting forecast on model {}".format(self.model_name))
             mean_forecasts_timeseries = self._compute_mean_forecasts_timeseries(forecasts, train_list_dataset)
             multiple_df = concat_timeseries_per_identifiers(mean_forecasts_timeseries)
             forecasts_df = concat_all_timeseries(multiple_df)

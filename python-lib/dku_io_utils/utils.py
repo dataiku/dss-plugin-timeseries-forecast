@@ -5,7 +5,10 @@ import dataiku
 import pandas as pd
 import json
 import gzip
-import logging
+from constants import TIME_DIMENSION_PATTERNS
+from safe_logger import SafeLogger
+
+logging = SafeLogger("Timeseries forecast")
 
 
 def read_from_folder(folder, path, object_type):
@@ -23,7 +26,7 @@ def read_from_folder(folder, path, object_type):
     Returns:
         Object based on the requested type.
     """
-    logging.info("Timeseries forecast - Loading {}".format(os.path.join(folder.get_path(), path)))
+    logging.info("Loading {}".format(os.path.join(folder.get_path(), path)))
     if not folder.get_path_details(path=path)["exists"]:
         raise ValueError("File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"]))
     with folder.get_download_stream(path) as stream:
@@ -54,7 +57,7 @@ def write_to_folder(object_to_save, folder, path, object_type):
     Raises:
         ValueError: Object type is not supported.
     """
-    logging.info("Timeseries forecast - Saving {}".format(os.path.join(folder.get_path(), path)))
+    logging.info("Saving {}".format(os.path.join(folder.get_path(), path)))
     with folder.get_writer(path) as writer:
         if object_type == "pickle":
             writeable = pickle.dumps(object_to_save)
@@ -141,15 +144,9 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
 
 def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern):
     file_path = file_path_pattern
-    time_dimension_patterns = {
-        "DKU_DST_YEAR": "%Y",
-        "DKU_DST_MONTH": "%M",
-        "DKU_DST_DAY": "%D",
-        "DKU_DST_HOUR": "%H"
-    }
-    for time_dimension in time_dimension_patterns:
+    for time_dimension in TIME_DIMENSION_PATTERNS:
         time_value = dku_flow_variables.get(time_dimension)
         if time_value is not None:
-            time_pattern = time_dimension_patterns.get(time_dimension)
+            time_pattern = TIME_DIMENSION_PATTERNS.get(time_dimension)
             file_path = file_path.replace(time_pattern, time_value)
     return file_path

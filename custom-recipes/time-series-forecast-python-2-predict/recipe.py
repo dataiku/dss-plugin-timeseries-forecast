@@ -1,14 +1,15 @@
-import logging
 from dku_io_utils.recipe_config_loading import load_predict_config
 from dku_io_utils.utils import set_column_description
 from dku_io_utils.checks_utils import external_features_check
 from dku_io_utils.model_selection import ModelSelection
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
+from safe_logger import SafeLogger
 
+logging = SafeLogger("Timeseries forecast")
 params = load_predict_config()
 
-logging.info("Timeseries forecast - Starting prediction with params={}".format(params))
+logging.info("Starting prediction with params={}".format(params))
 
 model_selection = ModelSelection(
     folder=params["model_folder"],

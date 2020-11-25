@@ -7,6 +7,7 @@ from dataiku.customrecipe import (
 import re
 from gluonts_forecasts.model_handler import list_available_models
 from dku_io_utils.utils import get_partition_root
+from constants import FORECASTING_STYLE_PRESELECTED_MODELS
 
 
 class PluginParamValidationError(ValueError):
@@ -78,7 +79,12 @@ def load_training_config(recipe_config):
         params["context_length"] = params["prediction_length"]
 
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
-    params["epoch"] = 100 if params["forecasting_style"].startswith("auto") else recipe_config.get("epoch", 10)
+    if params["forecasting_style"] == "auto":
+        params["epoch"] = 50
+    elif params["forecasting_style"] == "auto_performance":
+        params["epoch"] = 100
+    else:
+        params["epoch"] = recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
 
     # V2 implement
@@ -151,14 +157,9 @@ def set_naive_model_parameters(config, models_parameters):
 
 def is_activated(config, model):
     """ Returns the activation status for a model according to the selected forcasting style (auto / auto_performance) or UX config otherwise"""
-
     forecasting_style = config.get("forecasting_style", "auto")
-    forecasting_style_preselected_models = {
-        "auto": ["naive_model", "naive", "deepar"],
-        "auto_performance": ["naive_model", "naive", "simplefeedforward", "deepar","transformer", "nbeats"]
-    }
-    if forecasting_style in forecasting_style_preselected_models:
-        preselected_models = forecasting_style_preselected_models.get(forecasting_style)
+    if forecasting_style in FORECASTING_STYLE_PRESELECTED_MODELS:
+        preselected_models = FORECASTING_STYLE_PRESELECTED_MODELS.get(forecasting_style)
         return model in preselected_models
     return config.get("{}_model_activated".format(model), False)
 

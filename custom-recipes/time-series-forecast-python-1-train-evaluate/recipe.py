@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import logging
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
 from dku_io_utils.utils import set_column_description
@@ -8,13 +7,15 @@ from dku_io_utils.recipe_config_loading import load_training_config, get_models_
 from dku_io_utils.utils import write_to_folder
 from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_COLUMNS_DESCRIPTIONS
 from gluonts_forecasts.model_handler import get_model_label
+from safe_logger import SafeLogger
 
+logging = SafeLogger("Timeseries forecast")
 config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
 
 models_parameters = get_models_parameters(config)
-logging.info("Timeseries forecast - Starting evaluate session {} with params={}, models_parameters={}".format(session_name, params, models_parameters))
+logging.info("Starting evaluate session {} with params={}, models_parameters={}".format(session_name, params, models_parameters))
 
 training_df = params["training_dataset"].get_dataframe()
 
@@ -41,7 +42,7 @@ metrics_df = training_session.get_metrics_df()
 params["evaluation_dataset"].write_with_schema(metrics_df)
 
 if not params["evaluation_only"]:
-    logging.info("Timeseries forecast - Starting training session")
+    logging.info("Starting training session")
     training_session.train()
 
     model_folder = params["model_folder"]
@@ -53,7 +54,7 @@ if not params["evaluation_only"]:
     write_to_folder(training_session.test_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
 
     for model in training_session.models:
-        logging.info("Timeseries forecast - Writing model {}".format(model.model_name))
+        logging.info("Writing model {}".format(model.model_name))
         model_path = "{}/{}/model.pk.gz".format(training_session.session_path, get_model_label(model.model_name))
         write_to_folder(model.predictor, model_folder, model_path, "pickle.gz")
 

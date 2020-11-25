@@ -31,10 +31,26 @@ EVALUATION_METRICS_DESCRIPTIONS = {
     "mean_wQuantileLoss": "Mean Weight Quantile Loss",
 }
 
+
 METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "'AGGREGATED' to aggregate metrics of different targets within a model",
 }
 
+
 TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
+
+
+TIME_DIMENSION_PATTERNS = {
+        "DKU_DST_YEAR": "%Y",
+        "DKU_DST_MONTH": "%M",
+        "DKU_DST_DAY": "%D",
+        "DKU_DST_HOUR": "%H"
+    }
+
+
+FORECASTING_STYLE_PRESELECTED_MODELS = {
+        "auto": ["naive_model", "naive", "deepar"],
+        "auto_performance": ["naive_model", "naive", "simplefeedforward", "deepar", "transformer", "nbeats"]
+    }
