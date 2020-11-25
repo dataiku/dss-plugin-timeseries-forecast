@@ -8,7 +8,7 @@ import gzip
 from constants import TIME_DIMENSION_PATTERNS
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Timeseries forecast")
+logging = SafeLogger("Forecast plugin")
 
 
 def read_from_folder(folder, path, object_type):
