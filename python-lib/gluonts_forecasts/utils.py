@@ -75,7 +75,7 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
 
 
 def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=None, periods=None):
-    """Assert that the time column has the same values as the pandas.date_range generated with frequency and the first and last row of dataframe[time_column_name] 
+    """Assert that the time column has the same values as the pandas.date_range generated with frequency and the first and last row of dataframe[time_column_name]
     (or with start_date and periods if specified).
 
     Args:

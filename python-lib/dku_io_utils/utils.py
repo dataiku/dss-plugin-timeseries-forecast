@@ -159,7 +159,7 @@ def get_partitions(dku_flow_variables, dimensions):
     for dimension in dimensions:
         partition = dku_flow_variables.get("DKU_DST_{}".format(dimension))
         if partition is None:
-            raise ValueError("Partition dimension '{}' not found in output. Make sure the output(s) has the same partitioning as the input(s)".format(dimension))
+            raise ValueError("Partition dimension '{}' not found in output. Make sure the output has the same partitioning as the input".format(dimension))
         partitions.append(partition)
     return partitions
 

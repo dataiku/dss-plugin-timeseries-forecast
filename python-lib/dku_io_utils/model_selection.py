@@ -13,7 +13,7 @@ class ModelSelection:
         root (str): Partition root path (empty if no partitioning)
         manual_selection (bool): True if session and model are manually selected by user
         session (str): Timestamp of training session
-        model_label (str): Name of trained model
+        model_label (str): Label of trained model
         performance_metric (str): Name of evaluation metric used to select best model
     """
 
@@ -26,18 +26,27 @@ class ModelSelection:
         self.performance_metric = None
 
     def set_manual_selection_parameters(self, session, model_label):
-        """ set the session and model label if there were manually selected in the recipe form """
+        """Set the session and model label if there were manually selected in the recipe form/
+
+        Args:
+            session (str): Timestamp of the selected training session.
+            model_label (str): Label of the selected model.
+        """
         self.manual_selection = True
         self.session = session
         self.model_label = model_label
 
     def set_auto_selection_parameters(self, performance_metric):
-        """ set the performance metric to use in order to retrieve the best model of the last session """
+        """Set the performance metric to use in order to retrieve the best model of the last session.
+
+        Args:
+            performance_metric (str): Name of evaluation metric used to select best model
+        """
         self.manual_selection = False
         self.performance_metric = performance_metric
 
     def get_model_predictor(self):
-        """ retrieve the GluonTS Predictor object obtained during training and saved into the model folder """
+        """ Retrieve the GluonTS Predictor object obtained during training and saved into the model folder """
         if not self.manual_selection:
             self.session = self._get_last_session()
             self.model_label = self._get_best_model()
@@ -47,13 +56,17 @@ class ModelSelection:
         return model
 
     def get_gluon_train_dataset(self):
-        """ retrieve the GluonDataset object with training data that was saved in the model folder during training """
+        """ Retrieve the GluonDataset object with training data that was saved in the model folder during training """
         gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(self.session)
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, "pickle.gz")
         return gluon_train_dataset
 
     def _get_last_session(self):
-        """ return timestamp of last training session using name of subfolders """
+        """Retrieve the last training session using name of subfolders and append the partition root path.
+
+        Returns:
+            Path to session subfolder.
+        """
         session_timestamps = []
         for child in self.folder.get_path_details(path=self.root)["children"]:
             if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
@@ -62,7 +75,11 @@ class ModelSelection:
         return os.path.join(self.root, last_session)
 
     def _get_best_model(self):
-        """ return name of best model according to self.performance_metric based on the aggregated metric rows """
+        """Find the best model according to self.performance_metric based on the aggregated metric rows
+
+        Returns:
+            Label of the best model.
+        """
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), "csv")
         if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
             df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]

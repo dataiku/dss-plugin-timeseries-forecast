@@ -17,6 +17,11 @@ class PluginParamValidationError(ValueError):
 
 
 def load_training_config(recipe_config):
+    """Utility function to load, resolve and validate all training recipe config into a clean `params` dictionary
+
+    Returns:
+        Dictionary of parameter names (key) and values
+    """
     params = {}
 
     input_dataset_name = get_input_names_for_role("input_dataset")[0]
@@ -96,6 +101,11 @@ def load_training_config(recipe_config):
 
 
 def load_predict_config():
+    """Utility function to load, resolve and validate all predict recipe config into a clean `params` dictionary
+
+    Returns:
+        Dictionary of parameter names (key) and values
+    """
     params = {}
     recipe_config = get_recipe_config()
 
@@ -133,7 +143,17 @@ def load_predict_config():
 
 
 def get_models_parameters(config):
-    """ Returns a dict with each activated model as key and its models parameters as value"""
+    """Create a models parameters dictionary to store for each activated model its parameters (activated, kwargs, ...)
+
+    Args:
+        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
+
+    Raises:
+        ValueError: If a prediction_length parameter is trying to be set in the model params.
+
+    Returns:
+        Dictionary of model parameter (value) by activated model name (key).
+    """
     models_parameters = {}
     for model in list_available_models():
         if is_activated(config, model):
@@ -146,6 +166,15 @@ def get_models_parameters(config):
 
 
 def set_naive_model_parameters(config, models_parameters):
+    """Update models_parameters to add specific parameters that some baselines models have.
+
+    Args:
+        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
+        models_parameters (dict): Obtained with get_models_parameters.
+
+    Returns:
+        Dictionary of model parameter (value) by activated model name (key).
+    """
     naive_model_parameters = models_parameters.get("naive")
     if naive_model_parameters is not None:
         model_name = config.get("naive_model_method")
@@ -156,7 +185,15 @@ def set_naive_model_parameters(config, models_parameters):
 
 
 def is_activated(config, model):
-    """ Returns the activation status for a model according to the selected forcasting style (auto / auto_performance) or UX config otherwise"""
+    """Returns the activation status for a model according to the selected forcasting style (auto / auto_performance) or UX config otherwise.
+
+    Args:
+        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
+        model (str): Model name found in the UI.
+
+    Returns:
+        True if model is activated, else False.
+    """
     forecasting_style = config.get("forecasting_style", "auto")
     if forecasting_style in FORECASTING_STYLE_PRESELECTED_MODELS:
         preselected_models = FORECASTING_STYLE_PRESELECTED_MODELS.get(forecasting_style)
@@ -165,7 +202,15 @@ def is_activated(config, model):
 
 
 def get_model_presets(config, model):
-    """ Collect all the parameters model from the UI and return them as a dict"""
+    """Collect all the parameters model from the UI and return them as a dict.
+
+    Args:
+        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
+        model (str): Model name found in the UI.
+
+    Returns:
+        Dictionary of model parameters to be used as kwargs in gluonts Predictor.
+    """
     model_presets = {}
     matching_key = "{}_model_(.*)".format(model)
     for key in config:
