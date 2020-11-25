@@ -6,7 +6,7 @@ from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Timeseries forecast")
+logging = SafeLogger("Forecast plugin")
 params = load_predict_config()
 
 logging.info("Starting prediction with params={}".format(params))
