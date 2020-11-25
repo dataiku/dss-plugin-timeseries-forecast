@@ -6,7 +6,7 @@ from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_al
 import time
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Timeseries forecast")
+logging = SafeLogger("Forecast plugin")
 
 
 class Model(ModelHandler):
