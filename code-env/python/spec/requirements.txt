@@ -1,4 +1,4 @@
 mxnet==1.6.0
-gluonts==0.6.1
+gluonts==0.6.2
 dill==0.3.2
 statsmodels==0.12.0
