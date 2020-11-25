@@ -29,8 +29,8 @@
         },
         {
             "name": "evaluation_dataset",
-            "label": "Evaluation results",
-            "description": "This dataset will store the results of model performance evaluation on historical data.",
+            "label": "Performance results",
+            "description": "Performance results of the models backtested on historical data.",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -38,8 +38,8 @@
         },
         {
             "name": "evaluation_forecasts",
-            "label": "Evaluation forecasts (optional)",
-            "description": "This dataset stores train and test data along with the forecasts used to evaluate metrics.",
+            "label": "Backtest forecasts (optional)",
+            "description": "Train and test data with the forecasts used to evaluate performance metrics.",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
@@ -194,19 +194,19 @@
             "selectChoices": [
                 {
                     "value": "auto",
-                    "label": "AutoML - quick models"
+                    "label": "AutoML - Quick Prototypes"
                 },
                 {
                     "value": "auto_performance",
-                    "label": "AutoML - performance"
+                    "label": "AutoML - High Performance"
                 },
                 {
                     "value": "choose_algorithms",
-                    "label": "Choose algorithms"
+                    "label": "Expert - Choose Algorithms"
                 },
                 {
                     "value": "customize_algorithms",
-                    "label": "Customize algorithms"
+                    "label": "Expert - Customize Algorithms"
                 }
             ],
             "defaultValue": "auto"
@@ -220,9 +220,9 @@
             "label": "- Baseline",
             "description": "Based on the trivial.identity/trivial.mean/seasonal_naive GluonTS models",
             "type": "BOOLEAN",
-            "defaultValue": false,
+            "defaultValue": true,
             "mandatory": true,
-            "visibilityCondition": "(['auto','auto_performance'].indexOf(model.forecasting_style) == -1)"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "naive_model_method",
@@ -255,9 +255,9 @@
             "label": "- FeedForward",
             "description": "Based on the SimpleFeedForwardEstimator GluonTS model",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "(['auto','auto_performance'].indexOf(model.forecasting_style) == -1)"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "simplefeedforward_model_kwargs",
@@ -278,7 +278,7 @@
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
-            "visibilityCondition": "(['auto','auto_performance'].indexOf(model.forecasting_style) == -1)"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "deepar_model_kwargs",
@@ -297,9 +297,9 @@
             "label": "- Transformer",
             "description": "Based on the TransformerEstimator GluonTS model",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "(['auto','auto_performance'].indexOf(model.forecasting_style) == -1)"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "transformer_model_kwargs",
@@ -320,7 +320,7 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "(['auto','auto_performance'].indexOf(model.forecasting_style) == -1)"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "nbeats_model_kwargs",
@@ -334,16 +334,16 @@
             "name": "training_options_separator",
             "label": "Training options",
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "epoch",
             "label": "Epoch",
             "type": "INT",
-            "defaultValue": 10,
+            "defaultValue": 50,
             "mandatory": false,
             "minI": 1,
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "context_length",
@@ -353,7 +353,7 @@
             "defaultValue": 0,
             "mandatory": false,
             "minI": 0,
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "batch_size",
@@ -363,7 +363,7 @@
             "defaultValue": 32,
             "mandatory": false,
             "minI": 0,
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "separator_evaluation",
@@ -391,7 +391,7 @@
         },
         {
             "name": "advanced_options",
-            "label": "Expert",
+            "label": "Expert mode",
             "type": "BOOLEAN",
             "defaultValue": false
         },

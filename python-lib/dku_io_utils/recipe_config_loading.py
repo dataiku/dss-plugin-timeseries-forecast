@@ -58,7 +58,6 @@ def load_training_config(recipe_config):
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
         raise PluginParamValidationError("Invalid external features column(s) selection")
 
-    params["deepar_model_activated"] = recipe_config.get("deepar_model_activated", False)
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
     if params["frequency_unit"] not in ["H", "min"]:
@@ -69,10 +68,6 @@ def load_training_config(recipe_config):
         elif params["frequency_unit"] == "min":
             params["frequency_step"] = recipe_config.get("frequency_step_minutes", 1)
         params["frequency"] = "{}{}".format(params["frequency_step"], params["frequency_unit"])
-
-    params["columns_to_keep"] = (
-        [params["time_column_name"]] + params["target_columns_names"] + params["timeseries_identifiers_names"] + params["external_features_columns_names"]
-    )
 
     params["prediction_length"] = recipe_config.get("prediction_length")
     if params["prediction_length"] is None:
@@ -85,10 +80,11 @@ def load_training_config(recipe_config):
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
     params["epoch"] = 100 if params["forecasting_style"].startswith("auto") else recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
-    params["gpu"] = recipe_config.get("gpu", "no_gpu")  # V2 implement
 
-    params["evaluation_strategy"] = recipe_config.get("evaluation_strategy", "split")
-    params["evaluation_only"] = recipe_config.get("evaluation_only", False)
+    # V2 implement
+    params["gpu"] = recipe_config.get("gpu", "no_gpu")
+    params["evaluation_strategy"] = "split"
+    params["evaluation_only"] = False
 
     return params
 
