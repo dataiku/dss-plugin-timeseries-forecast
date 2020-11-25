@@ -146,7 +146,7 @@ class TrainedModel:
         """Compute all forecasts timeseries for each quantile.
 
         Args:
-            forecasts_list (list): List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+            forecasts_list (list): List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
 
         Returns:
             Dictionary of list of forecasts timeseries by identifiers (None if no identifiers)

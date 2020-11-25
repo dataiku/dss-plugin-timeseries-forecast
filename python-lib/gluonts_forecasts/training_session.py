@@ -203,7 +203,7 @@ class TrainingSession:
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]
             if prefix in available_models_labels:
-                column_descriptions[column] = "Mean forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
+                column_descriptions[column] = "Median forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
         return column_descriptions
 
     def get_metrics_df(self):

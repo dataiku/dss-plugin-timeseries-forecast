@@ -102,7 +102,7 @@ class Model(ModelHandler):
         Returns:
             Dictionary of aggregated metrics over all timeseries.
             DataFrame of metrics for each timeseries (i.e., each target column).
-            List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+            List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
         """
         forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
@@ -186,10 +186,10 @@ class Model(ModelHandler):
         )
 
     def _compute_mean_forecasts_timeseries(self, forecasts_list, train_list_dataset):
-        """Compute mean forecasts timeseries for each SampleForecast of forecasts_list.
+        """Compute mean forecasts timeseries for each Forecast of forecasts_list.
 
         Args:
-            forecasts_list (list): List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+            forecasts_list (list): List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
             train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
 
         Returns:
@@ -197,7 +197,7 @@ class Model(ModelHandler):
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.mean_ts.rename(
+            series = sample_forecasts.quantile_ts(0.5).rename(
                 "{}_{}".format(ModelHandler.get_label(self), train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME])
             )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
