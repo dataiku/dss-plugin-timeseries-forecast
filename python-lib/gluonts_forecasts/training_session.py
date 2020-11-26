@@ -247,6 +247,9 @@ class TrainingSession:
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        total_possible_num_samples = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]) * len(self.train_list_dataset.list_data)
-        optimal_num_batches_per_epoch = total_possible_num_samples // self.batch_size
+        timeseries_length = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+        timeseries_number = len(self.train_list_dataset.list_data)
+        sample_length = self.prediction_length + self.context_length
+        total_possible_num_samples = (timeseries_length // sample_length) * timeseries_number
+        optimal_num_batches_per_epoch = max(total_possible_num_samples // self.batch_size, 1)
         return optimal_num_batches_per_epoch
