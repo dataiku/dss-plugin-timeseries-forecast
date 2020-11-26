@@ -9,6 +9,11 @@ from safe_logger import SafeLogger
 logging = SafeLogger("Forecast plugin")
 
 
+class ModelTrainingError(Exception):
+    """Custom exception raised when the the plugin parameters chosen by the user are invalid"""
+    pass
+
+
 class Model(ModelHandler):
     """
     Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
@@ -178,8 +183,10 @@ class Model(ModelHandler):
         if self.estimator is None:
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
-            # TODO: catch errors here
-            predictor = self.estimator.train(train_list_dataset)
+            try:
+                predictor = self.estimator.train(train_list_dataset)
+            except Exception as err:
+                raise ModelTrainingError("GluonTS's '{}' model crashed during training. The error is: {}".format(self.model_name, err))
         return predictor
 
     def _get_model_parameters_json(self, train_list_dataset):
