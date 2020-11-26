@@ -162,9 +162,9 @@ class TrainedModel:
                 forecasts_series = (
                     sample_forecasts.quantile_ts(quantile)
                     .rename(
-                        "{}_forecasts_percentile_{}".format(
-                            self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME],
+                        "Forecasts_percentile_{}_{}".format(
                             int(quantile * 100),
+                            self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME],
                         )
                     )
                     .iloc[: self.prediction_length]
