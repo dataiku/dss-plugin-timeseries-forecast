@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET, TIMESERIES_KEYS
@@ -250,6 +251,6 @@ class TrainingSession:
         timeseries_length = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
         timeseries_number = len(self.train_list_dataset.list_data)
         sample_length = self.prediction_length + self.context_length
-        total_possible_num_samples = (timeseries_length // sample_length) * timeseries_number
-        optimal_num_batches_per_epoch = max(total_possible_num_samples // self.batch_size, 1)
+        total_possible_num_samples = (timeseries_length / sample_length) * timeseries_number
+        optimal_num_batches_per_epoch = math.ceil(total_possible_num_samples / self.batch_size)
         return optimal_num_batches_per_epoch
