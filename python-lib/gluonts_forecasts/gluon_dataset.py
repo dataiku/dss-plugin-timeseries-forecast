@@ -66,24 +66,24 @@ class GluonDataset:
             multivariate_timeseries += self._create_gluon_multivariate_timeseries(self.dataframe, cut_length)
         return ListDataset(multivariate_timeseries, freq=self.frequency)
 
-    def _create_gluon_multivariate_timeseries(self, df, cut_length, identifiers_values=None):
+    def _create_gluon_multivariate_timeseries(self, dataframe, cut_length, identifiers_values=None):
         """Create a list of timeseries dictionaries for each target column
 
         Args:
-            df (DataFrame): timeseries dataframe with one or multiple target columns
+            dataframe (DataFrame): Timeseries dataframe with one or multiple target columns.
             cut_length (int): Remove the last cut_length time steps of each timeseries. Can be None.
             identifiers_values (obj/tuple, optional): Values or tuple of values of the groupby. Defaults to None.
 
         Returns:
             List of timeseries dictionaries
         """
-        self._check_minimum_length(df, cut_length)
+        self._check_minimum_length(dataframe, cut_length)
         multivariate_timeseries = []
         for target_column_name in self.target_columns_names:
-            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, cut_length, identifiers_values))
+            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(dataframe, target_column_name, cut_length, identifiers_values))
         return multivariate_timeseries
 
-    def _create_gluon_univariate_timeseries(self, df, target_column_name, cut_length, identifiers_values=None):
+    def _create_gluon_univariate_timeseries(self, dataframe, target_column_name, cut_length, identifiers_values=None):
         """Create a dictionary with keys to store information about the timeseries:
             - start (Pandas.Timestamp): start date of timeseries
             - target (numpy.array): array of target values
@@ -94,7 +94,7 @@ class GluonDataset:
             - identifiers (dict, optional): dictionary of identifiers values (value) by identifiers column name (key)
 
         Args:
-            df (DataFrame): timeseries dataframe with one or multiple target columns
+            dataframe (DataFrame): Timeseries dataframe with one or multiple target columns
             target_column_name (str)
             cut_length (int): Remove the last cut_length time steps of each timeseries. Can be None.
             identifiers_values (obj/tuple, optional): Values or tuple of values of the groupby. Defaults to None.
@@ -104,13 +104,13 @@ class GluonDataset:
         """
         length = -cut_length if cut_length else None
         univariate_timeseries = {
-            TIMESERIES_KEYS.START: df[self.time_column_name].iloc[0],
-            TIMESERIES_KEYS.TARGET: df[target_column_name].iloc[:length].values,
+            TIMESERIES_KEYS.START: dataframe[self.time_column_name].iloc[0],
+            TIMESERIES_KEYS.TARGET: dataframe[target_column_name].iloc[:length].values,
             TIMESERIES_KEYS.TARGET_NAME: target_column_name,
             TIMESERIES_KEYS.TIME_COLUMN_NAME: self.time_column_name,
         }
         if self.external_features_columns_names:
-            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] = df[self.external_features_columns_names].iloc[:length].values.T
+            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] = dataframe[self.external_features_columns_names].iloc[:length].values.T
             univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES] = self.external_features_columns_names
         if identifiers_values:
             if len(self.timeseries_identifiers_names) > 1:
@@ -121,6 +121,15 @@ class GluonDataset:
         return univariate_timeseries
 
     def _check_minimum_length(self, dataframe, cut_length):
+        """Check that the timeseries dataframe has enough values.
+
+        Args:
+            dataframe (DataFrame): Timeseries dataframe with one or multiple target columns
+            cut_length (int): Numnber of time steps that will be removed from each timeseries. Can be None.
+
+        Raises:
+            ValueError: If the dataframe doesn't have enough values.
+        """
         min_length = self.min_length
         if cut_length:
             min_length += cut_length
