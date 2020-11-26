@@ -21,14 +21,14 @@ class TIMESERIES_KEYS:
 
 
 EVALUATION_METRICS_DESCRIPTIONS = {
-    "mse": "Mean Squared Error",
-    "mase": "Mean Absolute Scaled Error",
-    "mape": "Mean Absolute Percentage Error",
-    "smape": "Symmetric Mean Absolute Percentage Error",
-    "msis": "Mean Scaled Interval Score",
-    "rmse": "Root Mean Square Error",
-    "normalized_deviation": "Normalized Deviation",
-    "mean_wquantileloss": "Mean Weight Quantile Loss",
+    "MSE": "Mean Squared Error",
+    "MASE": "Mean Absolute Scaled Error",
+    "MAPE": "Mean Absolute Percentage Error",
+    "sMAPE": "Symmetric Mean Absolute Percentage Error",
+    "MSIS": "Mean Scaled Interval Score",
+    "RMSE": "Root Mean Square Error",
+    "ND": "Normalized Deviation",
+    "mean_wQuantileLoss": "Mean Weight Quantile Loss",
 }
 
 

@@ -8,6 +8,7 @@ from dku_io_utils.utils import write_to_folder
 from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_COLUMNS_DESCRIPTIONS
 from gluonts_forecasts.model_handler import get_model_label
 from safe_logger import SafeLogger
+from time import perf_counter
 
 logging = SafeLogger("Forecast plugin")
 config = get_recipe_config()
@@ -15,7 +16,8 @@ params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
 
 models_parameters = get_models_parameters(config)
-logging.info("Starting evaluate session {} with params={}, models_parameters={}".format(session_name, params, models_parameters))
+start = perf_counter()
+logging.info("Starting training session {}...".format(session_name))
 
 training_df = params["training_dataset"].get_dataframe()
 
@@ -46,8 +48,10 @@ training_session.evaluate()
 metrics_df = training_session.get_metrics_df()
 params["evaluation_dataset"].write_with_schema(metrics_df)
 
+logging.info("Completed evaluation of all models")
+
 if not params["evaluation_only"]:
-    logging.info("Starting training session")
+    logging.info("Re-training models on entire dataset")
     training_session.train()
 
     model_folder = params["model_folder"]
@@ -58,8 +62,10 @@ if not params["evaluation_only"]:
     gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(training_session.session_path)
     write_to_folder(training_session.test_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
 
+    logging.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
+
     for model in training_session.models:
-        logging.info("Writing model {}".format(model.model_name))
+        logging.info("Saving {} model to folder".format(model.get_label()))
         model_path = "{}/{}/model.pk.gz".format(training_session.session_path, get_model_label(model.model_name))
         write_to_folder(model.predictor, model_folder, model_path, "pickle.gz")
 
@@ -71,7 +77,7 @@ set_column_description(params["evaluation_dataset"], evaluation_results_columns_
 
 if params["make_forecasts"]:
     evaluation_forecasts_df = training_session.get_evaluation_forecasts_df()
-    params["evaluation_forecasts"].write_with_schema(evaluation_forecasts_df)
+    params["evaluation_forecasts_dataset"].write_with_schema(evaluation_forecasts_df)
 
     evaluation_forecasts_columns_descriptions = training_session.create_evaluation_forecasts_column_description()
-    set_column_description(params["evaluation_forecasts"], evaluation_forecasts_columns_descriptions)
+    set_column_description(params["evaluation_forecasts_dataset"], evaluation_forecasts_columns_descriptions)

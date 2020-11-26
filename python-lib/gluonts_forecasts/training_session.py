@@ -47,7 +47,6 @@ class TrainingSession:
         context_length=None,
     ):
         self.models_parameters = models_parameters
-        self.model_names = []
         self.models = None
         self.glutonts_dataset = None
         self.training_df = training_df
@@ -165,7 +164,7 @@ class TrainingSession:
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
     def _evaluate_make_forecast(self):
-        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """        
+        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
             (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)

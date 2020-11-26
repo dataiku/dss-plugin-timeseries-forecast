@@ -37,7 +37,7 @@
             "acceptsManagedFolder": false
         },
         {
-            "name": "evaluation_forecasts",
+            "name": "evaluation_forecasts_dataset",
             "label": "Backtest forecasts (optional)",
             "description": "Backtest data used to compute performance metrics",
             "arity": "UNARY",
