@@ -409,15 +409,23 @@
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
+            "name": "auto_num_batches_per_epoch",
+            "label": "Sample all the dataset",
+            "description": "Automatically adjust to the training data size",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
             "name": "num_batches_per_epoch",
             "label": "Number of batches per epoch",
-            "description": "If -1, automatically adjust to the training data size (experimental: total_num_samples (= ts_length * ts_nb / (context_length + prediction_length)) / batch_size .",
+            "description": "",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
-            "minI": -1,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },        
+            "minI": 1,
+            "visibilityCondition": "(model.auto_num_batches_per_epoch==false) && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
         {
             "name": "separator_evaluation",
             "label": "Performance Evaluation",

@@ -80,8 +80,10 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError("Prediction length is not set.")
 
     params["context_length"] = recipe_config.get("context_length", -1)
-    if params["context_length"] == -1:
+    if params["context_length"] < 0:
         params["context_length"] = params["prediction_length"]
+    if params["context_length"] == 0:
+        raise PluginParamValidationError("The context length cannot be 0")
 
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
     if params["forecasting_style"] == "auto":
@@ -91,7 +93,13 @@ def load_training_config(recipe_config):
     else:
         params["epoch"] = recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
-    params["num_batches_per_epoch"] = recipe_config.get("num_batches_per_epoch", 50)
+    params["auto_num_batches_per_epoch"] = recipe_config.get("auto_num_batches_per_epoch", False)
+    if params["auto_num_batches_per_epoch"]:
+        params["num_batches_per_epoch"] = -1
+    else:
+        params["num_batches_per_epoch"] = recipe_config.get("num_batches_per_epoch", 50)
+    if params["num_batches_per_epoch"] == 0:
+        raise PluginParamValidationError("The number of batches per epoch cannot be 0")
 
     # V2 implement
     params["gpu"] = recipe_config.get("gpu", "no_gpu")
