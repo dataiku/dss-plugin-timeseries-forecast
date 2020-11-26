@@ -5,7 +5,7 @@ class METRICS_DATASET:
     MODEL_COLUMN = "model"
     AGGREGATED_ROW = "aggregated"
     MODEL_PARAMETERS = "model_params"
-    SESSION = "session"
+    SESSION = "training_session"
 
 
 class TIMESERIES_KEYS:
@@ -21,21 +21,21 @@ class TIMESERIES_KEYS:
 
 
 EVALUATION_METRICS_DESCRIPTIONS = {
-    "MSE": "Mean Squared Error",
-    "MASE": "Mean Absolute Scaled Error",
-    "MAPE": "Mean Absolute Percentage Error",
-    "sMAPE": "Symmetric Mean Absolute Percentage Error",
-    "MSIS": "Mean Scaled Interval Score",
-    "RMSE": "Root Mean Square Error",
-    "ND": "Normalized Deviation",
-    "mean_wQuantileLoss": "Mean Weight Quantile Loss",
+    "mse": "Mean Squared Error",
+    "mase": "Mean Absolute Scaled Error",
+    "mape": "Mean Absolute Percentage Error",
+    "smape": "Symmetric Mean Absolute Percentage Error",
+    "msis": "Mean Scaled Interval Score",
+    "rmse": "Root Mean Square Error",
+    "normalized_deviation": "Normalized Deviation",
+    "mean_wquantileloss": "Mean Weight Quantile Loss",
 }
 
 
 METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
-    METRICS_DATASET.TARGET_COLUMN: "Aggregated metrics and per-time-series metrics ",
+    METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",
 }
 
 # regex pattern to match the timestamps used for training sessions
@@ -51,6 +51,6 @@ TIME_DIMENSION_PATTERNS = {
 
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
-        "auto": ["naive_model", "naive", "deepar"],
-        "auto_performance": ["naive_model", "naive", "simplefeedforward", "deepar", "transformer", "mqcnn"]
+        "auto": ["naive", "deepar"],
+        "auto_performance": ["naive", "deepar", "transformer", "mqcnn"]
     }
