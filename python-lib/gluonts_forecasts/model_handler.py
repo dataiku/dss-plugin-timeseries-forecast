@@ -111,7 +111,7 @@ class ModelHandler:
         trainer = self.model_descriptor.get(TRAINER)
         return None if trainer is None else trainer(**kwargs)
 
-    def predictor(self, **kwargs):
+    def predictor(self, **kwargs):   
         predictor = self.model_descriptor.get(PREDICTOR)
         return None if predictor is None else predictor(**kwargs)
 
@@ -129,12 +129,22 @@ class ModelHandler:
 
 
 def list_available_models():
+    """List available models names found in the recipe.json (keys of MODEL_DESCRIPTORS).
+
+    Returns:
+        dict_keys of model names.
+    """
     available_models = MODEL_DESCRIPTORS.copy()
     available_models.pop('default')
     return available_models.keys()
 
 
 def list_available_models_labels():
+    """List available models labels found in the UI.
+
+    Returns:
+        List of model names.
+    """
     available_models = MODEL_DESCRIPTORS.copy()
     available_models_labels = []
     for model in available_models:

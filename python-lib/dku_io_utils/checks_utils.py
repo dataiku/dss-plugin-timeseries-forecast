@@ -30,8 +30,9 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
         external_features_future_dataset ([type]): [description]
 
     Raises:
-        ValueError: If gluon_train_dataset contains external features and no external_features_future_dataset was provided.
-        ValueError: If gluon_train_dataset doesn't contain external features but a external_features_future_dataset was provided.
+        ValueError:
+            If gluon_train_dataset contains external features and no external_features_future_dataset was provided.
+            If gluon_train_dataset doesn't contain external features but a external_features_future_dataset was provided.
 
     Returns:
         True if external features are needed for prediction, else False

@@ -3,7 +3,7 @@ class METRICS_DATASET:
 
     TARGET_COLUMN = "target_column"
     MODEL_COLUMN = "model"
-    AGGREGATED_ROW = "AGGREGATED"
+    AGGREGATED_ROW = "aggregated"
     MODEL_PARAMETERS = "model_params"
     SESSION = "session"
 
@@ -35,10 +35,10 @@ EVALUATION_METRICS_DESCRIPTIONS = {
 METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
-    METRICS_DATASET.TARGET_COLUMN: "'AGGREGATED' to aggregate metrics of different targets within a model",
+    METRICS_DATASET.TARGET_COLUMN: "Aggregated metrics and per-time-series metrics ",
 }
 
-
+# regex pattern to match the timestamps used for training sessions
 TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 

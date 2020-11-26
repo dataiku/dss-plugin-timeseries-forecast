@@ -6,9 +6,7 @@ from gluonts_forecasts.model_handler import list_available_models_labels
 
 
 def do(payload, config, plugin_config, inputs):
-    """
-    retrieve a list of models from the summary.csv file of the S3 Input Folder
-    """
+    """ Retrieve a list of past training session timestamps and the label of all the trained models. """
     choices = []
 
     input_folder_name = [input["fullName"] for input in inputs if input["type"] == "MANAGED_FOLDER"][0]

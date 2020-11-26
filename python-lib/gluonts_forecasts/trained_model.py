@@ -15,6 +15,8 @@ class TrainedModel:
         prediction_length (int): Number of time steps to predict (at most the prediction length used in training)
         quantiles (list): List of forecasts quantiles to output in the forecasts_df
         include_history (bool): True to append to the forecasts dataframe the training data
+        time_column_name (str): Time column name used in training
+        identifiers_columns (list): List of timeseries identifiers column names used in training.
         forecasts_df (DataFrame): Dataframe with the different quantiles forecasts and the training data if include_history is True
     """
 
@@ -24,6 +26,8 @@ class TrainedModel:
         self.prediction_length = predictor.prediction_length if prediction_length == -1 else prediction_length
         self.quantiles = quantiles
         self.include_history = include_history
+        self.time_column_name = None
+        self.identifiers_columns = None
         self.forecasts_df = None
         self._check()
 
@@ -41,26 +45,22 @@ class TrainedModel:
 
         self.forecasts_df = concat_all_timeseries(multiple_df)
 
-        time_column_name = self.gluon_dataset.list_data[0][TIMESERIES_KEYS.TIME_COLUMN_NAME]
-        identifiers_columns = (
+        self.time_column_name = self.gluon_dataset.list_data[0][TIMESERIES_KEYS.TIME_COLUMN_NAME]
+        self.identifiers_columns = (
             list(self.gluon_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys()) if TIMESERIES_KEYS.IDENTIFIERS in self.gluon_dataset.list_data[0] else []
         )
 
         if self.include_history:
             frequency = forecasts_list[0].freq
-            self.forecasts_df = self._include_history(frequency, identifiers_columns)
+            self.forecasts_df = self._include_history(frequency)
 
-        self.forecasts_df = self.forecasts_df.rename(columns={"index": time_column_name})
+        self.forecasts_df = self.forecasts_df.rename(columns={"index": self.time_column_name})
 
-        if TIMESERIES_KEYS.IDENTIFIERS in self.gluon_dataset.list_data[0]:
-            self._reorder_forecasts_df(time_column_name, identifiers_columns)
-
-    def _include_history(self, frequency, identifiers_columns):
+    def _include_history(self, frequency):
         """Include the historical data on which the model was trained to the forecasts dataframe.
 
         Args:
             frequency (str): Used to reconstruct the date range (because a gluon ListDataset only store the start date).
-            identifiers_columns (list): List of timeseries identifiers columns.
 
         Returns:
             DataFrame containing both the historical data and the forecasted values.
@@ -68,7 +68,7 @@ class TrainedModel:
         history_timeseries = self._retrieve_history_timeseries(frequency)
         multiple_df = concat_timeseries_per_identifiers(history_timeseries)
         history_df = concat_all_timeseries(multiple_df)
-        return history_df.merge(self.forecasts_df, on=["index"] + identifiers_columns, how="left")
+        return history_df.merge(self.forecasts_df, on=["index"] + self.identifiers_columns, how="left")
 
     def _generate_history_target_series(self, timeseries, frequency):
         """Creates a pandas time series from the past target values with Nan values for the prediction_length future dates.
@@ -146,7 +146,7 @@ class TrainedModel:
         """Compute all forecasts timeseries for each quantile.
 
         Args:
-            forecasts_list (list): List of gluonts.model.forecast.SampleForecast (objects storing the predicted distributions as samples).
+            forecasts_list (list): List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
 
         Returns:
             Dictionary of list of forecasts timeseries by identifiers (None if no identifiers)
@@ -175,18 +175,13 @@ class TrainedModel:
                     forecasts_timeseries[timeseries_identifier_key] = [forecasts_series]
         return forecasts_timeseries
 
-    def _reorder_forecasts_df(self, time_column_name, identifiers_columns):
-        """Reorder columns with timeseries identifiers columns right after time column
-
-        Args:
-            time_column_name (str)
-            identifiers_columns (list)
-        """
-        forecasts_columns = [column for column in self.forecasts_df if column not in [time_column_name] + identifiers_columns]
-        self.forecasts_df = self.forecasts_df[[time_column_name] + identifiers_columns + forecasts_columns]
+    def _reorder_forecasts_df(self):
+        """ Reorder columns with timeseries identifiers columns right after time column """
+        forecasts_columns = [column for column in self.forecasts_df if column not in [self.time_column_name] + self.identifiers_columns]
+        self.forecasts_df = self.forecasts_df[[self.time_column_name] + self.identifiers_columns + forecasts_columns]
 
     def get_forecasts_df(self, session=None, model_label=None):
-        """Add the session timestamp and model label to the forecasts dataframe.
+        """Add the session timestamp and model label to the forecasts dataframe. Sort timeseries in revert order to display predictions on top.
 
         Args:
             session (Timstamp, optional)
@@ -195,10 +190,13 @@ class TrainedModel:
         Returns:
             Forecasts DaaFrame
         """
+        if TIMESERIES_KEYS.IDENTIFIERS in self.gluon_dataset.list_data[0]:
+            self._reorder_forecasts_df()
         if session:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
         if model_label:
             self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = model_label
+        self.forecasts_df = self.forecasts_df.reindex(index=self.forecasts_df.index[::-1])
         return self.forecasts_df
 
     def create_forecasts_column_description(self):

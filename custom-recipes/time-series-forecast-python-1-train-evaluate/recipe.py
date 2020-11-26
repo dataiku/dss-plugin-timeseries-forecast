@@ -9,7 +9,7 @@ from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_COLUMNS_DESCRIPTI
 from gluonts_forecasts.model_handler import get_model_label
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Timeseries forecast")
+logging = SafeLogger("Forecast plugin")
 config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
@@ -61,8 +61,8 @@ if not params["evaluation_only"]:
         parameters_path = "{}/{}/params.json".format(training_session.session_path, get_model_label(model.model_name))
         write_to_folder(model.model_parameters, model_folder, parameters_path, "json")
 
-METRICS_COLUMNS_DESCRIPTIONS.update(EVALUATION_METRICS_DESCRIPTIONS)
-set_column_description(params["evaluation_dataset"], METRICS_COLUMNS_DESCRIPTIONS)
+evaluation_results_columns_descriptions = {**METRICS_COLUMNS_DESCRIPTIONS, **EVALUATION_METRICS_DESCRIPTIONS}
+set_column_description(params["evaluation_dataset"], evaluation_results_columns_descriptions)
 
 if params["make_forecasts"]:
     evaluation_forecasts_df = training_session.get_evaluation_forecasts_df()

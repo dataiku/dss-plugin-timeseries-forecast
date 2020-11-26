@@ -162,6 +162,10 @@ class TrainingSession:
                 on=[self.time_column_name] + identifiers_columns,
                 how="left",
             )
+            self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
+                by=identifiers_columns + [self.time_column_name],
+                ascending=[True] * len(identifiers_columns) + [False]
+            )
             self.evaluation_forecasts_df[METRICS_DATASET.SESSION] = self.session_name
 
         return orderd_metrics_df
@@ -199,7 +203,7 @@ class TrainingSession:
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]
             if prefix in available_models_labels:
-                column_descriptions[column] = "Mean forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
+                column_descriptions[column] = "Median forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
         return column_descriptions
 
     def get_metrics_df(self):
