@@ -337,15 +337,6 @@
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
-            "name": "epoch",
-            "label": "Epoch",
-            "type": "INT",
-            "defaultValue": 50,
-            "mandatory": false,
-            "minI": 1,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
             "name": "context_length",
             "label": "Context length",
             "type": "INT",
@@ -356,13 +347,23 @@
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
+            "name": "epoch",
+            "label": "Number of epochs",
+            "description": "Linearly increases training time",
+            "type": "INT",
+            "defaultValue": 50,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
             "name": "batch_size",
             "label": "Batch size",
+            "description": "Number of samples in one batch",
             "type": "INT",
-            "description": "",
             "defaultValue": 32,
             "mandatory": false,
-            "minI": 0,
+            "minI": 1,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
@@ -375,7 +376,7 @@
             "label": "Evaluation strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Time-based split or backtesting based on GluonTS method (slower)",
+            "description": "Time-based split of chosen forecasting horizon (only supported method)",
             "selectChoices": [
                 {
                     "value": "split",
@@ -398,7 +399,7 @@
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Used only by DeepAR and Transformer models",
+            "description": "Usable only by DeepAR and Transformer models ⚠️ If specified, futures values of external features will be required to forecast",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -410,7 +411,7 @@
             ],
             "columnRole": "input_dataset",
             "mandatory": false,
-            "visibilityCondition": "model.advanced_options == true"
+            "visibilityCondition": "model.advanced_options"
         },
         {
             "name": "evaluation_only",
