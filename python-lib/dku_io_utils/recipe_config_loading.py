@@ -28,6 +28,7 @@ def load_training_config(recipe_config):
     params["training_dataset"] = dataiku.Dataset(input_dataset_name)
     training_dataset_columns = [p["name"] for p in params["training_dataset"].read_schema()]
     params["partition_root"] = get_partition_root(params["training_dataset"])
+    check_equal_partition_dependencies(params["partition_root"], params["training_dataset"])
 
     model_folder_name = get_output_names_for_role("model_folder")[0]
     params["model_folder"] = dataiku.Folder(model_folder_name)
@@ -133,6 +134,8 @@ def load_predict_config():
         raise PluginParamValidationError("Please specify output dataset")
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
     params["partition_root"] = get_partition_root(params["output_dataset"])
+    check_equal_partition_dependencies(params["partition_root"], params["model_folder"])
+    check_equal_partition_dependencies(params["partition_root"], params["external_features_future_dataset"])
 
     params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
@@ -234,3 +237,22 @@ def sanitize_column_list(input_column_list):
     """ Remove empty elements (Nones, '') from input columns list"""
     sanitized_column_list = [input for input in input_column_list if input]
     return sanitized_column_list
+
+
+def check_equal_partition_dependencies(partition_root, dku_computable):
+    """Check that input has equal partition dependencies.
+
+    Args:
+        partition_root (str): Partition root path of output. None if no partitioning.
+        dku_computable (dataiku.Folder/dataiku.Dataset): Input dataset or folder.
+
+    Raises:
+        PluginParamValidationError: If input does not have equal partition dependencies.
+    """
+    if partition_root and dku_computable:
+        if len(dku_computable.read_partitions) > 1:
+            if isinstance(dku_computable, dataiku.Dataset):
+                error_message_prefix = "Input dataset '{}'".format(dku_computable.short_name)
+            if isinstance(dku_computable, dataiku.Folder):
+                error_message_prefix = "Input folder '{}'".format(dku_computable.get_name())
+            raise PluginParamValidationError(error_message_prefix + " must have equal partition dependencies.")
