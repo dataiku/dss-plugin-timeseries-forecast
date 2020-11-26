@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET
+from constants import METRICS_DATASET, TIMESERIES_KEYS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models_labels
 
@@ -23,6 +23,7 @@ class TrainingSession:
         external_features_columns_names (list): List of columns with dynamic real features over time
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
+        num_batches_per_epoch (int): Number of batches per epoch
         gpu (str): Not implemented
         context_length (int): Number of time steps used by model to make predictions
     """
@@ -40,6 +41,7 @@ class TrainingSession:
         external_features_columns_names=None,
         timeseries_identifiers_names=None,
         batch_size=None,
+        user_num_batches_per_epoch=None,
         gpu=None,
         context_length=None,
     ):
@@ -66,11 +68,13 @@ class TrainingSession:
         self.test_list_dataset = None
         self.metrics_df = None
         self.batch_size = batch_size
+        self.user_num_batches_per_epoch = user_num_batches_per_epoch
+        self.num_batches_per_epoch = None
         self.gpu = gpu
         self.context_length = context_length
 
     def init(self, session_name, partition_root=None):
-        """Create the session_path. Instantiate all the selected models. Convert time column to pandas.Datetime without timezones.
+        """Create the session_path. Convert time column to pandas.Datetime without timezones.
         Check types of target, external features and timeseries identifiers columns.
 
         Args:
@@ -85,6 +89,39 @@ class TrainingSession:
             self.session_path = session_name
         else:
             self.session_path = os.path.join(partition_root, session_name)
+        try:
+            self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
+        except Exception:
+            raise ValueError("Time column '{}' cannot be parsed as date. You should parse the date column in a prepare recipe.".format(self.time_column_name))
+
+        self._check_target_columns_types()
+        self._check_external_features_columns_types()
+        self._check_timeseries_identifiers_columns_types()
+
+    def create_gluon_datasets(self):
+        """Create train and test gluon list datasets.
+        The last prediction_length time steps are removed from each timeseries of the train dataset.
+        Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
+        """
+        gluon_dataset = GluonDataset(
+            dataframe=self.training_df,
+            time_column_name=self.time_column_name,
+            frequency=self.frequency,
+            target_columns_names=self.target_columns_names,
+            timeseries_identifiers_names=self.timeseries_identifiers_names,
+            external_features_columns_names=self.external_features_columns_names,
+        )
+
+        self.train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
+        self.test_list_dataset = gluon_dataset.create_list_dataset()
+
+        if self.user_num_batches_per_epoch == -1:
+            self.num_batches_per_epoch = self._compute_optimal_num_batches_per_epoch()
+        else:
+            self.num_batches_per_epoch = self.user_num_batches_per_epoch
+
+    def instantiate_models(self):
+        """Instantiate all the selected models. """
         self.models = []
         for model_name in self.models_parameters:
             model_parameters = self.models_parameters.get(model_name)
@@ -97,78 +134,59 @@ class TrainingSession:
                     epoch=self.epoch,
                     use_external_features=self.use_external_features,
                     batch_size=self.batch_size,
+                    num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
                     context_length=self.context_length,
                 )
             )
-        try:
-            self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
-        except Exception:
-            raise ValueError("Time column '{}' cannot be parsed as date. You should parse the date column in a prepare recipe.".format(self.time_column_name))
-
-        self._check_target_columns_types()
-        self._check_external_features_columns_types()
-        self._check_timeseries_identifiers_columns_types()
 
     def train(self):
         """ Train all the selected models on all data """
         for model in self.models:
             model.train(self.test_list_dataset)
 
-    def evaluate(self, evaluation_strategy="split"):
-        """Train all the selected models on all but the last prediction_length time steps.
-        Evaluate on all data according to the selected evaluation_strategy
-        """
-        gluon_dataset = GluonDataset(
-            dataframe=self.training_df,
-            time_column_name=self.time_column_name,
-            frequency=self.frequency,
-            target_columns_names=self.target_columns_names,
-            timeseries_identifiers_names=self.timeseries_identifiers_names,
-            external_features_columns_names=self.external_features_columns_names,
-        )
-
-        if evaluation_strategy == "split":
-            self.train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
-            self.test_list_dataset = gluon_dataset.create_list_dataset()
-        else:
-            raise Exception("{} evaluation strategy not implemented".format(evaluation_strategy))
-        self.metrics_df = self._compute_all_evaluation_metrics()
-
-    def _compute_all_evaluation_metrics(self):
-        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe if self.make_forecasts is True.
-
-        Returns:
-            Metrics DataFrame.
-        """
-        metrics_df = pd.DataFrame()
-        for model in self.models:
-            if self.make_forecasts:
-                (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
-                forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
-                if self.forecasts_df.empty:
-                    self.forecasts_df = forecasts_df
-                else:
-                    self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
-            else:
-                (item_metrics, identifiers_columns) = model.evaluate(self.train_list_dataset, self.test_list_dataset)
-            metrics_df = metrics_df.append(item_metrics)
-        metrics_df[METRICS_DATASET.SESSION] = self.session_name
-        orderd_metrics_df = self._reorder_metrics_df(metrics_df)
+    def evaluate(self):
+        """Call the right evaluate function depending on the need to make forecasts. """
 
         if self.make_forecasts:
-            self.evaluation_forecasts_df = self.training_df.merge(
-                self.forecasts_df,
-                on=[self.time_column_name] + identifiers_columns,
-                how="left",
-            )
-            self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
-                by=identifiers_columns + [self.time_column_name],
-                ascending=[True] * len(identifiers_columns) + [False]
-            )
-            self.evaluation_forecasts_df[METRICS_DATASET.SESSION] = self.session_name
+            self._evaluate_make_forecast()
+        else:
+            self._evaluate()
 
-        return orderd_metrics_df
+    def _evaluate(self):
+        """Evaluate all the selected models and get the metrics dataframe. """
+        metrics_df = pd.DataFrame()
+        for model in self.models:
+            (item_metrics, identifiers_columns) = model.evaluate(self.train_list_dataset, self.test_list_dataset)
+            metrics_df = metrics_df.append(item_metrics)
+        metrics_df[METRICS_DATASET.SESSION] = self.session_name
+        self.metrics_df = self._reorder_metrics_df(metrics_df)
+
+    def _evaluate_make_forecast(self):
+        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """        
+        metrics_df = pd.DataFrame()
+        for model in self.models:
+            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+            forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
+            if self.forecasts_df.empty:
+                self.forecasts_df = forecasts_df
+            else:
+                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
+            metrics_df = metrics_df.append(item_metrics)
+        metrics_df[METRICS_DATASET.SESSION] = self.session_name
+        self.metrics_df = self._reorder_metrics_df(metrics_df)
+
+        self.evaluation_forecasts_df = self.training_df.merge(
+            self.forecasts_df,
+            on=[self.time_column_name] + identifiers_columns,
+            how="left",
+        )
+        # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
+        self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
+            by=identifiers_columns + [self.time_column_name],
+            ascending=[True] * len(identifiers_columns) + [False]
+        )
+        self.evaluation_forecasts_df[METRICS_DATASET.SESSION] = self.session_name
 
     def _reorder_metrics_df(self, metrics_df):
         """Sort rows by target column and put aggregated rows on top.
@@ -226,3 +244,9 @@ class TrainingSession:
         for column_name in self.timeseries_identifiers_names:
             if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
                 raise ValueError("Timeseries identifiers column '{}' must be of numerical or string data type.".format(column_name))
+
+    def _compute_optimal_num_batches_per_epoch(self):
+        """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
+        total_possible_num_samples = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]) * len(self.train_list_dataset.list_data)
+        optimal_num_batches_per_epoch = total_possible_num_samples // self.batch_size
+        return optimal_num_batches_per_epoch

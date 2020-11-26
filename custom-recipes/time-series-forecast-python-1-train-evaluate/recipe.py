@@ -31,12 +31,17 @@ training_session = TrainingSession(
     external_features_columns_names=params["external_features_columns_names"],
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
     batch_size=params["batch_size"],
+    user_num_batches_per_epoch=params["num_batches_per_epoch"],
     gpu=params["gpu"],
     context_length=params["context_length"],
 )
 training_session.init(partition_root=params["partition_root"], session_name=session_name)
 
-training_session.evaluate(params["evaluation_strategy"])
+training_session.create_gluon_datasets()
+
+training_session.instantiate_models()
+
+training_session.evaluate()
 
 metrics_df = training_session.get_metrics_df()
 params["evaluation_dataset"].write_with_schema(metrics_df)

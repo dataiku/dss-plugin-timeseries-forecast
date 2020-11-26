@@ -26,7 +26,17 @@ class Model(ModelHandler):
     """
 
     def __init__(
-        self, model_name, model_parameters, frequency, prediction_length, epoch, use_external_features=False, batch_size=None, gpu=None, context_length=None
+        self,
+        model_name,
+        model_parameters,
+        frequency,
+        prediction_length,
+        epoch,
+        use_external_features=False,
+        batch_size=None,
+        num_batches_per_epoch=None,
+        gpu=None,
+        context_length=None
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -43,6 +53,9 @@ class Model(ModelHandler):
         self.batch_size = batch_size
         if self.batch_size is not None:
             trainer_kwargs.update({"batch_size": self.batch_size})
+        self.num_batches_per_epoch = num_batches_per_epoch
+        if self.num_batches_per_epoch is not None:
+            trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
@@ -165,6 +178,7 @@ class Model(ModelHandler):
         if self.estimator is None:
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
+            # TODO: catch errors here
             predictor = self.estimator.train(train_list_dataset)
         return predictor
 
@@ -179,6 +193,7 @@ class Model(ModelHandler):
                 "epoch": self.epoch,
                 "use_external_features": self.use_external_features,
                 "batch_size": self.batch_size,
+                "num_batches_per_epoch": self.num_batches_per_epoch,
                 "evaluation_time": round(self.evaluation_time, 2),
                 "timeseries_number": len(train_list_dataset.list_data),
                 "timeseries_length": len(train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])

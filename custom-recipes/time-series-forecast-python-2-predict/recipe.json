@@ -16,8 +16,7 @@
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": false,
-            "acceptsManagedFolder": true,
-            "mustBeStrictlyType": "Filesystem"
+            "acceptsManagedFolder": true
         },
         {
             "name": "external_features_future_dataset",
