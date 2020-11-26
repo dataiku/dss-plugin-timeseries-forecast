@@ -121,7 +121,8 @@ class GluonDataset:
         return univariate_timeseries
 
     def _check_minimum_length(self, dataframe, cut_length):
+        min_length = self.min_length
         if cut_length:
-            self.min_length += cut_length
-        if len(dataframe.index) < self.min_length:
-            raise ValueError("Timeseries must have at least {} time steps (for training, 'prediction_length' time steps are removed).".format(self.min_length))
+            min_length += cut_length
+        if len(dataframe.index) < min_length:
+            raise ValueError("Time series must have at least {} values".format(min_length))
