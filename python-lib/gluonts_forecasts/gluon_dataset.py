@@ -24,6 +24,7 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
+        min_length=None
     ):
         self.dataframe = dataframe
         self.time_column_name = time_column_name
@@ -31,6 +32,7 @@ class GluonDataset:
         self.target_columns_names = target_columns_names
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.external_features_columns_names = external_features_columns_names
+        self.min_length = min_length
 
     def create_list_dataset(self, cut_length=None):
         """Create timeseries for each identifier tuple and each target.
@@ -42,7 +44,6 @@ class GluonDataset:
         Returns:
             gluonts.dataset.common.ListDataset with extra keys for each timeseries
         """
-        length = -cut_length if cut_length else None
         multivariate_timeseries = []
         if self.timeseries_identifiers_names:
             start_date, periods = None, None
@@ -58,30 +59,31 @@ class GluonDataset:
                 if i == 0:
                     start_date = identifiers_df[self.time_column_name].iloc[0]
                     periods = len(identifiers_df.index)
-                multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, length, identifiers_values=identifiers_values)
+                multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, cut_length, identifiers_values=identifiers_values)
         else:
             self.dataframe = self.dataframe.sort_values(by=self.time_column_name, ascending=True)
             assert_time_column_valid(self.dataframe, self.time_column_name, self.frequency)
-            multivariate_timeseries += self._create_gluon_multivariate_timeseries(self.dataframe, length)
+            multivariate_timeseries += self._create_gluon_multivariate_timeseries(self.dataframe, cut_length)
         return ListDataset(multivariate_timeseries, freq=self.frequency)
 
-    def _create_gluon_multivariate_timeseries(self, df, length, identifiers_values=None):
+    def _create_gluon_multivariate_timeseries(self, df, cut_length, identifiers_values=None):
         """Create a list of timeseries dictionaries for each target column
 
         Args:
             df (DataFrame): timeseries dataframe with one or multiple target columns
-            length (int)
+            cut_length (int): Remove the last cut_length time steps of each timeseries. Can be None.
             identifiers_values (obj/tuple, optional): Values or tuple of values of the groupby. Defaults to None.
 
         Returns:
             List of timeseries dictionaries
         """
+        self._check_minimum_length(df, cut_length)
         multivariate_timeseries = []
         for target_column_name in self.target_columns_names:
-            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, length, identifiers_values))
+            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(df, target_column_name, cut_length, identifiers_values))
         return multivariate_timeseries
 
-    def _create_gluon_univariate_timeseries(self, df, target_column_name, length, identifiers_values=None):
+    def _create_gluon_univariate_timeseries(self, df, target_column_name, cut_length, identifiers_values=None):
         """Create a dictionary with keys to store information about the timeseries:
             - start (Pandas.Timestamp): start date of timeseries
             - target (numpy.array): array of target values
@@ -94,12 +96,13 @@ class GluonDataset:
         Args:
             df (DataFrame): timeseries dataframe with one or multiple target columns
             target_column_name (str)
-            length (int): None or negative integer used to slice the dataframe index (i.e., to remove the last time steps).
+            cut_length (int): Remove the last cut_length time steps of each timeseries. Can be None.
             identifiers_values (obj/tuple, optional): Values or tuple of values of the groupby. Defaults to None.
 
         Returns:
             Dictionary for one timeseries
         """
+        length = -cut_length if cut_length else None
         univariate_timeseries = {
             TIMESERIES_KEYS.START: df[self.time_column_name].iloc[0],
             TIMESERIES_KEYS.TARGET: df[target_column_name].iloc[:length].values,
@@ -116,3 +119,9 @@ class GluonDataset:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
             univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
         return univariate_timeseries
+
+    def _check_minimum_length(self, dataframe, cut_length):
+        if cut_length:
+            self.min_length += cut_length
+        if len(dataframe.index) < self.min_length:
+            raise ValueError("Timeseries must have at least {} time steps (for training, 'prediction_length' time steps are removed).".format(self.min_length))

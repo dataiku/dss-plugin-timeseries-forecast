@@ -111,6 +111,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
+            min_length=self.prediction_length + self.context_length
         )
 
         self.train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
