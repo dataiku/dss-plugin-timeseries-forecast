@@ -320,19 +320,19 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "tft_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "No documentation available yet",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
             "mandatory": false
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "nbeats_model_activated",
@@ -341,14 +341,35 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "nbeats_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "mqcnn_model_activated",
+            "label": "- MQ-CNN",
+            "description": "Based on the MQCNNEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "mqcnn_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
             "mandatory": false
         },
         {
@@ -361,10 +382,10 @@
             "name": "context_length",
             "label": "Context length",
             "type": "INT",
-            "description": "If 0, same as prediction length.",
-            "defaultValue": 0,
+            "description": "If -1, same as prediction length.",
+            "defaultValue": -1,
             "mandatory": false,
-            "minI": 0,
+            "minI": -1,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
@@ -387,6 +408,16 @@
             "minI": 1,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
+        {
+            "name": "num_batches_per_epoch",
+            "label": "Number of batches per epoch",
+            "description": "If -1, automatically adjust to the training data size (experimental: total_num_samples (= ts_length * ts_nb / (context_length + prediction_length)) / batch_size .",
+            "type": "INT",
+            "defaultValue": 50,
+            "mandatory": false,
+            "minI": -1,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },        
         {
             "name": "separator_evaluation",
             "label": "Performance Evaluation",

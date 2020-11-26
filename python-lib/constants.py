@@ -52,5 +52,5 @@ TIME_DIMENSION_PATTERNS = {
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
         "auto": ["naive_model", "naive", "deepar"],
-        "auto_performance": ["naive_model", "naive", "simplefeedforward", "deepar", "transformer", "nbeats"]
+        "auto_performance": ["naive_model", "naive", "simplefeedforward", "deepar", "transformer", "mqcnn"]
     }

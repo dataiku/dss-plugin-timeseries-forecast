@@ -1,10 +1,10 @@
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
 from gluonts.model.n_beats import NBEATSEstimator
+from gluonts.model.seq2seq import MQCNNEstimator
 from gluonts.model.transformer import TransformerEstimator
 from gluonts.model.tft import TemporalFusionTransformerEstimator
 from gluonts.mx.trainer import Trainer
-from gluonts.model.naive_2 import Naive2Predictor
 from gluonts.model.trivial.mean import MeanEstimator, MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
@@ -21,12 +21,6 @@ LABEL = "label"
 
 MODEL_DESCRIPTORS = {
     "default": {},
-    "naive": {
-        LABEL: "Baseline",
-        ESTIMATOR: None,
-        PREDICTOR: Naive2Predictor,
-        TRAINER: None
-    },
     "trivial_identity": {
         LABEL: "TrivialIdentity",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -73,6 +67,11 @@ MODEL_DESCRIPTORS = {
     "nbeats": {
         LABEL: "NBEATS",
         ESTIMATOR: NBEATSEstimator,
+        TRAINER: Trainer
+    },
+    "mqcnn": {
+        LABEL: "MQ-CNN",
+        ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer
     },
     "tft": {
