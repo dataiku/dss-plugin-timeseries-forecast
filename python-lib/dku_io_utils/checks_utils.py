@@ -2,7 +2,7 @@ from constants import TIMESERIES_KEYS
 
 
 def external_features_future_dataset_schema_check(train_data_sample, external_features_future_dataset):
-    """Check that the schema of external_features_future_dataset contains only the following column names:
+    """Check that the schema of external_features_future_dataset contains the following column names:
         - train_data_sample["time_column_name"]
         - train_data_sample["feat_dynamic_real_columns_names"]
         - train_data_sample["identifiers"].keys()
@@ -18,8 +18,8 @@ def external_features_future_dataset_schema_check(train_data_sample, external_fe
     expected_columns = [train_data_sample[TIMESERIES_KEYS.TIME_COLUMN_NAME]] + train_data_sample[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES]
     if TIMESERIES_KEYS.IDENTIFIERS in train_data_sample:
         expected_columns += list(train_data_sample[TIMESERIES_KEYS.IDENTIFIERS].keys())
-    if set(external_features_future_columns) != set(expected_columns):
-        raise ValueError("The dataset of future values of external features must contains exactly the following columns: {}".format(expected_columns))
+    if not set(expected_columns).issubset(set(external_features_future_columns)):
+        raise ValueError("The dataset of future values of external features must contains the following columns: {}".format(expected_columns))
 
 
 def external_features_check(gluon_train_dataset, external_features_future_dataset):
