@@ -143,7 +143,7 @@
         {
             "name": "additional_columns",
             "label": "Long format",
-            "description": "",
+            "description": "If your dataset has columns to identify multiple time series",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
@@ -163,7 +163,7 @@
             ],
             "columnRole": "input_dataset",
             "mandatory": false,
-            "visibilityCondition": "model.additional_columns == true"
+            "visibilityCondition": "model.additional_columns"
         },
         {
             "name": "separator_modeling",
@@ -180,7 +180,7 @@
         },
         {
             "name": "prediction_length",
-            "label": "Forecast horizon",
+            "label": "Forecasting horizon",
             "type": "INT",
             "defaultValue": 1,
             "mandatory": true,
@@ -188,7 +188,7 @@
         },
         {
             "name": "forecasting_style",
-            "label": "Forecast mode",
+            "label": "Forecasting mode",
             "type": "SELECT",
             "mandatory": true,
             "selectChoices": [
@@ -242,7 +242,7 @@
                 },
                 {
                     "value": "seasonal_naive",
-                    "label": "Forecast value at previous period with seasonal decomposition"
+                    "label": "Forecast value from previous season"
                 }
             ]
         },
@@ -263,7 +263,7 @@
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.simple_feedforward.html",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
             "mandatory": false
         },
@@ -284,7 +284,7 @@
             "name": "deepar_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.deepar.html",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.deepar_model_activated",
             "mandatory": false
         },
@@ -305,7 +305,7 @@
             "name": "transformer_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.transformer.html",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.transformer_model_activated",
             "mandatory": false
         },
@@ -326,7 +326,7 @@
             "name": "nbeats_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "Optional parameters cf. https://gluon-ts.mxnet.io/api/gluonts/gluonts.model.n_beats.html",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
             "mandatory": false
         },
