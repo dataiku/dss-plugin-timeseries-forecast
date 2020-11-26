@@ -93,7 +93,11 @@ def load_training_config(recipe_config):
     else:
         params["epoch"] = recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
-    params["num_batches_per_epoch"] = recipe_config.get("num_batches_per_epoch", 50)
+    params["auto_num_batches_per_epoch"] = recipe_config.get("auto_num_batches_per_epoch", False)
+    if params["auto_num_batches_per_epoch"]:
+        params["num_batches_per_epoch"] = -1
+    else:
+        params["num_batches_per_epoch"] = recipe_config.get("num_batches_per_epoch", 50)
     if params["num_batches_per_epoch"] == 0:
         raise PluginParamValidationError("The number of batches per epoch cannot be 0")
 
