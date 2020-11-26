@@ -82,6 +82,11 @@ MODEL_DESCRIPTORS = {
 }
 
 
+class ModelParameterError(ValueError):
+    """Custom exception raised when the GluonTS model parameters chosen by the user are invalid"""
+    pass
+
+
 class ModelHandler:
     """
     Class to retrieve the estimator, trainer or descriptor of a GluonTS model
@@ -104,15 +109,27 @@ class ModelHandler:
     def estimator(self, model_parameters, **kwargs):
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
-        return None if estimator is None else estimator(**kwargs)
+        try:
+            ret = None if estimator is None else estimator(**kwargs)
+        except Exception as err:
+            raise ModelParameterError("Issue with the parameters ({}) for model '{}' estimator: {}".format(kwargs, self.model_name, err))
+        return ret
 
     def trainer(self, **kwargs):
         trainer = self.model_descriptor.get(TRAINER)
-        return None if trainer is None else trainer(**kwargs)
+        try:
+            ret = None if trainer is None else trainer(**kwargs)
+        except Exception as err:
+            raise ModelParameterError("Issue with the parameters ({}) for model '{}' trainer: {}".format(kwargs, self.model_name, err))
+        return ret
 
-    def predictor(self, **kwargs):   
+    def predictor(self, **kwargs):
         predictor = self.model_descriptor.get(PREDICTOR)
-        return None if predictor is None else predictor(**kwargs)
+        try:
+            ret = None if predictor is None else predictor(**kwargs)
+        except Exception as err:
+            raise ModelParameterError("Issue with the parameters ({}) for model '{}' predictor: {}".format(kwargs, self.model_name, err))
+        return ret
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)

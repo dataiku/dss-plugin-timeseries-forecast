@@ -10,7 +10,7 @@ logging = SafeLogger("Forecast plugin")
 
 
 class ModelTrainingError(Exception):
-    """Custom exception raised when the the plugin parameters chosen by the user are invalid"""
+    """Custom exception raised when the model training fails"""
     pass
 
 
