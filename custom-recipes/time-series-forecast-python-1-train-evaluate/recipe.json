@@ -314,6 +314,27 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
+            "name": "tft_model_activated",
+            "label": "- TFT",
+            "description": "Based on the TemporalFusionTransformer GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "tft_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "No documentation available yet",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
             "name": "nbeats_model_activated",
             "label": "- NBEATS",
             "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
