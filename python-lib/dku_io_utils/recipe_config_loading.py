@@ -87,20 +87,27 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError("The context length cannot be 0")
 
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
-    if params["forecasting_style"] == "auto":
-        params["epoch"] = 50
-    elif params["forecasting_style"] == "auto_performance":
-        params["epoch"] = 100
-    else:
-        params["epoch"] = recipe_config.get("epoch", 10)
+    params["epoch"] = recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
-    params["auto_num_batches_per_epoch"] = recipe_config.get("auto_num_batches_per_epoch", False)
+
+    params["auto_num_batches_per_epoch"] = recipe_config.get("auto_num_batches_per_epoch", True)
     if params["auto_num_batches_per_epoch"]:
         params["num_batches_per_epoch"] = -1
     else:
         params["num_batches_per_epoch"] = recipe_config.get("num_batches_per_epoch", 50)
+
     if params["num_batches_per_epoch"] == 0:
         raise PluginParamValidationError("The number of batches per epoch cannot be 0")
+
+    # Overwrite values in case of autoML mode selected
+    if params["forecasting_style"] == "auto":
+        params["epoch"] = 50
+        params["batch_size"] = 32
+        params["num_batches_per_epoch"] = -1
+    elif params["forecasting_style"] == "auto_performance":
+        params["epoch"] = 100
+        params["batch_size"] = 32
+        params["num_batches_per_epoch"] = -1
 
     # V2 implement
     params["gpu"] = recipe_config.get("gpu", "no_gpu")
@@ -173,9 +180,9 @@ def get_models_parameters(config):
             if "prediction_length" in model_presets.get("kwargs", {}):
                 raise ValueError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({model: model_presets})
-    models_parameters = set_naive_model_parameters(config, models_parameters)
     if not models_parameters:
         raise PluginParamValidationError("No model is activated. Please select at least one.")
+    models_parameters = set_naive_model_parameters(config, models_parameters)
     return models_parameters
 
 
