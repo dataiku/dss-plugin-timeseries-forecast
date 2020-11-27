@@ -5,11 +5,13 @@ from dku_io_utils.model_selection import ModelSelection
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
 from safe_logger import SafeLogger
+from time import perf_counter
 
-logging = SafeLogger("Forecast plugin")
+logger = SafeLogger("Forecast plugin")
 params = load_predict_config()
 
-logging.info("Starting prediction with params={}".format(params))
+start = perf_counter()
+logger.info("Forecasting future values...")
 
 model_selection = ModelSelection(
     folder=params["model_folder"],
@@ -45,6 +47,8 @@ trained_model = TrainedModel(
 )
 
 trained_model.predict()
+
+logger.info("Forecasting future values: Done in {:.2f} seconds".format(perf_counter() - start))
 
 forecasts_df = trained_model.get_forecasts_df(session=model_selection.session, model_label=model_selection.model_label)
 params["output_dataset"].write_with_schema(forecasts_df)

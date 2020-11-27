@@ -3,7 +3,7 @@ class METRICS_DATASET:
 
     TARGET_COLUMN = "target_column"
     MODEL_COLUMN = "model"
-    AGGREGATED_ROW = "aggregated"
+    AGGREGATED_ROW = "__aggregated__"
     MODEL_PARAMETERS = "model_params"
     SESSION = "training_session"
 
@@ -33,6 +33,7 @@ EVALUATION_METRICS_DESCRIPTIONS = {
 
 
 METRICS_COLUMNS_DESCRIPTIONS = {
+    METRICS_DATASET.MODEL_COLUMN: "Model name",
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",

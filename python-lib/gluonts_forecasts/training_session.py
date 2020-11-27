@@ -217,8 +217,7 @@ class TrainingSession:
         Returns:
             Dictionary of description (value) by column (key).
         """
-        column_descriptions = {}
-        column_descriptions[METRICS_DATASET.SESSION] = METRICS_COLUMNS_DESCRIPTIONS[METRICS_DATASET.SESSION]
+        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS
         available_models_labels = list_available_models_labels()
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]

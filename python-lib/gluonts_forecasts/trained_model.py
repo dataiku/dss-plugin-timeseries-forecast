@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
-from constants import METRICS_DATASET, TIMESERIES_KEYS
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
 
 
 class TrainedModel:
@@ -162,7 +162,7 @@ class TrainedModel:
                 forecasts_series = (
                     sample_forecasts.quantile_ts(quantile)
                     .rename(
-                        "Forecasts_percentile_{}_{}".format(
+                        "forecast_percentile_{}_{}".format(
                             int(quantile * 100),
                             self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME],
                         )
@@ -201,19 +201,19 @@ class TrainedModel:
 
     def create_forecasts_column_description(self):
         """ Explain the meaning of the forecasts columns """
-        column_descriptions = {}
+        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS
         for column in self.forecasts_df.columns:
-            if "_forecasts_percentile_50" in column:
-                column_descriptions[column] = "Median of all sample predictions."
-            elif "_forecasts_percentile_" in column:
-                column_descriptions[column] = "{}% of sample predictions are below these values.".format(column.split("_")[-1])
+            if "forecast_percentile_50" in column:
+                column_descriptions[column] = "Median of probabilistic forecasts"
+            elif "forecast_percentile" in column:
+                column_descriptions[column] = "{}% of probabilistic forecasts are below these values".format(column.split("_")[2])
         return column_descriptions
 
     def _check(self):
         """ Raises ValueError if the selected prediction_length is higher than the one used in training """
         if self.predictor.prediction_length < self.prediction_length:
             raise ValueError(
-                "The selected prediction length ({}) cannot be higher than the one ({}) used in training !".format(
+                "The selected prediction length ({}) cannot be higher than the one ({}) used in training".format(
                     self.prediction_length, self.predictor.prediction_length
                 )
             )

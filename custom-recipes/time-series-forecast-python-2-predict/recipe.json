@@ -12,7 +12,7 @@
         {
             "name": "model_folder",
             "label": "Trained models folder",
-            "description": "The folder containing models stored by the \"Train\" recipe",
+            "description": "Folder containing models saved by the \"Train\" recipe",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": false,
@@ -21,22 +21,22 @@
         {
             "name": "external_features_future_dataset",
             "label": "External features (optional)",
-            "description": "If you passed external features to the \"Train\" recipe, this dataset must provide their values for the range of dates to forecast.",
+            "description": "If you passed external features to the \"Train\" recipe, this dataset must provide their values for the range of dates to forecast",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
-            "acceptsFolder": false
+            "acceptsManagedFolder": false
         }
     ],
     "outputRoles": [
         {
             "name": "output_dataset",
             "label": "Forecast dataset",
-            "description": "This dataset will store forecast values",
+            "description": "Dataset with forecasted values",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
-            "acceptsFolder": false
+            "acceptsManagedFolder": false
         }
     ],
     "paramsPythonSetup": "select_model_version.py",
@@ -52,7 +52,7 @@
             "type": "SELECT",
             "mandatory": true,
             "defaultValue": "auto",
-            "description": "Auto mode selects the best model from the latest train session",
+            "description": "Auto selects the model with the best performance in the last training session",
             "getChoicesFromPython": true
         },
         {
@@ -118,12 +118,13 @@
         },
         {
             "name": "prediction_length",
-            "label": "Forecast horizon",
+            "label": "Forecasting horizon",
             "type": "INT",
             "mandatory": true,
             "defaultValue": -1,
             "description": "A value of -1 sets the horizon to the one used at training time. Expressed in number of time steps, it must be smaller than the horizon used at training time.",
-            "minI": -1
+            "minI": -1,
+            "visibilityCondition": "false"
         },
         {
             "name": "quantiles",
@@ -135,12 +136,12 @@
                 0.5,
                 0.9
             ],
-            "description": "Quantiles are values that divide a distribution such that there is a given proportion of observations below them. The median corresponds to the quantile of value 0.5."
+            "description": "Quantiles of probabilistic forecast: 0.5 as median forecast, with optional lower and upper confidence quantiles"
         },
         {
             "name": "include_history",
-            "label": "Include history?",
-            "description": "Keep historical data in addition to future values.",
+            "label": "Include history",
+            "description": "Keep historical data in addition to forecasted values",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
