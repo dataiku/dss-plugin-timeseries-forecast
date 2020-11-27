@@ -159,13 +159,16 @@ class TrainedModel:
                 timeseries_identifier_key = None
 
             for quantile in self.quantiles:
+                if quantile == 0.5:
+                    forecasts_label_prefix = "forecast_median"
+                else:
+                    forecasts_label_prefix = "forecast_percentile_{}".format(int(quantile * 100))
+
                 forecasts_series = (
                     sample_forecasts.quantile_ts(quantile)
-                    .rename(
-                        "forecast_percentile_{}_{}".format(
-                            int(quantile * 100),
-                            self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME],
-                        )
+                    .rename("{}_{}".format(
+                        forecasts_label_prefix,
+                        self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME])
                     )
                     .iloc[: self.prediction_length]
                 )
@@ -203,7 +206,7 @@ class TrainedModel:
         """ Explain the meaning of the forecasts columns """
         column_descriptions = METRICS_COLUMNS_DESCRIPTIONS
         for column in self.forecasts_df.columns:
-            if "forecast_percentile_50" in column:
+            if "forecast_median" in column:
                 column_descriptions[column] = "Median of probabilistic forecasts"
             elif "forecast_percentile" in column:
                 column_descriptions[column] = "{}% of probabilistic forecasts are below these values".format(column.split("_")[2])

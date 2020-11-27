@@ -163,6 +163,8 @@ def load_predict_config():
     params["quantiles"] = recipe_config.get("quantiles")
     if any(x < 0 or x > 1 for x in params["quantiles"]):
         raise PluginParamValidationError("Quantiles must be between 0 and 1.")
+    if 0.5 not in params["quantiles"]:
+        params["quantiles"].append(0.5)
     params["quantiles"].sort()
 
     params["include_history"] = recipe_config.get("include_history")
