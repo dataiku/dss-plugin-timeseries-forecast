@@ -252,6 +252,6 @@ class TrainingSession:
         timeseries_length = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
         timeseries_number = len(self.train_list_dataset.list_data)
         sample_length = self.prediction_length + self.context_length
-        total_possible_num_samples = (timeseries_length / sample_length) * timeseries_number
+        total_possible_num_samples = (timeseries_length + 1 - sample_length) * timeseries_number
         optimal_num_batches_per_epoch = math.ceil(total_possible_num_samples / self.batch_size)
-        return optimal_num_batches_per_epoch
+        return max(optimal_num_batches_per_epoch, 50)
