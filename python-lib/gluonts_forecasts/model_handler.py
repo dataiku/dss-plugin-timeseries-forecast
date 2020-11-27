@@ -20,7 +20,7 @@ LABEL = "label"
 
 
 MODEL_DESCRIPTORS = {
-    "default": {},
+    "naive": {},  # to check if a baseline model is selected
     "trivial_identity": {
         LABEL: "TrivialIdentity",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -71,8 +71,9 @@ MODEL_DESCRIPTORS = {
     },
     "mqcnn": {
         LABEL: "MQ-CNN",
+        CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
-        TRAINER: Trainer
+        TRAINER: Trainer,
     },
     "tft": {
         LABEL: "TemporalFusionTransformer",
@@ -151,7 +152,6 @@ def list_available_models():
         dict_keys of model names.
     """
     available_models = MODEL_DESCRIPTORS.copy()
-    available_models.pop('default')
     return available_models.keys()
 
 
