@@ -14,14 +14,14 @@
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
-            "acceptsFolder": false
+            "acceptsManagedFolder": false
         }
     ],
     "outputRoles": [
         {
             "name": "model_folder",
             "label": "Trained model folder",
-            "description": "This folder will be used to store trained models.",
+            "description": "Folder to save trained forecasting models",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": false,
@@ -30,20 +30,20 @@
         {
             "name": "evaluation_dataset",
             "label": "Performance results",
-            "description": "Performance results of the models backtested on historical data.",
+            "description": "Performance metrics of forecasting models backtested on historical data",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
-            "acceptsFolder": false
+            "acceptsManagedFolder": false
         },
         {
-            "name": "evaluation_forecasts",
+            "name": "evaluation_forecasts_dataset",
             "label": "Backtest forecasts (optional)",
-            "description": "Train and test data with the forecasts used to evaluate performance metrics.",
+            "description": "Backtest data used to compute performance metrics",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
-            "acceptsFolder": false
+            "acceptsManagedFolder": false
         }
     ],
     "params": [
@@ -82,7 +82,7 @@
                 },
                 {
                     "value": "B",
-                    "label": "Business Day (Mon - Fri)"
+                    "label": "Business Day (Mon-Fri)"
                 },
                 {
                     "value": "W",
@@ -257,14 +257,14 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+            "visibilityCondition": "false && model.simplefeedforward_model_activated"
         },
         {
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
+            "visibilityCondition": "false",
             "mandatory": false
         },
         {
@@ -382,7 +382,7 @@
             "name": "context_length",
             "label": "Context length",
             "type": "INT",
-            "description": "If -1, same as prediction length.",
+            "description": "If -1, same as forecasting horizon",
             "defaultValue": -1,
             "mandatory": false,
             "minI": -1,
@@ -391,7 +391,7 @@
         {
             "name": "epoch",
             "label": "Number of epochs",
-            "description": "Linearly increases training time",
+            "description": "More epochs lead to better performance, but increase runtime linearly",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
@@ -410,16 +410,16 @@
         },
         {
             "name": "auto_num_batches_per_epoch",
-            "label": "Sample all the dataset",
-            "description": "Automatically adjust to the training data size",
+            "label": "Sample all data",
+            "description": "Automatically scale the number of batches per epoch with the training data size",
             "type": "BOOLEAN",
-            "defaultValue": false,
+            "defaultValue": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "num_batches_per_epoch",
             "label": "Number of batches per epoch",
-            "description": "",
+            "description": "Number of training batches used in one epoch",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
@@ -452,14 +452,15 @@
         },
         {
             "name": "advanced_options",
-            "label": "Expert mode",
+            "label": "Display advanced options",
+            "description": "External features",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Usable only by DeepAR and Transformer models ⚠️ If specified, futures values of external features will be required to forecast",
+            "description": "⚠️ If specified, futures values of external features will be required to forecast",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",

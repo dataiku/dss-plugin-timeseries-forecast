@@ -8,6 +8,9 @@ import re
 from gluonts_forecasts.model_handler import list_available_models
 from dku_io_utils.utils import get_partition_root
 from constants import FORECASTING_STYLE_PRESELECTED_MODELS
+from safe_logger import SafeLogger
+
+logger = SafeLogger("Forecast plugin")
 
 
 class PluginParamValidationError(ValueError):
@@ -37,9 +40,9 @@ def load_training_config(recipe_config):
     params["evaluation_dataset"] = dataiku.Dataset(evaluation_dataset_name)
 
     params["make_forecasts"] = False
-    evaluation_forecasts_names = get_output_names_for_role("evaluation_forecasts")
-    if len(evaluation_forecasts_names) > 0:
-        params["evaluation_forecasts"] = dataiku.Dataset(evaluation_forecasts_names[0])
+    evaluation_forecasts_dataset_names = get_output_names_for_role("evaluation_forecasts_dataset")
+    if len(evaluation_forecasts_dataset_names) > 0:
+        params["evaluation_forecasts_dataset"] = dataiku.Dataset(evaluation_forecasts_dataset_names[0])
         params["make_forecasts"] = True
 
     params["time_column_name"] = recipe_config.get("time_column")
@@ -47,7 +50,9 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError("Invalid time column selection")
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
-    if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
+    if len(params["target_columns_names"]) == 0 or not all(
+        column in training_dataset_columns for column in params["target_columns_names"]
+    ):
         raise PluginParamValidationError("Invalid target column(s) selection")
 
     long_format = recipe_config.get("additional_columns", False)
@@ -114,6 +119,10 @@ def load_training_config(recipe_config):
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
+    printable_params = {
+        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
+    }
+    logger.info("Recipe parameters: {}".format(printable_params))
     return params
 
 
@@ -126,7 +135,7 @@ def load_predict_config():
     params = {}
     recipe_config = get_recipe_config()
 
-    # input folder
+    # model folder
     model_folder = dataiku.Folder(get_input_names_for_role("model_folder")[0])
     params["model_folder"] = model_folder
 
@@ -158,6 +167,11 @@ def load_predict_config():
 
     params["include_history"] = recipe_config.get("include_history")
 
+    printable_params = {
+        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
+    }
+    logger.info("Recipe parameters: {}".format(printable_params))
+
     return params
 
 
@@ -182,6 +196,7 @@ def get_models_parameters(config):
             models_parameters.update({model: model_presets})
     assert_non_naive_model_selected(models_parameters)
     models_parameters = set_naive_model_parameters(config, models_parameters)
+    logger.info("Model parameters: {}".format(models_parameters))
     return models_parameters
 
 

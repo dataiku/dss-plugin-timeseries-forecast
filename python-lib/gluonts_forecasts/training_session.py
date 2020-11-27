@@ -3,7 +3,7 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, TIMESERIES_KEYS
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models_labels
 
@@ -47,7 +47,6 @@ class TrainingSession:
         context_length=None,
     ):
         self.models_parameters = models_parameters
-        self.model_names = []
         self.models = None
         self.glutonts_dataset = None
         self.training_df = training_df
@@ -165,7 +164,7 @@ class TrainingSession:
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
     def _evaluate_make_forecast(self):
-        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """        
+        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
             (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
@@ -218,7 +217,7 @@ class TrainingSession:
         Returns:
             Dictionary of description (value) by column (key).
         """
-        column_descriptions = {}
+        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS
         available_models_labels = list_available_models_labels()
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]

@@ -1,5 +1,4 @@
 import io
-import os
 import dill as pickle
 import dataiku
 import pandas as pd
@@ -8,7 +7,7 @@ import gzip
 from constants import TIME_DIMENSION_PATTERNS
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Forecast plugin")
+logger = SafeLogger("Forecast plugin")
 
 
 def read_from_folder(folder, path, object_type):
@@ -26,7 +25,7 @@ def read_from_folder(folder, path, object_type):
     Returns:
         Object based on the requested type.
     """
-    logging.info("Loading {}".format(os.path.join(folder.get_path(), path)))
+    logger.info("Loading {} from folder".format(path))
     if not folder.get_path_details(path=path)["exists"]:
         raise ValueError("File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"]))
     with folder.get_download_stream(path) as stream:
@@ -57,7 +56,7 @@ def write_to_folder(object_to_save, folder, path, object_type):
     Raises:
         ValueError: Object type is not supported.
     """
-    logging.info("Saving {}".format(os.path.join(folder.get_path(), path)))
+    logger.info("Saving {} to folder".format(path))
     with folder.get_writer(path) as writer:
         if object_type == "pickle":
             writeable = pickle.dumps(object_to_save)

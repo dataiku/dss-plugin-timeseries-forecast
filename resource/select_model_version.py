@@ -35,7 +35,7 @@ def do(payload, config, plugin_config, inputs):
             choices += [{"label": model, "value": model}]
 
     elif payload.get("parameterName") == "model_selection_mode":
-        choices = [{"label": "Automatic", "value": "auto"}]
+        choices = [{"label": "Auto", "value": "auto"}]
         if len(sessions) > 0:
             choices += [{"label": "Manual", "value": "manual"}]
 

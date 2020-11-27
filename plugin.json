@@ -6,7 +6,7 @@
         "category": "Time Series",
         "description": "Forecast multivariate time series from year to minute frequency with Deep Learning models",
         "author": "Dataiku",
-        "icon": "icon-bolt",
+        "icon": "icon-calendar",
         "licenseInfo": "Apache Software License v2",
         "url": "https://www.dataiku.com/product/plugins/time-series-forecast-python/",
         "supported": true,
