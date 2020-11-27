@@ -17,6 +17,7 @@ TRAINER = "trainer"
 PREDICTOR = "predictor"
 NEEDS_NUM_SAMPLES = "needs_num_samples"
 LABEL = "label"
+IS_NAIVE = "is_naive"
 
 
 MODEL_DESCRIPTORS = {
@@ -29,6 +30,7 @@ MODEL_DESCRIPTORS = {
         TRAINER: None,
         CAN_USE_CONTEXT_LENGTH: False,
         NEEDS_NUM_SAMPLES: True,
+        IS_NAIVE: True,
     },
     "trivial_mean": {
         LABEL: "TrivialMean",
@@ -36,7 +38,8 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: MeanEstimator,
         PREDICTOR: MeanPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False
+        CAN_USE_CONTEXT_LENGTH: False,
+        IS_NAIVE: True,
     },
     "seasonal_naive": {
         LABEL: "SeasonalNaive",
@@ -44,7 +47,8 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: SeasonalNaivePredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False
+        CAN_USE_CONTEXT_LENGTH: False,
+        IS_NAIVE: True,
     },
     "simplefeedforward": {
         LABEL: "FeedForward",
@@ -168,6 +172,17 @@ def list_available_models_labels():
         if label is not None:
             available_models_labels.append(label)
     return available_models_labels
+
+
+def list_naive_models_labels():
+    """ Returns list of naive models labels """
+    naive_models_labels = []
+    for model, model_descriptors in MODEL_DESCRIPTORS.items():
+        if model_descriptors.get(IS_NAIVE):
+            label = model_descriptors.get(LABEL)
+            if label is not None:
+                naive_models_labels.append(label)
+    return naive_models_labels
 
 
 def get_model_label(model_name):
