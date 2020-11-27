@@ -10,7 +10,7 @@ from dku_io_utils.utils import get_partition_root
 from constants import FORECASTING_STYLE_PRESELECTED_MODELS
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Forecast plugin")
+logger = SafeLogger("Forecast plugin")
 
 
 class PluginParamValidationError(ValueError):
@@ -115,7 +115,7 @@ def load_training_config(recipe_config):
     printable_params = {
         param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
     }
-    logging.info("Recipe parameters: {}".format(printable_params))
+    logger.info("Recipe parameters: {}".format(printable_params))
     return params
 
 
@@ -163,7 +163,7 @@ def load_predict_config():
     printable_params = {
         param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
     }
-    logging.info("Recipe parameters: {}".format(printable_params))
+    logger.info("Recipe parameters: {}".format(printable_params))
 
     return params
 
@@ -188,7 +188,7 @@ def get_models_parameters(config):
                 raise ValueError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({model: model_presets})
     models_parameters = set_naive_model_parameters(config, models_parameters)
-    logging.info("Model parameters: {}".format(models_parameters))
+    logger.info("Model parameters: {}".format(models_parameters))
     return models_parameters
 
 

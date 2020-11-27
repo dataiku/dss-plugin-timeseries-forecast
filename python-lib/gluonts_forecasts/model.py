@@ -3,10 +3,10 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
-import time
+from time import perf_counter
 from safe_logger import SafeLogger
 
-logging = SafeLogger("Forecast plugin")
+logger = SafeLogger("Forecast plugin")
 
 
 class ModelTrainingError(Exception):
@@ -76,8 +76,10 @@ class Model(ModelHandler):
         return self.model_name
 
     def train(self, train_list_dataset):
-        logging.info("Starting training for model {}".format(self.model_name))
-        self.predictor = self._get_predictor(train_list_dataset)
+        start = perf_counter()
+        logger.info("Training {} model...".format(self.get_label()))
+        self.predictor = self._train_estimator(train_list_dataset)
+        logger.info("Training {} model: Done in {:.2f} seconds".format(self.get_label(), perf_counter() - start))
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
         """Train Model on train_list_dataset and evaluate it on test_list_dataset.
@@ -92,17 +94,17 @@ class Model(ModelHandler):
             List of timeseries identifiers column names. Empty list if none found in train_list_dataset.
             DataFrame of predictions for the last prediction_length timesteps of the test_list_dataset timeseries if make_forecasts is True.
         """
-        logging.info("Training model {} for evaluation".format(self.model_name))
-        start_time = time.time()
-        evaluation_predictor = self._get_predictor(train_list_dataset)
+        logger.info("Evaluating {} model performance...".format(self.get_label()))
+        start = perf_counter()
+        evaluation_predictor = self._train_estimator(train_list_dataset)
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
-        self.evaluation_time = time.time() - start_time
+        self.evaluation_time = perf_counter() - start
+        logger.info("Evaluating {} model performance: Done in {:.2f} seconds".format(self.get_label(), perf_counter() - start))
 
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
         if make_forecasts:
-            logging.info("Starting forecast on model {}".format(self.model_name))
             mean_forecasts_timeseries = self._compute_mean_forecasts_timeseries(forecasts, train_list_dataset)
             multiple_df = concat_timeseries_per_identifiers(mean_forecasts_timeseries)
             forecasts_df = concat_all_timeseries(multiple_df)
@@ -167,7 +169,7 @@ class Model(ModelHandler):
 
         return metrics, identifiers_columns
 
-    def _get_predictor(self, train_list_dataset):
+    def _train_estimator(self, train_list_dataset):
         """Train a gluonTS estimator to get a predictor for models that can be trained
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like trivial.identity)
 
