@@ -3,7 +3,7 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, TIMESERIES_KEYS
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models_labels
 
@@ -218,6 +218,7 @@ class TrainingSession:
             Dictionary of description (value) by column (key).
         """
         column_descriptions = {}
+        column_descriptions[METRICS_DATASET.SESSION] = METRICS_COLUMNS_DESCRIPTIONS[METRICS_DATASET.SESSION]
         available_models_labels = list_available_models_labels()
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]
