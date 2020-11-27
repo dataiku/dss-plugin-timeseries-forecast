@@ -174,6 +174,8 @@ def get_models_parameters(config):
                 raise ValueError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({model: model_presets})
     models_parameters = set_naive_model_parameters(config, models_parameters)
+    if not models_parameters:
+        raise PluginParamValidationError("No model is activated. Please select at least one.")
     return models_parameters
 
 
