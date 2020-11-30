@@ -19,7 +19,7 @@ model_selection = ModelSelection(
 )
 
 if params["manual_selection"]:
-    model_selection.set_manual_selection_parameters(session=params["selected_session"], model_label=params["selected_model_label"])
+    model_selection.set_manual_selection_parameters(session_name=params["selected_session"], model_label=params["selected_model_label"])
 else:
     model_selection.set_auto_selection_parameters(performance_metric=params["performance_metric"])
 
@@ -50,7 +50,7 @@ trained_model.predict()
 
 logger.info("Forecasting future values: Done in {:.2f} seconds".format(perf_counter() - start))
 
-forecasts_df = trained_model.get_forecasts_df(session=model_selection.session, model_label=model_selection.model_label)
+forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name(), model_label=model_selection.get_model_label())
 params["output_dataset"].write_with_schema(forecasts_df)
 
 column_descriptions = trained_model.create_forecasts_column_description()

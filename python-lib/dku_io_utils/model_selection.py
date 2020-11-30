@@ -19,7 +19,7 @@ class ModelSelection:
         folder (dataiku.Folder): Input folder containing trained models and training data
         root (str): Partition root path (empty if no partitioning)
         manual_selection (bool): True if session and model are manually selected by user
-        session (str): Timestamp of training session
+        session_name (str): Timestamp of training session
         model_label (str): Label of trained model
         performance_metric (str): Name of evaluation metric used to select best model
     """
@@ -28,19 +28,21 @@ class ModelSelection:
         self.folder = folder
         self.root = "" if partition is None else partition
         self.manual_selection = None
-        self.session = None
+        self.session_name = None
+        self.session_path = None
         self.model_label = None
         self.performance_metric = None
 
-    def set_manual_selection_parameters(self, session, model_label):
+    def set_manual_selection_parameters(self, session_name, model_label):
         """Set the session and model label if there were manually selected in the recipe form/
 
         Args:
-            session (str): Timestamp of the selected training session.
+            session_name (str): Timestamp of the selected training session.
             model_label (str): Label of the selected model.
         """
         self.manual_selection = True
-        self.session = session
+        self.session_name = session_name
+        self.session_path = os.path.join(self.root, self.session_name)
         self.model_label = model_label
 
     def set_auto_selection_parameters(self, performance_metric):
@@ -52,22 +54,31 @@ class ModelSelection:
         self.manual_selection = False
         self.performance_metric = performance_metric
 
+    def get_model_label(self):
+        return self.model_label
+
+    def get_session_name(self):
+        return self.session_name
+
     def get_model_predictor(self):
         """ Retrieve the GluonTS Predictor object obtained during training and saved into the model folder """
         if not self.manual_selection:
-            self.session = self._get_last_session()
+            self.session_name = self._get_last_session()
+            self.session_path = os.path.join(self.root, self.session_name)
             self.model_label = self._get_best_model()
 
-        model_path = os.path.join(self.session, self.model_label, "model.pk.gz")
+        model_path = os.path.join(self.session_path, self.model_label, "model.pk.gz")
         try:
             model = read_from_folder(self.folder, model_path, "pickle.gz")
         except ValueError as e:
-            raise ModelSelectionError("Unable to retrieve model '{}' from session '{}'. Make sure that it exists. {}".format(self.model_label, self.session, e))
+            raise ModelSelectionError(
+                "Unable to retrieve model '{}' from session '{}'. Make sure that it exists. {}".format(self.model_label, self.session_name, e)
+            )
         return model
 
     def get_gluon_train_dataset(self):
         """ Retrieve the GluonDataset object with training data that was saved in the model folder during training """
-        gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(self.session)
+        gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(self.session_path)
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, "pickle.gz")
         return gluon_train_dataset
 
@@ -75,14 +86,14 @@ class ModelSelection:
         """Retrieve the last training session using name of subfolders and append the partition root path.
 
         Returns:
-            Path to session subfolder.
+            Timestamp of the last training session.
         """
         session_timestamps = []
         for child in self.folder.get_path_details(path=self.root)["children"]:
             if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
                 session_timestamps += [child["name"]]
         last_session = max(session_timestamps, key=lambda timestamp: timestamp)
-        return os.path.join(self.root, last_session)
+        return last_session
 
     def _get_best_model(self):
         """Find the best model according to self.performance_metric based on the aggregated metric rows
@@ -92,7 +103,7 @@ class ModelSelection:
         """
         available_models_labels = list_available_models_labels()
         naive_models_labels = list_naive_models_labels()
-        df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), "csv")
+        df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session_path), "csv")
         try:
             # naive models cannot be used for forecasts
             df = df[~df[METRICS_DATASET.MODEL_COLUMN].isin(naive_models_labels)]
@@ -102,5 +113,7 @@ class ModelSelection:
             model_label = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
             assert model_label in available_models_labels, "Best model retrieved is not an available models"
         except Exception as e:
-            raise ModelSelectionError("Unable to get the best model of session '{}' using metric '{}': {}".format(self.session, self.performance_metric, e))
+            raise ModelSelectionError(
+                "Unable to get the best model of session '{}' using metric '{}': {}".format(self.session_name, self.performance_metric, e)
+            )
         return model_label
