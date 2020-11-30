@@ -1,8 +1,8 @@
 {
-    "id": "time-series-forecast-python",
+    "id": "timeseries-forecast",
     "version": "1.0.0",
     "meta": {
-        "label": "Forecast (Python)",
+        "label": "Forecast",
         "category": "Time Series",
         "description": "Forecast time series using Python GluonTS. This plugin covers the full cycle of model training, evaluation and prediction.",
         "author": "Dataiku",
