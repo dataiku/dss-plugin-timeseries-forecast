@@ -5,7 +5,7 @@ from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
 from gluonts_forecasts.gluon_dataset import GluonDataset
-from gluonts_forecasts.model_handler import list_available_models_labels
+from gluonts_forecasts.model_handler import list_available_models
 
 
 class TrainingSession:
@@ -217,11 +217,11 @@ class TrainingSession:
         Returns:
             Dictionary of description (value) by column (key).
         """
-        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS
-        available_models_labels = list_available_models_labels()
+        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()
+        available_models = list_available_models()
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]
-            if prefix in available_models_labels:
+            if prefix in available_models:
                 column_descriptions[column] = "Median forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
         return column_descriptions
 
