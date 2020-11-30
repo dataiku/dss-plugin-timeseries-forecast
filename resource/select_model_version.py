@@ -18,25 +18,25 @@ def do(payload, config, plugin_config, inputs):
         if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
             sessions += [child["name"]]
 
+    model_labels = set()
+    available_models_labels = list_available_models_labels()
+    naive_models_labels = list_naive_models_labels()
+    for session in sessions:
+        for child in input_folder.get_path_details(path="/{}".format(session))["children"]:
+            if child["directory"] and child["name"] in available_models_labels and child["name"] not in naive_models_labels:
+                model_labels.add(child["name"])
+
     if payload.get("parameterName") == "manually_selected_session":
         for session in sorted(sessions):
             choices += [{"label": session, "value": session}]
 
     elif payload.get("parameterName") == "manually_selected_model_label":
-        model_labels = set()
-        available_models_labels = list_available_models_labels()
-        naive_models_labels = list_naive_models_labels()
-        for session in sessions:
-            for child in input_folder.get_path_details(path="/{}".format(session))["children"]:
-                if child["directory"] and child["name"] in available_models_labels and child["name"] not in naive_models_labels:
-                    model_labels.add(child["name"])
-
         for model in model_labels:
             choices += [{"label": model, "value": model}]
 
     elif payload.get("parameterName") == "model_selection_mode":
         choices = [{"label": "Auto", "value": "auto"}]
-        if len(sessions) > 0:
+        if len(sessions) > 0 and len(model_labels) > 0:
             choices += [{"label": "Manual", "value": "manual"}]
 
     return {"choices": choices}

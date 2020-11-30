@@ -5,6 +5,12 @@ from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN
 from gluonts_forecasts.model_handler import list_available_models_labels, list_naive_models_labels
 
 
+class ModelSelectionError(ValueError):
+    """Custom exception raised when the predict recipe is unable to retrieve a model"""
+
+    pass
+
+
 class ModelSelection:
     """
     Class to retrieve from the input folder the saved trained model and the training gluon dataset
@@ -53,7 +59,10 @@ class ModelSelection:
             self.model_label = self._get_best_model()
 
         model_path = os.path.join(self.session, self.model_label, "model.pk.gz")
-        model = read_from_folder(self.folder, model_path, "pickle.gz")
+        try:
+            model = read_from_folder(self.folder, model_path, "pickle.gz")
+        except ValueError as e:
+            raise ModelSelectionError("Unable to retrieve model '{}' from session '{}'. Make sure that it exists. {}".format(self.model_label, self.session, e))
         return model
 
     def get_gluon_train_dataset(self):
@@ -84,11 +93,14 @@ class ModelSelection:
         available_models_labels = list_available_models_labels()
         naive_models_labels = list_naive_models_labels()
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session), "csv")
-        # naive models cannot be used for forecasts
-        df = df[~df[METRICS_DATASET.MODEL_COLUMN].isin(naive_models_labels)]
-        if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
-            df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
-        assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
-        model_label = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
-        assert model_label in available_models_labels, "Best model retrieved is not an available models"
+        try:
+            # naive models cannot be used for forecasts
+            df = df[~df[METRICS_DATASET.MODEL_COLUMN].isin(naive_models_labels)]
+            if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
+                df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
+            assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
+            model_label = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
+            assert model_label in available_models_labels, "Best model retrieved is not an available models"
+        except Exception as e:
+            raise ModelSelectionError("Unable to get the best model of session '{}' using metric '{}': {}".format(self.session, self.performance_metric, e))
         return model_label
