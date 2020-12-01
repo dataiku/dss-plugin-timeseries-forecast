@@ -1,12 +1,12 @@
 {
-    "id": "time-series-forecast-python",
+    "id": "timeseries-forecast",
     "version": "1.0.0",
     "meta": {
         "label": "Forecast",
         "category": "Time Series",
         "description": "Forecast multivariate time series from year to minute frequency with Deep Learning models",
         "author": "Dataiku",
-        "icon": "icon-calendar",
+        "icon": "icon-signal",
         "licenseInfo": "Apache Software License v2",
         "url": "https://www.dataiku.com/product/plugins/time-series-forecast-python/",
         "supported": true,
