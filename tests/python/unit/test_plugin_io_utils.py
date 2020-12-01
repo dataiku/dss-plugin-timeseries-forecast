@@ -147,6 +147,7 @@ def test_invalid_year_frequency():
 
 
 def test_add_future_external_features_with_identifiers():
+    frequency = 'D'
     timeseries_0 = {
         TIMESERIES_KEYS.START: "2018-01-01",
         TIMESERIES_KEYS.TARGET: [12, 13, 14, 15, 16],
@@ -165,7 +166,7 @@ def test_add_future_external_features_with_identifiers():
         TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
         TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 2},
     }
-    gluon_train_dataset = ListDataset([timeseries_0, timeseries_1], freq="D")
+    gluon_train_dataset = ListDataset([timeseries_0, timeseries_1], freq=frequency)
 
     external_features_future_df = pd.DataFrame(
         {
@@ -183,8 +184,9 @@ def test_add_future_external_features_with_identifiers():
             "is_weekend": [1, 0, 0, 1, 0, 0],
         }
     )
+    external_features_future_df["date"] = pd.to_datetime(external_features_future_df["date"]).dt.tz_localize(tz=None)
 
     prediction_length = 3
-    gluon_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length)
+    gluon_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length, frequency)
 
     assert (gluon_dataset.list_data[0][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])).all()
