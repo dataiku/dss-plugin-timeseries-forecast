@@ -393,7 +393,7 @@
             "label": "Number of epochs",
             "description": "More epochs lead to better performance, but increase runtime linearly",
             "type": "INT",
-            "defaultValue": 50,
+            "defaultValue": 10,
             "mandatory": false,
             "minI": 1,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
