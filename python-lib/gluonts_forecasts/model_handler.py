@@ -107,7 +107,7 @@ class ModelHandler:
     def _get_model_descriptor(self):
         model_descriptor = MODEL_DESCRIPTORS.get(self.model_name)
         if model_descriptor is None:
-            return MODEL_DESCRIPTORS.get("default")
+            return MODEL_DESCRIPTORS.get("naive")
         else:
             return model_descriptor
 
