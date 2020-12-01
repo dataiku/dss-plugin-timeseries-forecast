@@ -48,6 +48,7 @@ class Model(ModelHandler):
         self.model_parameters = model_parameters
         self.frequency = frequency
         self.prediction_length = prediction_length
+        self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
         estimator_kwargs = {
@@ -66,8 +67,8 @@ class Model(ModelHandler):
             estimator_kwargs.update({"trainer": trainer})
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if context_length is not None and ModelHandler.can_use_context_length(self):
-            estimator_kwargs.update({"context_length": context_length})
+        if self.context_length is not None and ModelHandler.can_use_context_length(self):
+            estimator_kwargs.update({"context_length": self.context_length})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
         self.evaluation_time = None
@@ -180,9 +181,11 @@ class Model(ModelHandler):
             gluonts.model.predictor.Predictor
         """
         kwargs = {"freq": self.frequency, "prediction_length": self.prediction_length}
-        if ModelHandler.needs_num_samples(self):
-            kwargs.update({"num_samples": 100})
         if self.estimator is None:
+            if ModelHandler.needs_num_samples(self):
+                kwargs.update({"num_samples": 100})
+            if self.context_length is not None and ModelHandler.can_use_context_length(self):
+                kwargs.update({"context_length": self.context_length})
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
             try:
@@ -199,6 +202,7 @@ class Model(ModelHandler):
                 "model_parameters": self.model_parameters,
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
+                "context_length": self.context_length,
                 "epoch": self.epoch,
                 "use_external_features": self.use_external_features,
                 "batch_size": self.batch_size,

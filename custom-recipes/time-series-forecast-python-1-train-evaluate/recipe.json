@@ -234,15 +234,15 @@
             "selectChoices": [
                 {
                     "value": "trivial_identity",
-                    "label": "Forecast preceding value"
+                    "label": "Forecast preceding values"
                 },
                 {
                     "value": "trivial_mean",
-                    "label": "Forecast average value"
+                    "label": "Forecast based on mean value"
                 },
                 {
                     "value": "seasonal_naive",
-                    "label": "Forecast value from previous season"
+                    "label": "Forecast values from previous season"
                 }
             ]
         },

@@ -35,10 +35,10 @@ MODEL_DESCRIPTORS = {
     "trivial_mean": {
         LABEL: "TrivialMean",
         CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: MeanEstimator,
+        ESTIMATOR: None,
         PREDICTOR: MeanPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
+        CAN_USE_CONTEXT_LENGTH: True,
         IS_NAIVE: True,
     },
     "seasonal_naive": {
