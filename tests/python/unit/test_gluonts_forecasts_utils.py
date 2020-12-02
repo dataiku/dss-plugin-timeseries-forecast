@@ -123,22 +123,22 @@ def test_invalid_year_frequency():
 
 
 def test_add_future_external_features_with_identifiers():
-    frequency = 'D'
+    frequency = "D"
     timeseries_0 = {
         TIMESERIES_KEYS.START: "2018-01-01",
-        TIMESERIES_KEYS.TARGET: [12, 13, 14, 15, 16],
+        TIMESERIES_KEYS.TARGET: np.array([12, 13, 14, 15, 16]),
         TIMESERIES_KEYS.TARGET_NAME: "sales_0",
         TIMESERIES_KEYS.TIME_COLUMN_NAME: "date",
-        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: [[1, 0, 0, 0, 0], [0, 0, 0, 1, 1]],
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: np.array([[1, 0, 0, 0, 0], [0, 0, 0, 1, 1]]),
         TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
         TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 1},
     }
     timeseries_1 = {
         TIMESERIES_KEYS.START: "2018-01-01",
-        TIMESERIES_KEYS.TARGET: [2, 3, 4, 5, 6],
+        TIMESERIES_KEYS.TARGET: np.array([2, 3, 4, 5, 6]),
         TIMESERIES_KEYS.TARGET_NAME: "sales_1",
         TIMESERIES_KEYS.TIME_COLUMN_NAME: "date",
-        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: [[0, 0, 0, 0, 1], [0, 0, 0, 1, 1]],
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: np.array([[0, 0, 0, 0, 1], [0, 0, 0, 1, 1]]),
         TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
         TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 2},
     }
