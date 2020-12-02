@@ -6,7 +6,7 @@ from dataiku.customrecipe import (
 )
 import re
 from gluonts_forecasts.model_handler import list_available_models
-from dku_io_utils.utils import get_partition_root
+from dku_io_utils.partitions_handling import get_partition_root
 from constants import FORECASTING_STYLE_PRESELECTED_MODELS
 from safe_logger import SafeLogger
 

@@ -43,14 +43,6 @@ METRICS_COLUMNS_DESCRIPTIONS = {
 TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 
-TIME_DIMENSION_PATTERNS = {
-        "DKU_DST_YEAR": "%Y",
-        "DKU_DST_MONTH": "%M",
-        "DKU_DST_DAY": "%D",
-        "DKU_DST_HOUR": "%H"
-    }
-
-
 FORECASTING_STYLE_PRESELECTED_MODELS = {
         "auto": ["naive", "deepar"],
         "auto_performance": ["naive", "deepar", "transformer", "mqcnn"]
