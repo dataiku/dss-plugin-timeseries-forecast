@@ -166,10 +166,7 @@ class TrainedModel:
 
                 forecasts_series = (
                     sample_forecasts.quantile_ts(quantile)
-                    .rename("{}_{}".format(
-                        forecasts_label_prefix,
-                        self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME])
-                    )
+                    .rename("{}_{}".format(forecasts_label_prefix, self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]))
                     .iloc[: self.prediction_length]
                 )
                 if timeseries_identifier_key in forecasts_timeseries:
@@ -199,7 +196,11 @@ class TrainedModel:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
         if model_label:
             self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = model_label
-        self.forecasts_df = self.forecasts_df.reindex(index=self.forecasts_df.index[::-1])
+
+        self.forecasts_df = self.forecasts_df.sort_values(
+            by=self.identifiers_columns + [self.time_column_name], ascending=[True] * len(self.identifiers_columns) + [False]
+        )
+
         return self.forecasts_df
 
     def create_forecasts_column_description(self):

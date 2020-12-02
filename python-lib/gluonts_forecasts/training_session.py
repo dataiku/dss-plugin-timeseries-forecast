@@ -110,7 +110,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
-            min_length=self.prediction_length + self.context_length
+            min_length=self.prediction_length + self.context_length,
         )
 
         self.train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
@@ -184,8 +184,7 @@ class TrainingSession:
         )
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
-            by=identifiers_columns + [self.time_column_name],
-            ascending=[True] * len(identifiers_columns) + [False]
+            by=identifiers_columns + [self.time_column_name], ascending=[True] * len(identifiers_columns) + [False]
         )
         self.evaluation_forecasts_df[METRICS_DATASET.SESSION] = self.session_name
 
