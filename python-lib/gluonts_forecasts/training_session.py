@@ -250,6 +250,8 @@ class TrainingSession:
         timeseries_length = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
         timeseries_number = len(self.train_list_dataset.list_data)
         sample_length = self.prediction_length + self.context_length
-        total_possible_num_samples = (timeseries_length + 1 - sample_length) * timeseries_number
-        optimal_num_batches_per_epoch = math.ceil(total_possible_num_samples / self.batch_size)
+        sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
+        num_sample_per_timeseries = (timeseries_length - sample_length) // sample_offset + 1
+        num_samples_total = num_sample_per_timeseries * timeseries_number
+        optimal_num_batches_per_epoch = math.ceil(num_samples_total / self.batch_size)
         return max(optimal_num_batches_per_epoch, 50)
