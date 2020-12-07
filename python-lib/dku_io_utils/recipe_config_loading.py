@@ -114,7 +114,6 @@ def load_training_config(recipe_config):
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1
 
-    # V2 implement
     params["gpu"] = recipe_config.get("gpu", "no_gpu")
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False

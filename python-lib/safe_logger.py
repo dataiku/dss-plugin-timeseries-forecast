@@ -8,10 +8,6 @@ class SafeLogger(object):
     def __init__(self, name, forbiden_keys=None):
         self.name = name
         self.logger = logging.getLogger(self.name)
-        # logging.basicConfig(
-        #     level=logging.INFO,
-        #     format='{} %(levelname)s - %(message)s'.format(self.name)
-        # )
         self.forbiden_keys = forbiden_keys
 
     def info(self, message):
