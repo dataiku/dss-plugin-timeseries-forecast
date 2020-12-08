@@ -5,12 +5,14 @@ from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
 from time import perf_counter
 from safe_logger import SafeLogger
+import json
 
 logger = SafeLogger("Forecast plugin")
 
 
 class ModelTrainingError(Exception):
     """Custom exception raised when the model training fails"""
+
     pass
 
 
@@ -41,7 +43,7 @@ class Model(ModelHandler):
         batch_size=None,
         num_batches_per_epoch=None,
         gpu=None,
-        context_length=None
+        context_length=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -196,7 +198,7 @@ class Model(ModelHandler):
 
     def _get_model_parameters_json(self, train_list_dataset):
         """ Returns a string containing a json of model parameters """
-        return str(
+        return json.dumps(
             {
                 "model_name": ModelHandler.get_label(self),
                 "model_parameters": self.model_parameters,
@@ -209,7 +211,7 @@ class Model(ModelHandler):
                 "num_batches_per_epoch": self.num_batches_per_epoch,
                 "evaluation_time": round(self.evaluation_time, 2),
                 "timeseries_number": len(train_list_dataset.list_data),
-                "timeseries_length": len(train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+                "timeseries_length": len(train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]),
             }
         )
 
@@ -225,9 +227,7 @@ class Model(ModelHandler):
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.quantile_ts(0.5).rename(
-                "{}_{}".format(self.model_name, train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME])
-            )
+            series = sample_forecasts.quantile_ts(0.5).rename("{}_{}".format(self.model_name, train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]))
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
             else:
