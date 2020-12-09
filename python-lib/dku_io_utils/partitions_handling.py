@@ -20,13 +20,12 @@ def get_partition_root(dataset):
     """
     dku_flow_variables = dataiku.get_flow_variables()
     file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
-    if file_path_pattern is None:
-        return None
+
     dimensions = get_dimensions(dataset)
     partitions = get_partitions(dku_flow_variables, dimensions)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions)
     file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
-    print("ALX:file_path={}".format(file_path))
+
     return file_path
 
 
@@ -79,6 +78,10 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
     Returns:
         File path prefix. Time dimensions pattern are not filled.
     """
+
+    if file_path_pattern is None:
+        # Probably SQL dataset
+        return "/".join(partitions)
     file_path = file_path_pattern.replace(".*", "")
     for partition, dimension in zip(partitions, dimensions):
         file_path = file_path.replace("%{{{}}}".format(dimension), partition)
