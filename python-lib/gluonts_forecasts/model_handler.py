@@ -9,6 +9,7 @@ from gluonts.model.trivial.mean import MeanEstimator, MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
+from custom_gluon_models.arima import ArimaEstimator, ArimaPredictor
 
 
 ESTIMATOR = "estimator"
@@ -69,22 +70,14 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
     },
-    "nbeats": {
-        LABEL: "NBEATS",
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-    },
+    "nbeats": {LABEL: "NBEATS", ESTIMATOR: NBEATSEstimator, TRAINER: Trainer},
     "mqcnn": {
         LABEL: "MQ-CNN",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
     },
-    "tft": {
-        LABEL: "TemporalFusionTransformer",
-        ESTIMATOR: TemporalFusionTransformerEstimator,
-        TRAINER: Trainer
-    },
+    "tft": {LABEL: "TemporalFusionTransformer", ESTIMATOR: TemporalFusionTransformerEstimator, TRAINER: Trainer},
     "npts": {
         LABEL: "NPTS",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -92,12 +85,21 @@ MODEL_DESCRIPTORS = {
         PREDICTOR: NPTSPredictor,
         TRAINER: None,
         CAN_USE_CONTEXT_LENGTH: False,
-    }
+    },
+    "arima": {
+        LABEL: "ARIMA",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: ArimaEstimator,
+        PREDICTOR: ArimaPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    },
 }
 
 
 class ModelParameterError(ValueError):
     """Custom exception raised when the GluonTS model parameters chosen by the user are invalid"""
+
     pass
 
 
