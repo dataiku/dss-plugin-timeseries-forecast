@@ -86,7 +86,7 @@ class ArimaEstimator(Estimator):
         for item in training_data:
             # TODO support external features
             # TODO cast kwargs to required types
-            model = pm.auto_arima(item["target"], **self.kwargs)
+            model = pm.auto_arima(item["target"], trace=True, **self.kwargs)
             trained_models += [model]
 
         return ArimaPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
