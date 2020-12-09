@@ -8,6 +8,7 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanEstimator, MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
+from gluonts.model.npts import NPTSPredictor
 
 
 ESTIMATOR = "estimator"
@@ -84,6 +85,14 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: TemporalFusionTransformerEstimator,
         TRAINER: Trainer
     },
+    "npts": {
+        LABEL: "NPTS",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: NPTSPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    }
 }
 
 
