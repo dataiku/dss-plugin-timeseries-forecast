@@ -56,8 +56,8 @@ class TestTrainingSession:
         self.training_session.instantiate_models()
 
     def test_gluon_list_datasets(self):
-        test_timeseries_length = len(self.training_session.test_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
-        train_timeseries_length = len(self.training_session.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+        test_timeseries_length = len(self.training_session.full_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+        train_timeseries_length = len(self.training_session.evaluation_train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
         assert test_timeseries_length == train_timeseries_length + self.training_session.prediction_length
         assert self.training_session.num_batches_per_epoch == 50
 
