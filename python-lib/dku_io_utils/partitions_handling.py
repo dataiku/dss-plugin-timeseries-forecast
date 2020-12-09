@@ -20,13 +20,12 @@ def get_partition_root(dataset):
     """
     dku_flow_variables = dataiku.get_flow_variables()
     file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
-    if file_path_pattern is None:
-        return None
-    dimensions = get_dimensions(dataset)
+
+    dimensions, types = get_dimensions(dataset)
     partitions = get_partitions(dku_flow_variables, dimensions)
-    file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions)
+    file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
     file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
-    print("ALX:file_path={}".format(file_path))
+
     return file_path
 
 
@@ -41,9 +40,11 @@ def get_dimensions(dataset):
     """
     dimensions_dict = dataset.get_config().get("partitioning").get("dimensions")
     dimensions = []
+    types = []
     for dimension in dimensions_dict:
         dimensions.append(dimension.get("name"))
-    return dimensions
+        types.append(dimension.get("type"))
+    return dimensions, types
 
 
 def get_partitions(dku_flow_variables, dimensions):
@@ -68,7 +69,7 @@ def get_partitions(dku_flow_variables, dimensions):
     return partitions
 
 
-def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
+def complete_file_path_pattern(file_path_pattern, partitions, dimensions, types):
     """Fill the placeholders of the partition path pattern for the discrete dimensions with the right partition values.
 
     Args:
@@ -79,10 +80,26 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions):
     Returns:
         File path prefix. Time dimensions pattern are not filled.
     """
+
+    if file_path_pattern is None:
+        # Probably SQL dataset
+        partitions = fix_date_elements_folder_path(partitions, types)
+        return "/".join(partitions)
     file_path = file_path_pattern.replace(".*", "")
     for partition, dimension in zip(partitions, dimensions):
         file_path = file_path.replace("%{{{}}}".format(dimension), partition)
     return file_path
+
+
+def fix_date_elements_folder_path(partitions, types):
+    """ Replace the '-' separator in time dimension on SQL-type dataset by '/' so they can be used in folder paths """
+    fixed_partitions = []
+    for partition, type in zip(partitions, types):
+        if type == 'time':
+            fixed_partitions.append(partition.replace("-", "/"))
+        else:
+            fixed_partitions.append(partition)
+    return fixed_partitions
 
 
 def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern):

@@ -55,6 +55,7 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
         time_column_name = timeseries[TIMESERIES_KEYS.TIME_COLUMN_NAME]
 
         # sort and then check that the time column is valid
+        timeseries_external_features_future_df[time_column_name] = pd.to_datetime(timeseries_external_features_future_df[time_column_name]).dt.tz_localize(tz=None)
         timeseries_external_features_future_df = timeseries_external_features_future_df.sort_values(by=time_column_name, ascending=True)
         assert_time_column_valid(timeseries_external_features_future_df, time_column_name, frequency, start_date=start_date, periods=periods)
         if i == 0:
