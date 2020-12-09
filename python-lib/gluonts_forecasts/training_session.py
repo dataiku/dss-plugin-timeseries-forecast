@@ -64,8 +64,8 @@ class TrainingSession:
         if self.make_forecasts:
             self.forecasts_df = pd.DataFrame()
             self.evaluation_forecasts_df = None
-        self.train_list_dataset = None
-        self.test_list_dataset = None
+        self.evaluation_train_list_dataset = None
+        self.full_list_dataset = None
         self.metrics_df = None
         self.batch_size = batch_size
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
@@ -113,8 +113,8 @@ class TrainingSession:
             min_length=self.prediction_length + self.context_length,
         )
 
-        self.train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
-        self.test_list_dataset = gluon_dataset.create_list_dataset()
+        self.evaluation_train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
+        self.full_list_dataset = gluon_dataset.create_list_dataset()
 
         if self.user_num_batches_per_epoch == -1:
             self.num_batches_per_epoch = self._compute_optimal_num_batches_per_epoch()
@@ -144,7 +144,7 @@ class TrainingSession:
     def train(self):
         """ Train all the selected models on all data """
         for model in self.models:
-            model.train(self.test_list_dataset)
+            model.train(self.full_list_dataset)
 
     def evaluate(self):
         """Call the right evaluate function depending on the need to make forecasts. """
@@ -158,7 +158,7 @@ class TrainingSession:
         """Evaluate all the selected models and get the metrics dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns) = model.evaluate(self.train_list_dataset, self.test_list_dataset)
+            (item_metrics, identifiers_columns) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
@@ -167,7 +167,7 @@ class TrainingSession:
         """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True)
             forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
             if self.forecasts_df.empty:
                 self.forecasts_df = forecasts_df
@@ -247,8 +247,8 @@ class TrainingSession:
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        timeseries_length = len(self.train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
-        timeseries_number = len(self.train_list_dataset.list_data)
+        timeseries_length = len(self.evaluation_train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+        timeseries_number = len(self.evaluation_train_list_dataset.list_data)
         sample_length = self.prediction_length + self.context_length
         sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
         num_sample_per_timeseries = (timeseries_length - sample_length) // sample_offset + 1

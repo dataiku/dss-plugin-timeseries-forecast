@@ -60,7 +60,7 @@ if not params["evaluation_only"]:
     write_to_folder(metrics_df, model_folder, metrics_path, "csv")
 
     gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(training_session.session_path)
-    write_to_folder(training_session.test_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
+    write_to_folder(training_session.full_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
 
     for model in training_session.models:
         model_path = "{}/{}/model.pk.gz".format(training_session.session_path, get_model_label(model.model_name))

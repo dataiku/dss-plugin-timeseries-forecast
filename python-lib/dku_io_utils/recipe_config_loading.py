@@ -47,19 +47,17 @@ def load_training_config(recipe_config):
 
     params["time_column_name"] = recipe_config.get("time_column")
     if params["time_column_name"] not in training_dataset_columns:
-        raise PluginParamValidationError("Invalid time column selection")
+        raise PluginParamValidationError("Invalid time column selection: {}".format(params["time_column_name"]))
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
-    if len(params["target_columns_names"]) == 0 or not all(
-        column in training_dataset_columns for column in params["target_columns_names"]
-    ):
-        raise PluginParamValidationError("Invalid target column(s) selection")
+    if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
+        raise PluginParamValidationError("Invalid target column(s) selection: {}".format(params["target_columns_names"]))
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
         params["timeseries_identifiers_names"] = sanitize_column_list(recipe_config.get("timeseries_identifiers", []))
         if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
-            raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection")
+            raise PluginParamValidationError("Invalid timeseries identifiers column(s) selection: {}".format(params["timeseries_identifiers_names"]))
     else:
         params["timeseries_identifiers_names"] = []
 
@@ -68,7 +66,7 @@ def load_training_config(recipe_config):
 
     params["external_features_columns_names"] = sanitize_column_list(recipe_config.get("external_feature_columns", []))
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError("Invalid external features column(s) selection")
+        raise PluginParamValidationError("Invalid external features column(s) selection: {}".format(params["external_features_columns_names"]))
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
@@ -118,9 +116,7 @@ def load_training_config(recipe_config):
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
-    printable_params = {
-        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    }
+    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info("Recipe parameters: {}".format(printable_params))
     return params
 
@@ -168,9 +164,7 @@ def load_predict_config():
 
     params["include_history"] = recipe_config.get("include_history")
 
-    printable_params = {
-        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    }
+    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info("Recipe parameters: {}".format(printable_params))
 
     return params
