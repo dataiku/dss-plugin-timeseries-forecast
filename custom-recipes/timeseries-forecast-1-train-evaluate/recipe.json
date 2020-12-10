@@ -59,6 +59,7 @@
                 "date"
             ],
             "type": "COLUMN",
+            "description": "Must be a parsed date",
             "columnRole": "input_dataset",
             "mandatory": true
         },
