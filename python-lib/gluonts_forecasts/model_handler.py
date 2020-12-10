@@ -200,17 +200,6 @@ def list_available_models_labels():
     return available_models_labels
 
 
-def list_naive_models_labels():
-    """ Returns list of naive models labels """
-    naive_models_labels = []
-    for model, model_descriptors in MODEL_DESCRIPTORS.items():
-        if model_descriptors.get(IS_NAIVE):
-            label = model_descriptors.get(LABEL)
-            if label is not None:
-                naive_models_labels.append(label)
-    return naive_models_labels
-
-
 def get_model_label(model_name):
     model_descriptor = MODEL_DESCRIPTORS.get(model_name)
     if model_descriptor is None:

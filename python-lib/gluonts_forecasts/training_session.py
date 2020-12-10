@@ -228,6 +228,20 @@ class TrainingSession:
     def get_metrics_df(self):
         return self.metrics_df
 
+    def get_evaluation_metrics_df(self):
+        """Replace __aggregated__ by target column name and remove other rows when only one target.
+
+        Returns:
+            Dataframe of metrics to display to users.
+        """
+        if len(self.target_columns_names) == 1:
+            evaluation_metrics_df = self.metrics_df.copy()
+            evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
+            evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
+            return evaluation_metrics_df
+        else:
+            return self.metrics_df
+
     def _check_target_columns_types(self):
         """ Raises ValueError if a target column is not numerical """
         for column_name in self.target_columns_names:
