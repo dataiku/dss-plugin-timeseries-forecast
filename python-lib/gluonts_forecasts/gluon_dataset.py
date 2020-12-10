@@ -46,19 +46,13 @@ class GluonDataset:
         """
         multivariate_timeseries = []
         if self.timeseries_identifiers_names:
-            start_date, periods = None, None
             for i, (identifiers_values, identifiers_df) in enumerate(self.dataframe.groupby(self.timeseries_identifiers_names)):
                 identifiers_df = identifiers_df.sort_values(by=self.time_column_name, ascending=True)
                 assert_time_column_valid(
                     identifiers_df,
                     self.time_column_name,
-                    self.frequency,
-                    start_date=start_date,
-                    periods=periods,
+                    self.frequency
                 )
-                if i == 0:
-                    start_date = identifiers_df[self.time_column_name].iloc[0]
-                    periods = len(identifiers_df.index)
                 multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, cut_length, identifiers_values=identifiers_values)
         else:
             self.dataframe = self.dataframe.sort_values(by=self.time_column_name, ascending=True)
