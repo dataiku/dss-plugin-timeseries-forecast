@@ -35,10 +35,7 @@ class GluonDataset:
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.external_features_columns_names = external_features_columns_names
         self.min_length = min_length
-        self.cardinality = None
-
-        if self.timeseries_identifiers_names:
-            self.cardinality = list(self.dataframe[self.timeseries_identifiers_names].nunique())
+        self.use_feat_static_cat = len(target_columns_names) > 1
 
     def create_list_dataset(self, cut_length=None):
         """Create timeseries for each identifier tuple and each target.
@@ -115,13 +112,11 @@ class GluonDataset:
         if identifiers_values:
             if len(self.timeseries_identifiers_names) > 1:
                 identifiers_map = {self.timeseries_identifiers_names[i]: identifier_value for i, identifier_value in enumerate(identifiers_values)}
-                feat_static_cat = list(map(lambda x: hash(x) % 1000000, identifiers_values))
             else:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
-                feat_static_cat = [hash(identifiers_values) % 1000000]
             univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
-            # TODO add target_column_name in feat_static_cat
-            univariate_timeseries["feat_static_cat"] = feat_static_cat
+        if self.use_feat_static_cat:
+            univariate_timeseries["feat_static_cat"] = [hash(target_column_name) % 100000000]
         return univariate_timeseries
 
     def _check_minimum_length(self, dataframe, cut_length):

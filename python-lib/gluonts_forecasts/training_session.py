@@ -72,6 +72,7 @@ class TrainingSession:
         self.num_batches_per_epoch = None
         self.gpu = gpu
         self.context_length = context_length
+        self.cardinality = [len(target_columns_names)] if len(target_columns_names) > 1 else None
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Convert time column to pandas.Datetime without timezones.
@@ -103,7 +104,7 @@ class TrainingSession:
         The last prediction_length time steps are removed from each timeseries of the train dataset.
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
-        self.gluon_dataset = GluonDataset(
+        gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,
             frequency=self.frequency,
@@ -113,8 +114,8 @@ class TrainingSession:
             min_length=self.prediction_length + self.context_length,
         )
 
-        self.evaluation_train_list_dataset = self.gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
-        self.full_list_dataset = self.gluon_dataset.create_list_dataset()
+        self.evaluation_train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
+        self.full_list_dataset = gluon_dataset.create_list_dataset()
 
         if self.user_num_batches_per_epoch == -1:
             self.num_batches_per_epoch = self._compute_optimal_num_batches_per_epoch()
@@ -138,7 +139,7 @@ class TrainingSession:
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
                     context_length=self.context_length,
-                    cardinality=self.gluon_dataset.cardinality,
+                    cardinality=self.cardinality,
                 )
             )
 
@@ -262,11 +263,12 @@ class TrainingSession:
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        timeseries_length = len(self.evaluation_train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
-        timeseries_number = len(self.evaluation_train_list_dataset.list_data)
         sample_length = self.prediction_length + self.context_length
         sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
-        num_sample_per_timeseries = (timeseries_length - sample_length) // sample_offset + 1
-        num_samples_total = num_sample_per_timeseries * timeseries_number
+        num_samples_total = 0
+        for timeseries in self.evaluation_train_list_dataset.list_data:
+            timeseries_length = len(timeseries[TIMESERIES_KEYS.TARGET])
+            num_samples = (timeseries_length - sample_length) // sample_offset + 1
+            num_samples_total += num_samples
         optimal_num_batches_per_epoch = math.ceil(num_samples_total / self.batch_size)
         return max(optimal_num_batches_per_epoch, 50)
