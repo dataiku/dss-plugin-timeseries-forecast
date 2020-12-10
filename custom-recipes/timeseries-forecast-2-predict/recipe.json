@@ -1,7 +1,7 @@
 {
     "meta": {
         "label": "Forecast future values",
-        "description": "Use previously trained models to forecast time series",
+        "description": "Use trained forecasting models to predict future values of time series",
         "icon": "icon-signal",
         "displayOrderRank": 2
     },
@@ -20,8 +20,8 @@
         },
         {
             "name": "external_features_future_dataset",
-            "label": "Future values of external features (optional)",
-            "description": "If you passed external features to the \"Train and test forecasting models\" recipe, this dataset must provide their values for the range of dates to forecast",
+            "label": "Optional - Future values of external features",
+            "description": "Only required if you specified external features in the \"Train and test forecasting models\" recipe",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
@@ -32,7 +32,7 @@
         {
             "name": "output_dataset",
             "label": "Forecast dataset",
-            "description": "Dataset with forecasted values",
+            "description": "Dataset with predicted future values and confidence quantiles",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -52,7 +52,7 @@
             "type": "SELECT",
             "mandatory": true,
             "defaultValue": "auto",
-            "description": "Auto selects the model with the best performance in the last training session",
+            "description": "Automatically select the best-performing model from the last training session",
             "getChoicesFromPython": true
         },
         {
@@ -141,7 +141,7 @@
         {
             "name": "include_history",
             "label": "Include history",
-            "description": "Keep historical data in addition to forecasted values",
+            "description": "Keep historical data in addition to future values",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
