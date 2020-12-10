@@ -1,9 +1,10 @@
-# Time Series Forecast (Python) Plugin
+# Time Series Forecast Plugin 🚧 WORK IN PROGRESS
 
-This Dataiku DSS plugin provides recipes to train, evaluate and score forecasting models on time series data, using Python GluonTS.
+This Dataiku DSS plugin provides recipes to forecast multivariate time series from year to minute frequency with Deep Learning models.
 
 **TODO create**
-Documentation: https://www.dataiku.com/product/plugins/time-series-forecast-python/
+Documentation: https://www.dataiku.com/product/plugins/timeseries-forecast/
 
-### Licence
-This plugin is distributed under the Apache License version 2.0
+## License
+
+This plugin is distributed under the Apache License version 2.0.
