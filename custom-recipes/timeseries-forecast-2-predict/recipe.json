@@ -11,8 +11,8 @@
     "inputRoles": [
         {
             "name": "model_folder",
-            "label": "Trained models folder",
-            "description": "Folder containing models saved by the \"Train\" recipe",
+            "label": "Trained model folder",
+            "description": "Folder containing models saved by the \"Train and test forecasting models\" recipe",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": false,
@@ -20,8 +20,8 @@
         },
         {
             "name": "external_features_future_dataset",
-            "label": "External features (optional)",
-            "description": "If you passed external features to the \"Train\" recipe, this dataset must provide their values for the range of dates to forecast",
+            "label": "Future values of external features (optional)",
+            "description": "If you passed external features to the \"Train and test forecasting models\" recipe, this dataset must provide their values for the range of dates to forecast",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,

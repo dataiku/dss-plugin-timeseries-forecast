@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "Train and evaluate forecasting models",
-        "description": "Train forecasting models and evaluate their performance on historical data",
+        "label": "Train and test forecasting models",
+        "description": "Train forecasting models and test their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
     },
@@ -29,8 +29,8 @@
         },
         {
             "name": "evaluation_dataset",
-            "label": "Performance results",
-            "description": "Performance metrics of forecasting models backtested on historical data",
+            "label": "Performance metrics",
+            "description": "Performance metrics of forecasting models tested on historical data",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -38,10 +38,10 @@
         },
         {
             "name": "evaluation_forecasts_dataset",
-            "label": "Backtest forecasts (optional)",
-            "description": "Backtest data used to compute performance metrics",
+            "label": "Test dataset",
+            "description": "Test dataset with forecasts used to compute performance metrics",
             "arity": "UNARY",
-            "required": false,
+            "required": true,
             "acceptsDataset": true,
             "acceptsManagedFolder": false
         }
