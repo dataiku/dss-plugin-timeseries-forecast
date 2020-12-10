@@ -2,7 +2,7 @@
 import re
 import dataiku
 from constants import TIMESTAMP_REGEX_PATTERN
-from gluonts_forecasts.model_handler import list_available_models_labels, list_naive_models_labels
+from gluonts_forecasts.model_handler import list_available_models_labels
 
 
 def do(payload, config, plugin_config, inputs):
@@ -20,10 +20,9 @@ def do(payload, config, plugin_config, inputs):
 
     model_labels = set()
     available_models_labels = list_available_models_labels()
-    naive_models_labels = list_naive_models_labels()
     for session in sessions:
         for child in input_folder.get_path_details(path="/{}".format(session))["children"]:
-            if child["directory"] and child["name"] in available_models_labels and child["name"] not in naive_models_labels:
+            if child["directory"] and child["name"] in available_models_labels:
                 model_labels.add(child["name"])
 
     if payload.get("parameterName") == "manually_selected_session":

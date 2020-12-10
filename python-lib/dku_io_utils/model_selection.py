@@ -2,7 +2,7 @@ import re
 import os
 from dku_io_utils.utils import read_from_folder
 from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN
-from gluonts_forecasts.model_handler import list_available_models_labels, list_naive_models_labels
+from gluonts_forecasts.model_handler import list_available_models_labels
 
 
 class ModelSelectionError(ValueError):
@@ -102,11 +102,8 @@ class ModelSelection:
             Label of the best model.
         """
         available_models_labels = list_available_models_labels()
-        naive_models_labels = list_naive_models_labels()
         df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session_path), "csv")
         try:
-            # naive models cannot be used for forecasts
-            df = df[~df[METRICS_DATASET.MODEL_COLUMN].isin(naive_models_labels)]
             if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
                 df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
             assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"

@@ -189,8 +189,9 @@ def get_models_parameters(config):
             if "prediction_length" in model_presets.get("kwargs", {}):
                 raise ValueError("The value for 'prediction_length' cannot be changed")
             models_parameters.update({model: model_presets})
-    assert_non_naive_model_selected(models_parameters)
     models_parameters = set_naive_model_parameters(config, models_parameters)
+    if not models_parameters:
+        raise PluginParamValidationError("No model is selected. Please select at least one.")
     logger.info("Model parameters: {}".format(models_parameters))
     return models_parameters
 
@@ -274,10 +275,3 @@ def check_equal_partition_dependencies(partition_root, dku_computable):
             if isinstance(dku_computable, dataiku.Folder):
                 error_message_prefix = "Input folder '{}'".format(dku_computable.get_name())
             raise PluginParamValidationError(error_message_prefix + " must have equal partition dependencies.")
-
-
-def assert_non_naive_model_selected(models_parameters):
-    non_trivial_models_parameters = models_parameters.copy()
-    non_trivial_models_parameters.pop("naive", None)
-    if not non_trivial_models_parameters:
-        raise PluginParamValidationError("No non-naive model is activated. Please select at least one other than Baseline.")

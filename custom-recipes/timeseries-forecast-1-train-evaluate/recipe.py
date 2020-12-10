@@ -45,9 +45,6 @@ training_session.instantiate_models()
 
 training_session.evaluate()
 
-metrics_df = training_session.get_metrics_df()
-params["evaluation_dataset"].write_with_schema(metrics_df)
-
 logger.info("Completed evaluation of all models")
 
 if not params["evaluation_only"]:
@@ -57,7 +54,7 @@ if not params["evaluation_only"]:
     model_folder = params["model_folder"]
 
     metrics_path = "{}/metrics.csv".format(training_session.session_path)
-    write_to_folder(metrics_df, model_folder, metrics_path, "csv")
+    write_to_folder(training_session.get_metrics_df(), model_folder, metrics_path, "csv")
 
     gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(training_session.session_path)
     write_to_folder(training_session.full_list_dataset, model_folder, gluon_train_dataset_path, "pickle.gz")
@@ -71,6 +68,7 @@ if not params["evaluation_only"]:
 
 logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 
+params["evaluation_dataset"].write_with_schema(training_session.get_evaluation_metrics_df())
 evaluation_results_columns_descriptions = {**METRICS_COLUMNS_DESCRIPTIONS, **EVALUATION_METRICS_DESCRIPTIONS}
 set_column_description(params["evaluation_dataset"], evaluation_results_columns_descriptions, to_lowercase=True)
 
