@@ -16,6 +16,7 @@ class GluonDataset:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         external_features_columns_names (list): List of columns with dynamic real features over time
     """
+
     def __init__(
         self,
         dataframe,
@@ -24,7 +25,7 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
-        min_length=None
+        min_length=None,
     ):
         self.dataframe = dataframe
         self.time_column_name = time_column_name
@@ -56,9 +57,9 @@ class GluonDataset:
                     start_date=start_date,
                     periods=periods,
                 )
-                if i == 0:
-                    start_date = identifiers_df[self.time_column_name].iloc[0]
-                    periods = len(identifiers_df.index)
+                # if i == 0:
+                #     start_date = identifiers_df[self.time_column_name].iloc[0]
+                #     periods = len(identifiers_df.index)
                 multivariate_timeseries += self._create_gluon_multivariate_timeseries(identifiers_df, cut_length, identifiers_values=identifiers_values)
         else:
             self.dataframe = self.dataframe.sort_values(by=self.time_column_name, ascending=True)
