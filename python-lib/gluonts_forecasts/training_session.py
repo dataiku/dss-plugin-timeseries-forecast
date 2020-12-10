@@ -103,7 +103,7 @@ class TrainingSession:
         The last prediction_length time steps are removed from each timeseries of the train dataset.
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
-        gluon_dataset = GluonDataset(
+        self.gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,
             frequency=self.frequency,
@@ -113,8 +113,8 @@ class TrainingSession:
             min_length=self.prediction_length + self.context_length,
         )
 
-        self.evaluation_train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
-        self.full_list_dataset = gluon_dataset.create_list_dataset()
+        self.evaluation_train_list_dataset = self.gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
+        self.full_list_dataset = self.gluon_dataset.create_list_dataset()
 
         if self.user_num_batches_per_epoch == -1:
             self.num_batches_per_epoch = self._compute_optimal_num_batches_per_epoch()
@@ -138,6 +138,7 @@ class TrainingSession:
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
                     context_length=self.context_length,
+                    cardinality=self.gluon_dataset.cardinality,
                 )
             )
 

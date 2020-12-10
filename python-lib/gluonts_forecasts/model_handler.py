@@ -14,6 +14,7 @@ from custom_gluon_models.arima import ArimaEstimator, ArimaPredictor
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
+CAN_USE_FEAT_STATIC_CAT = "can_use_feat_static_cat"
 CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
@@ -63,21 +64,32 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
         TRAINER: Trainer,
+        CAN_USE_FEAT_STATIC_CAT: False
     },
     "transformer": {
         LABEL: "Transformer",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
+        CAN_USE_FEAT_STATIC_CAT: True
     },
-    "nbeats": {LABEL: "NBEATS", ESTIMATOR: NBEATSEstimator, TRAINER: Trainer},
+    "nbeats": {
+        LABEL: "NBEATS",
+        ESTIMATOR: NBEATSEstimator,
+        TRAINER: Trainer
+    },
     "mqcnn": {
         LABEL: "MQ-CNN",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
+        CAN_USE_FEAT_STATIC_CAT: True
     },
-    "tft": {LABEL: "TemporalFusionTransformer", ESTIMATOR: TemporalFusionTransformerEstimator, TRAINER: Trainer},
+    "tft": {
+        LABEL: "TemporalFusionTransformer",
+        ESTIMATOR: TemporalFusionTransformerEstimator,
+        TRAINER: Trainer
+    },
     "npts": {
         LABEL: "NPTS",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -149,6 +161,9 @@ class ModelHandler:
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
+
+    def can_use_feat_static_cat(self):
+        return self.model_descriptor.get(CAN_USE_FEAT_STATIC_CAT, False)
 
     def can_use_context_length(self):
         return self.model_descriptor.get(CAN_USE_CONTEXT_LENGTH, True)

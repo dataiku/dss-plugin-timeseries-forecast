@@ -44,6 +44,7 @@ class Model(ModelHandler):
         num_batches_per_epoch=None,
         gpu=None,
         context_length=None,
+        cardinality=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -53,6 +54,11 @@ class Model(ModelHandler):
         self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
+
+        self.using_external_features = False
+        self.cardinality = cardinality
+        self.using_feat_static_cat = False
+
         estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length,
@@ -68,7 +74,12 @@ class Model(ModelHandler):
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
+            self.using_external_features = True
             estimator_kwargs.update({"use_feat_dynamic_real": True})
+        if ModelHandler.can_use_feat_static_cat(self) and self.cardinality:
+            self.using_feat_static_cat = True
+            estimator_kwargs.update({"use_feat_static_cat": True})
+            estimator_kwargs.update({"cardinality": self.cardinality})
         if self.context_length is not None and ModelHandler.can_use_context_length(self):
             estimator_kwargs.update({"context_length": self.context_length})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
@@ -206,7 +217,8 @@ class Model(ModelHandler):
                 "prediction_length": self.prediction_length,
                 "context_length": self.context_length,
                 "epoch": self.epoch,
-                "use_external_features": self.use_external_features,
+                "use_external_features": self.using_external_features,
+                "use_feat_static_cat": self.using_feat_static_cat,
                 "batch_size": self.batch_size,
                 "num_batches_per_epoch": self.num_batches_per_epoch,
                 "evaluation_time": round(self.evaluation_time, 2),
