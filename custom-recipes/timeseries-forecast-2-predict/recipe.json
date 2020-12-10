@@ -32,7 +32,7 @@
         {
             "name": "output_dataset",
             "label": "Forecast dataset",
-            "description": "Dataset with predicted future values and confidence quantiles",
+            "description": "Dataset with predicted future values and confidence intervals",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
