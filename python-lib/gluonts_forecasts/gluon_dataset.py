@@ -116,7 +116,7 @@ class GluonDataset:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
             univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
         if self.use_feat_static_cat:
-            univariate_timeseries["feat_static_cat"] = [hash(target_column_name) % 100000000]
+            univariate_timeseries["feat_static_cat"] = [self.target_columns_names.index(target_column_name)]
         return univariate_timeseries
 
     def _check_minimum_length(self, dataframe, cut_length):
