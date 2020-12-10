@@ -429,19 +429,19 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Performance Evaluation",
+            "label": "Train / Test Set",
             "type": "SEPARATOR"
         },
         {
             "name": "evaluation_strategy",
-            "label": "Evaluation strategy",
+            "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Time-based split of chosen forecasting horizon (only supported method)",
+            "description": "Only supported method - Test set will have \"Forecasting horizon\" steps",
             "selectChoices": [
                 {
                     "value": "split",
-                    "label": "Train/Test Split"
+                    "label": "Time-based Split"
                 }
             ],
             "defaultValue": "split"
@@ -461,7 +461,7 @@
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "⚠️ If specified, futures values of external features will be required to forecast",
+            "description": "Optional ⚠️  Futures values of external features will be required to forecast",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
