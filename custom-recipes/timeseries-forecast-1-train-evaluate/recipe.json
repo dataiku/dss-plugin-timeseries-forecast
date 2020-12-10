@@ -295,7 +295,7 @@
         {
             "name": "arima_model_activated",
             "label": "- Arima",
-            "description": "",
+            "description": "Based on the pyramid-arima package. Slow for multiple timeseries.",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
