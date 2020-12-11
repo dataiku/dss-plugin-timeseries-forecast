@@ -183,6 +183,7 @@
             "name": "prediction_length",
             "label": "Forecasting horizon",
             "type": "INT",
+            "description": "Number of time steps to predict future values",
             "defaultValue": 1,
             "mandatory": true,
             "minI": 1
