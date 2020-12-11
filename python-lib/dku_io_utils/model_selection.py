@@ -72,13 +72,14 @@ class ModelSelection:
             model = read_from_folder(self.folder, model_path, "pickle.gz")
         except ValueError as e:
             raise ModelSelectionError(
-                "Unable to retrieve model '{}' from session '{}'. Make sure that it exists. {}".format(self.model_label, self.session_name, e)
+                f"Unable to retrieve model '{self.model_label}' from session '{self.session_name}'. "
+                + f"Please make sure that it exists in the Trained model folder. Full error: {e}"
             )
         return model
 
     def get_gluon_train_dataset(self):
         """ Retrieve the GluonDataset object with training data that was saved in the model folder during training """
-        gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(self.session_path)
+        gluon_train_dataset_path = f"{self.session_path}/gluon_train_dataset.pk.gz"
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, "pickle.gz")
         return gluon_train_dataset
 
@@ -102,15 +103,17 @@ class ModelSelection:
             Label of the best model.
         """
         available_models_labels = list_available_models_labels()
-        df = read_from_folder(self.folder, "{}/metrics.csv".format(self.session_path), "csv")
+        df = read_from_folder(self.folder, f"{self.session_path}/metrics.csv", "csv")
         try:
             if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
                 df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
             assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
-            model_label = df.loc[df[self.performance_metric].idxmin()][METRICS_DATASET.MODEL_COLUMN]  # or idxmax() if maximize metric
+            model_label = df.loc[df[self.performance_metric].idxmin()][
+                METRICS_DATASET.MODEL_COLUMN
+            ]  # or idxmax() if maximize metric
             assert model_label in available_models_labels, "Best model retrieved is not an available models"
         except Exception as e:
             raise ModelSelectionError(
-                "Unable to get the best model of session '{}' using metric '{}': {}".format(self.session_name, self.performance_metric, e)
+                f"Unable to find the best model of session '{self.session_name}' with the performance metric '{self.performance_metric}'. Full error: {e}"
             )
         return model_label

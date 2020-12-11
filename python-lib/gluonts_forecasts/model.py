@@ -82,9 +82,9 @@ class Model(ModelHandler):
 
     def train(self, train_list_dataset):
         start = perf_counter()
-        logger.info("Training {} model...".format(self.get_label()))
+        logger.info(f"Training {self.get_label()} model...")
         self.predictor = self._train_estimator(train_list_dataset)
-        logger.info("Training {} model: Done in {:.2f} seconds".format(self.get_label(), perf_counter() - start))
+        logger.info(f"Training {self.get_label()} model: Done in {perf_counter() - start:.2f} seconds")
 
     def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
         """Train Model on train_list_dataset and evaluate it on test_list_dataset.
@@ -99,13 +99,13 @@ class Model(ModelHandler):
             List of timeseries identifiers column names. Empty list if none found in train_list_dataset.
             DataFrame of predictions for the last prediction_length timesteps of the test_list_dataset timeseries if make_forecasts is True.
         """
-        logger.info("Evaluating {} model performance...".format(self.get_label()))
+        logger.info(f"Evaluating {self.get_label()} model performance...")
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
         self.evaluation_time = perf_counter() - start
-        logger.info("Evaluating {} model performance: Done in {:.2f} seconds".format(self.get_label(), perf_counter() - start))
+        logger.info(f"Evaluating {self.get_label()} model performance: Done in {perf_counter() - start:.2f} seconds")
 
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
@@ -195,7 +195,7 @@ class Model(ModelHandler):
             try:
                 predictor = self.estimator.train(train_list_dataset)
             except Exception as err:
-                raise ModelTrainingError("GluonTS's '{}' model crashed during training. The error is: {}".format(self.model_name, err))
+                raise ModelTrainingError(f"GluonTS '{self.model_name}' model crashed during training. Full error: {err}")
         return predictor
 
     def _get_model_parameters_json(self, train_list_dataset):
@@ -229,7 +229,7 @@ class Model(ModelHandler):
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.quantile_ts(0.5).rename("{}_{}".format(self.model_name, train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]))
+            series = sample_forecasts.quantile_ts(0.5).rename(f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}")
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
             else:

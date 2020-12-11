@@ -23,9 +23,9 @@ def read_from_folder(folder, path, object_type):
     Returns:
         Object based on the requested type.
     """
-    logger.info("Loading {} from folder".format(path))
+    logger.info(f"Loading path '{path}' from folder")
     if not folder.get_path_details(path=path)["exists"]:
-        raise ValueError("File at path {} doesn't exist in folder {}".format(path, folder.get_info()["name"]))
+        raise ValueError(f"File at path '{path}' does not exist in folder {folder.get_name()}")
     with folder.get_download_stream(path) as stream:
         if object_type == "pickle":
             return pickle.loads(stream.read())
@@ -39,7 +39,9 @@ def read_from_folder(folder, path, object_type):
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pd.read_csv(fgzip)
         else:
-            raise ValueError("Can only read objects of type ['pickle', 'pickle.gz', 'csv', 'csv.gz'] from folder, not '{}'".format(object_type))
+            raise ValueError(
+                f"File type '{object_type}' is not supported, please use: ['pickle', 'pickle.gz', 'csv', 'csv.gz']"
+            )
 
 
 def write_to_folder(object_to_save, folder, path, object_type):
@@ -54,7 +56,7 @@ def write_to_folder(object_to_save, folder, path, object_type):
     Raises:
         ValueError: Object type is not supported.
     """
-    logger.info("Saving {} to folder".format(path))
+    logger.info(f"Saving path '{path}' to folder")
     with folder.get_writer(path) as writer:
         if object_type == "pickle":
             writeable = pickle.dumps(object_to_save)
@@ -73,7 +75,9 @@ def write_to_folder(object_to_save, folder, path, object_type):
             with gzip.GzipFile(fileobj=writer, mode="wb") as fgzip:
                 fgzip.write(object_to_save.to_csv(index=False).encode())
         else:
-            raise ValueError("Can only write objects of type ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz'] to folder, not '{}'".format(object_type))
+            raise ValueError(
+                f"File type '{object_type}' is not supported, please use: ['pickle', 'pickle.gz', 'json', 'csv', 'csv.gz']"
+            )
 
 
 def set_column_description(output_dataset, column_description_dict, input_dataset=None, to_lowercase=False):
@@ -98,7 +102,11 @@ def set_column_description(output_dataset, column_description_dict, input_datase
         output_col_name = output_col_info.get("name", "")
         output_col_info["comment"] = column_description_dict.get(output_col_name)
         if output_col_name in input_columns_names:
-            matched_comment = [input_col_info.get("comment", "") for input_col_info in input_dataset_schema if input_col_info.get("name") == output_col_name]
+            matched_comment = [
+                input_col_info.get("comment", "")
+                for input_col_info in input_dataset_schema
+                if input_col_info.get("name") == output_col_name
+            ]
             if len(matched_comment) != 0:
                 output_col_info["comment"] = matched_comment[0]
         if to_lowercase and output_col_name in column_description_dict:

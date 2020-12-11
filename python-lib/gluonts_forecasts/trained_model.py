@@ -162,11 +162,11 @@ class TrainedModel:
                 if quantile == 0.5:
                     forecasts_label_prefix = "forecast_median"
                 else:
-                    forecasts_label_prefix = "forecast_percentile_{}".format(int(quantile * 100))
+                    forecasts_label_prefix = f"forecast_percentile_{int(quantile * 100)}"
 
                 forecasts_series = (
                     sample_forecasts.quantile_ts(quantile)
-                    .rename("{}_{}".format(forecasts_label_prefix, self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]))
+                    .rename(f"{forecasts_label_prefix}_{self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}")
                     .iloc[: self.prediction_length]
                 )
                 if timeseries_identifier_key in forecasts_timeseries:
@@ -210,14 +210,12 @@ class TrainedModel:
             if "forecast_median" in column:
                 column_descriptions[column] = "Median of probabilistic forecasts"
             elif "forecast_percentile" in column:
-                column_descriptions[column] = "{}% of probabilistic forecasts are below these values".format(column.split("_")[2])
+                column_descriptions[column] = f"{column.split('_')[2]}% of probabilistic forecasts are below these values"
         return column_descriptions
 
     def _check(self):
         """ Raises ValueError if the selected prediction_length is higher than the one used in training """
         if self.predictor.prediction_length < self.prediction_length:
             raise ValueError(
-                "The selected prediction length ({}) cannot be higher than the one ({}) used in training".format(
-                    self.prediction_length, self.predictor.prediction_length
-                )
+                f"Please choose a forecasting horizon lower or equal to the one chosen when training: {self.predictor.prediction_length}"
             )

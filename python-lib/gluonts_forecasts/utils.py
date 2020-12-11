@@ -55,9 +55,15 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
         time_column_name = timeseries[TIMESERIES_KEYS.TIME_COLUMN_NAME]
 
         # sort and then check that the time column is valid
-        timeseries_external_features_future_df[time_column_name] = pd.to_datetime(timeseries_external_features_future_df[time_column_name]).dt.tz_localize(tz=None)
-        timeseries_external_features_future_df = timeseries_external_features_future_df.sort_values(by=time_column_name, ascending=True)
-        assert_time_column_valid(timeseries_external_features_future_df, time_column_name, frequency, start_date=start_date, periods=periods)
+        timeseries_external_features_future_df[time_column_name] = pd.to_datetime(
+            timeseries_external_features_future_df[time_column_name]
+        ).dt.tz_localize(tz=None)
+        timeseries_external_features_future_df = timeseries_external_features_future_df.sort_values(
+            by=time_column_name, ascending=True
+        )
+        assert_time_column_valid(
+            timeseries_external_features_future_df, time_column_name, frequency, start_date=start_date, periods=periods
+        )
         if i == 0:
             # set the start date and periods to check that the following timeseries are identical
             start_date = timeseries_external_features_future_df[time_column_name].iloc[0]
@@ -66,7 +72,9 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
         feat_dynamic_real_future = timeseries_external_features_future_df[feat_dynamic_real_columns_names].values.T
 
         if feat_dynamic_real_future.shape[1] != prediction_length:
-            raise ValueError("Length of future external features timeseries must be equal to the training prediction length ({})".format(prediction_length))
+            raise ValueError(
+                f"Please provide {prediction_length} future values of external features, as this was the forecasting horizon used for training"
+            )
 
         feat_dynamic_real_appended = np.append(feat_dynamic_real_train, feat_dynamic_real_future, axis=1)
 
@@ -98,10 +106,10 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
         date_range_values = pd.date_range(start=start_date, end=end_date, freq=frequency).values
 
     if not np.array_equal(dataframe[time_column_name].values, date_range_values):
-        error_message = "Time column {} doesn't have regular time intervals of frequency {}.".format(time_column_name, frequency)
+        error_message = f"Time column '{time_column_name}' does not have regular intervals of frequency '{frequency}'. "
         if frequency.endswith(("M", "Y")):
-            error_message += " For Month (or Year) frequency, timestamps must be end of Month (or Year) (for e.g. '2020-12-31 00:00:00')."
-        error_message += " You should use the timeseries preparation plugin first to resample the date column."
+            error_message += "For Month/Year frequency, dates must be at end of month/year e.g. '2020-12-31 00:00:00'. "
+        error_message += "Please use the Time Series Preparation plugin to resample your time column."
         raise ValueError(error_message)
 
 
