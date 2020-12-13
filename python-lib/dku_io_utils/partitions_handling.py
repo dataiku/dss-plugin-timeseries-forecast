@@ -1,12 +1,7 @@
 import dataiku
 
 
-TIME_DIMENSION_PATTERNS = {
-        "DKU_DST_YEAR": "%Y",
-        "DKU_DST_MONTH": "%M",
-        "DKU_DST_DAY": "%D",
-        "DKU_DST_HOUR": "%H"
-    }
+TIME_DIMENSION_PATTERNS = {"DKU_DST_YEAR": "%Y", "DKU_DST_MONTH": "%M", "DKU_DST_DAY": "%D", "DKU_DST_HOUR": "%H"}
 
 
 def get_partition_root(dataset):
@@ -62,9 +57,11 @@ def get_partitions(dku_flow_variables, dimensions):
     """
     partitions = []
     for dimension in dimensions:
-        partition = dku_flow_variables.get("DKU_DST_{}".format(dimension))
+        partition = dku_flow_variables.get(f"DKU_DST_{dimension}")
         if partition is None:
-            raise ValueError("Partition dimension '{}' not found in output. Make sure the output has the same partitioning as the input".format(dimension))
+            raise ValueError(
+                f"Partition dimension '{dimension}' not found in output. Please make sure your output has the same partition dimensions as your input."
+            )
         partitions.append(partition)
     return partitions
 
@@ -87,7 +84,7 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
         return "/".join(partitions)
     file_path = file_path_pattern.replace(".*", "")
     for partition, dimension in zip(partitions, dimensions):
-        file_path = file_path.replace("%{{{}}}".format(dimension), partition)
+        file_path = file_path.replace(f"%{{{dimension}}}", partition)
     return file_path
 
 
@@ -95,7 +92,7 @@ def fix_date_elements_folder_path(partitions, types):
     """ Replace the '-' separator in time dimension on SQL-type dataset by '/' so they can be used in folder paths """
     fixed_partitions = []
     for partition, type in zip(partitions, types):
-        if type == 'time':
+        if type == "time":
             fixed_partitions.append(partition.replace("-", "/"))
         else:
             fixed_partitions.append(partition)

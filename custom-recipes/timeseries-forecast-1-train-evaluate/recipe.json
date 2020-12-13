@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "Train and evaluate forecasting models",
-        "description": "Train forecasting models and evaluate their performance on historical data",
+        "label": "Train and test forecasting models",
+        "description": "Train forecasting models and test their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
     },
@@ -29,8 +29,8 @@
         },
         {
             "name": "evaluation_dataset",
-            "label": "Performance results",
-            "description": "Performance metrics of forecasting models backtested on historical data",
+            "label": "Performance metrics",
+            "description": "Performance metrics of forecasting models tested on historical data",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -38,10 +38,10 @@
         },
         {
             "name": "evaluation_forecasts_dataset",
-            "label": "Backtest forecasts (optional)",
-            "description": "Backtest data used to compute performance metrics",
+            "label": "Test dataset",
+            "description": "Test dataset with forecasts used to compute performance metrics",
             "arity": "UNARY",
-            "required": false,
+            "required": true,
             "acceptsDataset": true,
             "acceptsManagedFolder": false
         }
@@ -183,6 +183,7 @@
             "name": "prediction_length",
             "label": "Forecasting horizon",
             "type": "INT",
+            "description": "Number of time steps to predict future values",
             "defaultValue": 1,
             "mandatory": true,
             "minI": 1
@@ -471,19 +472,19 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Performance Evaluation",
+            "label": "Train / Test Set",
             "type": "SEPARATOR"
         },
         {
             "name": "evaluation_strategy",
-            "label": "Evaluation strategy",
+            "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Time-based split of chosen forecasting horizon (only supported method)",
+            "description": "Only supported method - Test set will have \"Forecasting horizon\" steps",
             "selectChoices": [
                 {
                     "value": "split",
-                    "label": "Train/Test Split"
+                    "label": "Time-based Split"
                 }
             ],
             "defaultValue": "split"
@@ -503,7 +504,7 @@
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "⚠️ If specified, futures values of external features will be required to forecast",
+            "description": "Optional ⚠️  Futures values of external features will be required to forecast",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",

@@ -5,7 +5,7 @@ from gluonts.model.seq2seq import MQCNNEstimator
 from gluonts.model.transformer import TransformerEstimator
 from gluonts.model.tft import TemporalFusionTransformerEstimator
 from gluonts.mx.trainer import Trainer
-from gluonts.model.trivial.mean import MeanEstimator, MeanPredictor
+from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
@@ -140,7 +140,7 @@ class ModelHandler:
         try:
             ret = None if estimator is None else estimator(**kwargs)
         except Exception as err:
-            raise ModelParameterError("Issue with the parameters ({}) for model '{}' estimator: {}".format(kwargs, self.model_name, err))
+            raise ModelParameterError(f"Issue with parameters '{kwargs}' of model '{self.model_name}'. Full error: {err}")
         return ret
 
     def trainer(self, **kwargs):
@@ -148,7 +148,7 @@ class ModelHandler:
         try:
             ret = None if trainer is None else trainer(**kwargs)
         except Exception as err:
-            raise ModelParameterError("Issue with the parameters ({}) for model '{}' trainer: {}".format(kwargs, self.model_name, err))
+            raise ModelParameterError(f"Issue with parameters '{kwargs}' of model trainer for '{self.model_name}'. Full error: {err}")
         return ret
 
     def predictor(self, **kwargs):
@@ -156,7 +156,7 @@ class ModelHandler:
         try:
             ret = None if predictor is None else predictor(**kwargs)
         except Exception as err:
-            raise ModelParameterError("Issue with the parameters ({}) for model '{}' predictor: {}".format(kwargs, self.model_name, err))
+            raise ModelParameterError(f"Issue with parameters '{kwargs}' of model predictor for {self.model_name}. Full error: {err}")
         return ret
 
     def can_use_external_feature(self):

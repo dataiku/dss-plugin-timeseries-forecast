@@ -133,4 +133,4 @@ class GluonDataset:
         if cut_length:
             min_length += cut_length
         if len(dataframe.index) < min_length:
-            raise ValueError("Time series must have at least {} values".format(min_length))
+            raise ValueError(f"Time series must have at least {min_length} values")

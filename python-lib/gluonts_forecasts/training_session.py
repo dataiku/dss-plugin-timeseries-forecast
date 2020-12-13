@@ -91,9 +91,11 @@ class TrainingSession:
         else:
             self.session_path = os.path.join(partition_root, session_name)
         try:
-            self.training_df[self.time_column_name] = pd.to_datetime(self.training_df[self.time_column_name]).dt.tz_localize(tz=None)
+            self.training_df[self.time_column_name] = pd.to_datetime(
+                self.training_df[self.time_column_name]
+            ).dt.tz_localize(tz=None)
         except Exception:
-            raise ValueError("Time column '{}' cannot be parsed as date. You should parse the date column in a prepare recipe.".format(self.time_column_name))
+            raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
 
         self._check_target_columns_types()
         self._check_external_features_columns_types()
@@ -160,7 +162,9 @@ class TrainingSession:
         """Evaluate all the selected models and get the metrics dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)
+            (item_metrics, identifiers_columns) = model.evaluate(
+                self.evaluation_train_list_dataset, self.full_list_dataset
+            )
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
@@ -169,20 +173,22 @@ class TrainingSession:
         """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True)
+            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(
+                self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True
+            )
             forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
             if self.forecasts_df.empty:
                 self.forecasts_df = forecasts_df
             else:
-                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
+                self.forecasts_df = self.forecasts_df.merge(
+                    forecasts_df, on=[self.time_column_name] + identifiers_columns
+                )
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
         self.evaluation_forecasts_df = self.training_df.merge(
-            self.forecasts_df,
-            on=[self.time_column_name] + identifiers_columns,
-            how="left",
+            self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left",
         )
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
@@ -223,7 +229,8 @@ class TrainingSession:
         for column in self.evaluation_forecasts_df.columns:
             prefix = column.split("_")[0]
             if prefix in available_models:
-                column_descriptions[column] = "Median forecasts of {} using {} model".format(column.split("{}_".format(prefix))[1], prefix)
+                target_name = column.split(f"{prefix}_")[1]
+                column_descriptions[column] = f"Median forecasts of {target_name} using {prefix} model"
         return column_descriptions
 
     def get_metrics_df(self):
@@ -237,7 +244,9 @@ class TrainingSession:
         """
         if len(self.target_columns_names) == 1:
             evaluation_metrics_df = self.metrics_df.copy()
-            evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
+            evaluation_metrics_df = evaluation_metrics_df[
+                evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW
+            ]
             evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
             return evaluation_metrics_df
         else:
@@ -247,19 +256,21 @@ class TrainingSession:
         """ Raises ValueError if a target column is not numerical """
         for column_name in self.target_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
-                raise ValueError("Target column '{}' must be of numerical data type.".format(column_name))
+                raise ValueError(f"Target column '{column_name}' must be of numeric type")
 
     def _check_external_features_columns_types(self):
         """ Raises ValueError if an external feature column is not numerical """
         for column_name in self.external_features_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
-                raise ValueError("External feature column '{}' must be of numerical data type.".format(column_name))
+                raise ValueError(f"External feature '{column_name}' must be of numeric type")
 
     def _check_timeseries_identifiers_columns_types(self):
         """ Raises ValueError if a timeseries identifiers column is not numerical or string """
         for column_name in self.timeseries_identifiers_names:
-            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
-                raise ValueError("Timeseries identifiers column '{}' must be of numerical or string data type.".format(column_name))
+            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(
+                self.training_df[column_name]
+            ):
+                raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
