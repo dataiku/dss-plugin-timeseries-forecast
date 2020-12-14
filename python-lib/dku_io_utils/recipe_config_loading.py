@@ -219,11 +219,19 @@ def set_naive_model_parameters(config, models_parameters):
     """
     naive_model_parameters = models_parameters.get("naive")
     if naive_model_parameters is not None:
-        model_name = config.get("naive_model_method")
+        model_name = get_naive_model_name(config)
         models_parameters[model_name] = models_parameters.pop("naive")
         if model_name in ["trivial_identity", "trivial_mean"]:
             models_parameters[model_name]["kwargs"] = {"num_samples": 100}
     return models_parameters
+
+
+def get_naive_model_name(config):
+    """ Only the customize_algorithms forecasting style allows selecting the naive model algorithm """
+    if config.get("forecasting_style") == "customize_algorithms":
+        return config.get("naive_model_method")
+    else:
+        return "trivial_identity"
 
 
 def is_activated(config, model):
