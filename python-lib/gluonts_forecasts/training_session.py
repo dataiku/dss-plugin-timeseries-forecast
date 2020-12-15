@@ -115,8 +115,9 @@ class TrainingSession:
             min_length=self.prediction_length + self.context_length,
         )
 
-        self.evaluation_train_list_dataset = gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
-        self.full_list_dataset = gluon_dataset.create_list_dataset()
+        gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        self.evaluation_train_list_dataset = gluon_list_datasets[0]
+        self.full_list_dataset = gluon_list_datasets[1]
 
         if self.user_num_batches_per_epoch == -1:
             self.num_batches_per_epoch = self._compute_optimal_num_batches_per_epoch()
