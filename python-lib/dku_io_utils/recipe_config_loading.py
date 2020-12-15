@@ -162,10 +162,10 @@ def load_predict_config():
     params["selected_session"] = recipe_config.get("manually_selected_session")
     params["selected_model_label"] = recipe_config.get("manually_selected_model_label")
 
-    params["prediction_length"] = recipe_config.get("prediction_length")
-    params["confidence_interval"] = recipe_config.get("confidence_interval")
+    params["prediction_length"] = recipe_config.get("prediction_length", -1)
+    params["confidence_interval"] = recipe_config.get("confidence_interval", 95)
     params["quantiles"] = convert_confidence_interval_to_quantiles(params["confidence_interval"])
-    params["include_history"] = recipe_config.get("include_history")
+    params["include_history"] = recipe_config.get("include_history", False)
 
     printable_params = {
         param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
