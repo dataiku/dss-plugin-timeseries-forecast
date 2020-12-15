@@ -183,7 +183,7 @@
             "name": "prediction_length",
             "label": "Forecasting horizon",
             "type": "INT",
-            "description": "Number of time steps to predict future values",
+            "description": "Number of future values to predict",
             "defaultValue": 1,
             "mandatory": true,
             "minI": 1
@@ -220,11 +220,20 @@
         {
             "name": "naive_model_activated",
             "label": "- Baseline",
+            "description": "Based on the trivial.identity GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true,
+            "visibilityCondition": "model.forecasting_style == 'choose_algorithms'"
+        },
+        {
+            "name": "naive_model_activated",
+            "label": "- Baseline",
             "description": "Based on the trivial.identity/trivial.mean/seasonal_naive GluonTS models",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "naive_model_method",

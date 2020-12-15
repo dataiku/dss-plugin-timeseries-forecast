@@ -33,8 +33,9 @@ class TestModel:
             min_length=2,
         )
         self.prediction_length = 1
-        self.train_list_dataset = self.gluon_dataset.create_list_dataset(cut_length=self.prediction_length)
-        self.test_list_dataset = self.gluon_dataset.create_list_dataset()
+        gluon_list_datasets = self.gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        self.train_list_dataset = gluon_list_datasets[0]
+        self.test_list_dataset = gluon_list_datasets[1]
 
     def test_deepar(self):
         model_name = "deepar"

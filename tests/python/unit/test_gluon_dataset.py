@@ -30,7 +30,7 @@ class TestGluonDataset:
             external_features_columns_names=["is_holiday", "is_weekend"],
             min_length=2,
         )
-        self.gluon_list_dataset = self.gluon_dataset.create_list_dataset()
+        self.gluon_list_dataset = self.gluon_dataset.create_list_datasets(cut_lengths=[0])[0]
 
     def test_start_date(self):
         assert self.gluon_list_dataset.list_data[1][TIMESERIES_KEYS.START] == pd.Timestamp("2018-01-06")
