@@ -163,13 +163,8 @@ def load_predict_config():
     params["selected_model_label"] = recipe_config.get("manually_selected_model_label")
 
     params["prediction_length"] = recipe_config.get("prediction_length")
-    params["quantiles"] = recipe_config.get("quantiles")
-    if any(x < 0 or x > 1 for x in params["quantiles"]):
-        raise PluginParamValidationError("Please choose quantiles between 0 and 1")
-    if 0.5 not in params["quantiles"]:
-        params["quantiles"].append(0.5)
-    params["quantiles"].sort()
-
+    params["confidence_interval"] = recipe_config.get("confidence_interval")
+    params["quantiles"] = convert_confidence_interval_to_quantiles(params["confidence_interval"])
     params["include_history"] = recipe_config.get("include_history")
 
     printable_params = {
@@ -294,3 +289,22 @@ def check_equal_partition_dependencies(partition_root, dku_computable):
             if isinstance(dku_computable, dataiku.Folder):
                 error_message_prefix = f"Input folder '{dku_computable.get_name()}'"
             raise PluginParamValidationError(error_message_prefix + " must have equal partition dependencies.")
+
+
+def convert_confidence_interval_to_quantiles(confidence_interval):
+    """Convert a confidence interval value into a list of lower and upper quantiles with also the median.
+
+    Args:
+        confidence_interval (int): Percentage.
+
+    Raises:
+        PluginParamValidationError: If the selected confidence interval is not between 1 and 99.
+
+    Returns:
+        List of quantiles.
+    """    
+    if confidence_interval < 1 or confidence_interval > 99:
+        raise PluginParamValidationError("Please choose a confidence interval between 1 and 99.")
+    alpha = (100 - confidence_interval) / 2 / 100.0
+    quantiles = [alpha, 0.5, 1 - alpha]
+    return quantiles

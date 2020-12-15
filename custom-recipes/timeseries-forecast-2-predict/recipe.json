@@ -127,16 +127,14 @@
             "visibilityCondition": "false"
         },
         {
-            "name": "quantiles",
-            "label": "Quantiles",
-            "type": "DOUBLES",
+            "name": "confidence_interval",
+            "label": "Confidence interval",
+            "type": "INT",
             "mandatory": true,
-            "defaultValue": [
-                0.1,
-                0.5,
-                0.9
-            ],
-            "description": "Quantiles of probabilistic forecast: 0.5 as median forecast, with optional lower and upper confidence quantiles"
+            "defaultValue": 95,
+            "minI": 1,
+            "maxI": 99,
+            "description": "%"
         },
         {
             "name": "include_history",
