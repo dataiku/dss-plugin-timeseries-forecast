@@ -71,7 +71,7 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: True
+        CAN_USE_FEAT_STATIC_CAT: False
     },
     "nbeats": {
         LABEL: "NBEATS",
@@ -83,7 +83,7 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: True
+        CAN_USE_FEAT_STATIC_CAT: False
     },
     "tft": {
         LABEL: "TemporalFusionTransformer",
