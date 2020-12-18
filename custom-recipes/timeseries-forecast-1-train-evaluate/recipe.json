@@ -471,7 +471,7 @@
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Optional ⚠️  Futures values of external features will be required to forecast",
+            "description": "Optional ⚠️  Futures values of external features will be required to forecast. Only used by DeepAR, Transformer and MQ-CNN",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
