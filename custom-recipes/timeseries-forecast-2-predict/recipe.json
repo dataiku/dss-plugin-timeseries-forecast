@@ -134,7 +134,7 @@
             "defaultValue": 95,
             "minI": 1,
             "maxI": 99,
-            "description": "%"
+            "description": "%. Output lower and upper bounds forecasts."
         },
         {
             "name": "include_history",
