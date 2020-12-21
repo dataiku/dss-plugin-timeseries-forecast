@@ -145,8 +145,7 @@
         {
             "name": "additional_columns",
             "label": "Long format",
-            "description": "If multiple time series are stored in the same column"
-            the same time column",
+            "description": "If multiple time series are stored in the same column the same time column",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
@@ -154,8 +153,7 @@
         {
             "name": "timeseries_identifiers",
             "label": "Time series identifiers",
-            "description": "Columns that identify the multiple time series -
-            mandatory for long format",
+            "description": "Columns that identify the multiple time series - mandatory for long format",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
