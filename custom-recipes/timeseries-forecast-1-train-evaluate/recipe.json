@@ -10,7 +10,7 @@
     "inputRoles": [
         {
             "name": "input_dataset",
-            "label": "Input dataset",
+            "label": "Historical dataset",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -38,8 +38,8 @@
         },
         {
             "name": "evaluation_forecasts_dataset",
-            "label": "Test dataset",
-            "description": "Test dataset with forecasts used to compute performance metrics",
+            "label": "Evaluation dataset",
+            "description": "Dataset to test forecasts against historical data",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -67,6 +67,7 @@
             "name": "frequency_unit",
             "label": "Frequency",
             "type": "SELECT",
+            "description": "Time frequency of your historical data",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -177,7 +178,7 @@
             "label": "Modeling",
             "type": "SEPARATOR",
             "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.model.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "prediction_length",
@@ -387,13 +388,14 @@
             "name": "training_options_separator",
             "label": "Training options",
             "type": "SEPARATOR",
+            "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.trainer.html",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "context_length",
             "label": "Context length",
             "type": "INT",
-            "description": "If -1, same as forecasting horizon",
+            "description": "If -1, same as forecasting horizon. Number of past values deep learning models see to make predictions. Higher values increase runtime.",
             "defaultValue": -1,
             "mandatory": false,
             "minI": -1,
@@ -430,7 +432,7 @@
         {
             "name": "num_batches_per_epoch",
             "label": "Number of batches per epoch",
-            "description": "Number of training batches used in one epoch",
+            "description": "Number of training batches used in one epoch. Higher values increase runtime",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
@@ -447,7 +449,7 @@
             "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Test set will have \"Forecasting horizon\" steps",
+            "description": "Only supported method - Test set will have \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
