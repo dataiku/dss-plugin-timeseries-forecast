@@ -145,7 +145,8 @@
         {
             "name": "additional_columns",
             "label": "Long format",
-            "description": "If your dataset has columns to identify multiple time series",
+            "description": "If values from distinct time series are stored in
+            the same time column",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
@@ -153,7 +154,8 @@
         {
             "name": "timeseries_identifiers",
             "label": "Time series identifiers",
-            "description": "Mandatory for long format",
+            "description": "Columns that identify the multiple time series -
+            mandatory for long format",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -415,7 +417,7 @@
         {
             "name": "auto_num_batches_per_epoch",
             "label": "Sample all data",
-            "description": "Automatically scale the number of batches per epoch with the training data size",
+            "description": "Automatically scale the number of batches per epoch to use the whole training data",
             "type": "BOOLEAN",
             "defaultValue": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
