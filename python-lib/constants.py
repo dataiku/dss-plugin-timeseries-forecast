@@ -45,5 +45,5 @@ TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
         "auto": ["naive", "deepar"],
-        "auto_performance": ["naive", "deepar", "transformer", "mqcnn"]
+        "auto_performance": ["naive", "deepar", "transformer"]
     }

@@ -110,11 +110,13 @@ def load_training_config(recipe_config):
 
     # Overwrite values in case of autoML mode selected
     if params["forecasting_style"] == "auto":
+        params["context_length"] = params["prediction_length"]
         params["epoch"] = 10
         params["batch_size"] = 32
-        params["num_batches_per_epoch"] = -1
+        params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
-        params["epoch"] = 50
+        params["context_length"] = params["prediction_length"]
+        params["epoch"] = 30
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1
 
