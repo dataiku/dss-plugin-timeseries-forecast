@@ -306,5 +306,5 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
     if confidence_interval < 1 or confidence_interval > 99:
         raise PluginParamValidationError("Please choose a confidence interval between 1 and 99.")
     alpha = (100 - confidence_interval) / 2 / 100.0
-    quantiles = [alpha, 0.5, 1 - alpha]
+    quantiles = [round(alpha, 3), 0.5, round(1 - alpha, 3)]
     return quantiles
