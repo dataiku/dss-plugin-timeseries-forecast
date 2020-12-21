@@ -1,6 +1,6 @@
 {
     "meta": {
-        "label": "Train and test forecasting models",
+        "label": "1. Train and test forecasting models",
         "description": "Train forecasting models and test their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1

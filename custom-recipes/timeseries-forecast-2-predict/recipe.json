@@ -1,6 +1,6 @@
 {
     "meta": {
-        "label": "Forecast future values",
+        "label": "2. Forecast future values",
         "description": "Use trained forecasting models to predict future values of time series",
         "icon": "icon-signal",
         "displayOrderRank": 2
