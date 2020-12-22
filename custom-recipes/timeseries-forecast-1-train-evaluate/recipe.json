@@ -394,7 +394,7 @@
         {
             "name": "epoch",
             "label": "Number of epochs",
-            "description": "More epochs lead to better performance, but increase runtime linearly",
+            "description": "Higher values increase performance but increase runtime linearly",
             "type": "INT",
             "defaultValue": 10,
             "mandatory": false,
@@ -456,7 +456,7 @@
         {
             "name": "advanced_options",
             "label": "Display advanced options",
-            "description": "External features - e.g., weekends, special events",
+            "description": "External features - e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
