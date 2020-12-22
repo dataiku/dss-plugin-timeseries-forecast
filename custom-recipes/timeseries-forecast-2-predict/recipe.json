@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "Forecast future values",
-        "description": "Use trained forecasting models to predict future values of time series",
+        "label": "2. Forecast future values",
+        "description": "Use trained forecasting models to predict future values after your historical dataset",
         "icon": "icon-signal",
         "displayOrderRank": 2
     },
@@ -20,7 +20,7 @@
         },
         {
             "name": "external_features_future_dataset",
-            "label": "Optional - Future values of external features",
+            "label": "Optional - Dataset with future values of external features",
             "description": "Only required if you specified external features in the \"Train and test forecasting models\" recipe",
             "arity": "UNARY",
             "required": false,
@@ -128,13 +128,13 @@
         },
         {
             "name": "confidence_interval",
-            "label": "Confidence interval",
+            "label": "Confidence interval (%)",
             "type": "INT",
             "mandatory": true,
             "defaultValue": 95,
             "minI": 1,
             "maxI": 99,
-            "description": "%"
+            "description": "Compute lower and upper confidence bounds forecasts"
         },
         {
             "name": "include_history",
