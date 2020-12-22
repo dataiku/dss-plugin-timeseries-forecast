@@ -145,7 +145,7 @@
         {
             "name": "additional_columns",
             "label": "Long format",
-            "description": "If multiple time series are stored in the same column the same time column",
+            "description": "If multiple time series are stored in the same column",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
