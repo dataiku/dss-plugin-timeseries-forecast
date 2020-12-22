@@ -224,7 +224,7 @@
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "naive_model_method",
