@@ -456,7 +456,7 @@
         {
             "name": "advanced_options",
             "label": "Display advanced options",
-            "description": "External features (e.g. weekends, holidays, ...)",
+            "description": "External features - e.g., weekends, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
