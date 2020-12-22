@@ -1,7 +1,7 @@
 {
     "meta": {
         "label": "2. Forecast future values",
-        "description": "Use trained forecasting models to predict future values of time series",
+        "description": "Use trained forecasting models to predict future values after your historical dataset",
         "icon": "icon-signal",
         "displayOrderRank": 2
     },
