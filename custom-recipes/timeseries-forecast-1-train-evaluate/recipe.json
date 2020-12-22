@@ -30,7 +30,7 @@
         {
             "name": "evaluation_dataset",
             "label": "Performance metrics dataset",
-            "description": "Performance metrics of forecasting models tested on historical data",
+            "description": "Performance metrics of forecasting models evaluated on the historical dataset (splitting strategy can be specified in the recipe settings) ",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -39,7 +39,7 @@
         {
             "name": "evaluation_forecasts_dataset",
             "label": "Evaluation dataset",
-            "description": "Dataset with evaluation forecasts on historical data",
+            "description": "Dataset with evaluation forecasts used to compute the performance metrics",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
