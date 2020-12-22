@@ -128,7 +128,7 @@
         },
         {
             "name": "confidence_interval",
-            "label": "Confidence interval",
+            "label": "Confidence interval (%)",
             "type": "INT",
             "mandatory": true,
             "defaultValue": 95,
