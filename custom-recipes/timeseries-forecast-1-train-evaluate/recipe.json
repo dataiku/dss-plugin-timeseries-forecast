@@ -170,12 +170,11 @@
         {
             "name": "separator_modeling",
             "label": "Modeling",
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style != 'customize_algorithms'"
+            "type": "SEPARATOR"
         },
         {
             "name": "separator_modeling_customize_algorithms",
-            "label": "Modeling",
+            "label": "",
             "type": "SEPARATOR",
             "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.model.html",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
