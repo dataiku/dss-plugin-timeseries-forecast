@@ -184,7 +184,7 @@
             "name": "prediction_length",
             "label": "Forecasting horizon",
             "type": "INT",
-            "description": "Number of future values to predict",
+            "description": "Number of future values to predict. Higher values increase runtime.",
             "defaultValue": 1,
             "mandatory": true,
             "minI": 1
