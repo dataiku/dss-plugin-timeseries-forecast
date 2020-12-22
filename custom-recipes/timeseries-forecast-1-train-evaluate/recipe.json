@@ -404,7 +404,7 @@
         {
             "name": "batch_size",
             "label": "Batch size",
-            "description": "Number of samples to include in each batch. Higher values may reduce runtime but decrease performance",
+            "description": "Number of samples to include in each batch. Higher values reduce runtime but may decrease performance",
             "type": "INT",
             "defaultValue": 32,
             "mandatory": false,
