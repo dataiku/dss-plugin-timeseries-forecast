@@ -20,7 +20,7 @@
         },
         {
             "name": "external_features_future_dataset",
-            "label": "Optional - Future values of external features",
+            "label": "Optional - Dataset with future values of external features",
             "description": "Only required if you specified external features in the \"Train and test forecasting models\" recipe",
             "arity": "UNARY",
             "required": false,

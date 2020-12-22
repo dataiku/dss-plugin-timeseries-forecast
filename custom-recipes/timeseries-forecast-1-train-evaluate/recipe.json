@@ -29,7 +29,7 @@
         },
         {
             "name": "evaluation_dataset",
-            "label": "Performance metrics",
+            "label": "Performance metrics dataset",
             "description": "Performance metrics of forecasting models tested on historical data",
             "arity": "UNARY",
             "required": true,
@@ -415,7 +415,7 @@
         {
             "name": "auto_num_batches_per_epoch",
             "label": "Sample all data",
-            "description": "Automatically scale the number of batches per epoch to use the whole training data",
+            "description": "Automatically compute the number of batches per epoch",
             "type": "BOOLEAN",
             "defaultValue": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
