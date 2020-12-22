@@ -192,6 +192,7 @@
             "name": "forecasting_style",
             "label": "Forecasting mode",
             "type": "SELECT",
+            "description": "AutoML to let Dataiku choose your models or Expert to have full control.",
             "mandatory": true,
             "selectChoices": [
                 {
