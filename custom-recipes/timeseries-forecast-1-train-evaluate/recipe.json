@@ -404,7 +404,7 @@
         {
             "name": "batch_size",
             "label": "Batch size",
-            "description": "Number of samples in one batch",
+            "description": "Number of samples to include in each batch",
             "type": "INT",
             "defaultValue": 32,
             "mandatory": false,
