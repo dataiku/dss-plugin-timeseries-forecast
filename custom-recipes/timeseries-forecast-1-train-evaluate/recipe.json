@@ -39,7 +39,7 @@
         {
             "name": "evaluation_forecasts_dataset",
             "label": "Evaluation dataset",
-            "description": "Dataset to test forecasts against historical data",
+            "description": "Dataset with evaluation forecasts on historical data",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -67,7 +67,7 @@
             "name": "frequency_unit",
             "label": "Frequency",
             "type": "SELECT",
-            "description": "Time frequency of your historical data",
+            "description": "Frequency of your historical data",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -386,7 +386,7 @@
             "name": "context_length",
             "label": "Context length",
             "type": "INT",
-            "description": "If -1, same as forecasting horizon. Number of past values deep learning models see to make predictions. Higher values increase runtime.",
+            "description": "Number of input lags. If -1, same as forecasting horizon. Higher values increase runtime.",
             "defaultValue": -1,
             "mandatory": false,
             "minI": -1,
