@@ -1,4 +1,8 @@
 from constants import TIMESERIES_KEYS
+from safe_logger import SafeLogger
+
+
+logger = SafeLogger("Forecast plugin")
 
 
 def external_features_future_dataset_schema_check(train_data_sample, external_features_future_dataset):
@@ -15,15 +19,11 @@ def external_features_future_dataset_schema_check(train_data_sample, external_fe
         ValueError: If the external_features_future_dataset doesn't have the right schema.
     """
     external_features_future_columns = [column["name"] for column in external_features_future_dataset.read_schema()]
-    expected_columns = [train_data_sample[TIMESERIES_KEYS.TIME_COLUMN_NAME]] + train_data_sample[
-        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES
-    ]
+    expected_columns = [train_data_sample[TIMESERIES_KEYS.TIME_COLUMN_NAME]] + train_data_sample[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES]
     if TIMESERIES_KEYS.IDENTIFIERS in train_data_sample:
         expected_columns += list(train_data_sample[TIMESERIES_KEYS.IDENTIFIERS].keys())
     if not set(expected_columns).issubset(set(external_features_future_columns)):
-        raise ValueError(
-            f"Dataset of future values of external features must contain the following columns: {expected_columns}"
-        )
+        raise ValueError(f"Dataset of future values of external features must contain the following columns: {expected_columns}")
 
 
 def external_features_check(gluon_train_dataset, external_features_future_dataset):
@@ -47,14 +47,7 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
         external_features_future_dataset_schema_check(train_data_sample, external_features_future_dataset)
         return True
     elif trained_with_external_features and not external_features_future_dataset:
-        raise ValueError(
-            "Please provide a dataset of future values of external features in the 'Input / Output' tab of the recipe"
-        )
+        raise ValueError("Please provide a dataset of future values of external features in the 'Input / Output' tab of the recipe")
     elif not trained_with_external_features and external_features_future_dataset:
-        raise ValueError(
-            """
-            A dataset of future values of external features was provided, but no external features were used when training the selected model.
-            Please remove this dataset from the 'Input / Output' tab of the recipe or select a model that used external features during training.
-        """
-        )
+        logger.warning("""A dataset of future values of external features was provided, but no external features were used when training the selected model.""")
     return False

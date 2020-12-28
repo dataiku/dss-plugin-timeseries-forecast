@@ -240,22 +240,24 @@ class TrainedModel:
 
         Returns:
             List of quantiles that exists in the sample_forecasts
-        """        
+        """
         new_quantiles = []
         possible_quantiles = list(map(float, sample_forecasts.forecast_keys))
         for quantile in self.quantiles:
             new_quantiles += [min(possible_quantiles, key=lambda x: abs(x - quantile))]
         return new_quantiles
-    
+
     def _retrieve_confidence_interval(self):
         """Retrieve the confidence interval percentage from the minimum and maximum quantiles.
         If they are not symetric around 0.5, log a warning.
 
         Returns:
             Integer representing the percentage of the confidence interval.
-        """        
+        """
         lower_quantile, upper_quantile = min(self.quantiles), max(self.quantiles)
         confidence_interval = round((upper_quantile - lower_quantile) * 100)
-        if round((1 - upper_quantile) * 100) != round(lower_quantile * 100):
-            logger.warning("The output confidence interval is not centered around the median.")
+        if round((1 - upper_quantile) * 100, 2) != round(lower_quantile * 100, 2):
+            logger.warning(
+                f"The output confidence interval is not centered around the median. Lower and upper quantiles are [{lower_quantile}, {upper_quantile}]"
+            )
         return confidence_interval

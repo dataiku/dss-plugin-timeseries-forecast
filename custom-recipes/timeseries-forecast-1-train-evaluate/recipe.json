@@ -1,6 +1,6 @@
 {
     "meta": {
-        "label": "Train and test forecasting models",
+        "label": "1. Train and test forecasting models",
         "description": "Train forecasting models and test their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
@@ -10,7 +10,7 @@
     "inputRoles": [
         {
             "name": "input_dataset",
-            "label": "Input dataset",
+            "label": "Historical dataset",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -29,8 +29,8 @@
         },
         {
             "name": "evaluation_dataset",
-            "label": "Performance metrics",
-            "description": "Performance metrics of forecasting models tested on historical data",
+            "label": "Performance metrics dataset",
+            "description": "Performance metrics of forecasting models evaluated on the historical dataset (splitting strategy can be specified in the recipe settings) ",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -38,8 +38,8 @@
         },
         {
             "name": "evaluation_forecasts_dataset",
-            "label": "Test dataset",
-            "description": "Test dataset with forecasts used to compute performance metrics",
+            "label": "Evaluation dataset",
+            "description": "Dataset with evaluation forecasts used to compute the performance metrics",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -67,6 +67,7 @@
             "name": "frequency_unit",
             "label": "Frequency",
             "type": "SELECT",
+            "description": "Frequency of your historical data",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -144,7 +145,7 @@
         {
             "name": "additional_columns",
             "label": "Long format",
-            "description": "If your dataset has columns to identify multiple time series",
+            "description": "If multiple time series are stored in the same column",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
@@ -152,7 +153,7 @@
         {
             "name": "timeseries_identifiers",
             "label": "Time series identifiers",
-            "description": "Mandatory for long format",
+            "description": "Columns that identify the multiple time series - mandatory for long format",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -169,21 +170,20 @@
         {
             "name": "separator_modeling",
             "label": "Modeling",
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style != 'customize_algorithms'"
+            "type": "SEPARATOR"
         },
         {
             "name": "separator_modeling_customize_algorithms",
-            "label": "Modeling",
+            "label": "",
             "type": "SEPARATOR",
             "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.model.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "prediction_length",
             "label": "Forecasting horizon",
             "type": "INT",
-            "description": "Number of future values to predict",
+            "description": "Number of future values to predict. Higher values increase runtime.",
             "defaultValue": 1,
             "mandatory": true,
             "minI": 1
@@ -192,6 +192,7 @@
             "name": "forecasting_style",
             "label": "Forecasting mode",
             "type": "SELECT",
+            "description": "AutoML to let Dataiku choose your models or Expert to have full control.",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -220,20 +221,11 @@
         {
             "name": "naive_model_activated",
             "label": "- Baseline",
-            "description": "Based on the trivial.identity GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": true,
-            "mandatory": true,
-            "visibilityCondition": "model.forecasting_style == 'choose_algorithms'"
-        },
-        {
-            "name": "naive_model_activated",
-            "label": "- Baseline",
             "description": "Based on the trivial.identity/trivial.mean/seasonal_naive GluonTS models",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "naive_model_method",
@@ -429,13 +421,14 @@
             "name": "training_options_separator",
             "label": "Training options",
             "type": "SEPARATOR",
+            "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.trainer.html",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "context_length",
             "label": "Context length",
             "type": "INT",
-            "description": "If -1, same as forecasting horizon",
+            "description": "Number of input lags. If -1, same as forecasting horizon. Higher values increase runtime.",
             "defaultValue": -1,
             "mandatory": false,
             "minI": -1,
@@ -444,7 +437,7 @@
         {
             "name": "epoch",
             "label": "Number of epochs",
-            "description": "More epochs lead to better performance, but increase runtime linearly",
+            "description": "Higher values increase performance but increase runtime linearly",
             "type": "INT",
             "defaultValue": 10,
             "mandatory": false,
@@ -454,7 +447,7 @@
         {
             "name": "batch_size",
             "label": "Batch size",
-            "description": "Number of samples in one batch",
+            "description": "Higher values may reduce runtime but decrease performance",
             "type": "INT",
             "defaultValue": 32,
             "mandatory": false,
@@ -464,7 +457,7 @@
         {
             "name": "auto_num_batches_per_epoch",
             "label": "Sample all data",
-            "description": "Automatically scale the number of batches per epoch with the training data size",
+            "description": "Automatically choose the number of batches per epoch to sample all data in one epoch",
             "type": "BOOLEAN",
             "defaultValue": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
@@ -472,7 +465,7 @@
         {
             "name": "num_batches_per_epoch",
             "label": "Number of batches per epoch",
-            "description": "Number of training batches used in one epoch",
+            "description": "Number of training batches used in one epoch. Higher values increase runtime",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
@@ -489,7 +482,7 @@
             "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Test set will have \"Forecasting horizon\" steps",
+            "description": "Only supported method - Test set will have \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
@@ -506,14 +499,14 @@
         {
             "name": "advanced_options",
             "label": "Display advanced options",
-            "description": "External features",
+            "description": "External features - e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Optional ⚠️  Futures values of external features will be required to forecast",
+            "description": "Optional ⚠️  Futures values of external features will be required to forecast.",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
