@@ -197,38 +197,10 @@ def get_models_parameters(config):
                     "Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter"
                 )
             models_parameters.update({model: model_presets})
-    models_parameters = set_naive_model_parameters(config, models_parameters)
     if not models_parameters:
         raise PluginParamValidationError("Please select at least one model")
     logger.info(f"Model parameters: {models_parameters}")
     return models_parameters
-
-
-def set_naive_model_parameters(config, models_parameters):
-    """Update models_parameters to add specific parameters that some baselines models have.
-
-    Args:
-        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
-        models_parameters (dict): Obtained with get_models_parameters.
-
-    Returns:
-        Dictionary of model parameter (value) by activated model name (key).
-    """
-    naive_model_parameters = models_parameters.get("naive")
-    if naive_model_parameters is not None:
-        model_name = get_naive_model_name(config)
-        models_parameters[model_name] = models_parameters.pop("naive")
-        if model_name in ["trivial_identity", "trivial_mean"]:
-            models_parameters[model_name]["kwargs"] = {"num_samples": 100}
-    return models_parameters
-
-
-def get_naive_model_name(config):
-    """ Only the customize_algorithms forecasting style allows selecting the naive model algorithm """
-    if config.get("forecasting_style") == "customize_algorithms":
-        return config.get("naive_model_method")
-    else:
-        return "trivial_identity"
 
 
 def is_activated(config, model):
