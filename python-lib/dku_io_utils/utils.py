@@ -80,7 +80,7 @@ def write_to_folder(object_to_save, folder, path, object_type):
             )
 
 
-def set_column_description(output_dataset, column_description_dict, input_dataset=None, to_lowercase=False):
+def set_column_description(output_dataset, column_description_dict, input_dataset=None):
     """Set column descriptions of the output dataset based on a dictionary of column descriptions
 
     Retains the column descriptions from the input dataset if the column name matches.
@@ -90,7 +90,6 @@ def set_column_description(output_dataset, column_description_dict, input_datase
         column_description_dict: Dictionary holding column descriptions (value) by column name (key)
         input_dataset: Optional input dataiku.Dataset instance
             in case you want to retain input column descriptions
-        to_lowercase: Convert to lowercase column names that are in column_description_dict
     """
     output_dataset_schema = output_dataset.read_schema()
     input_dataset_schema = []
@@ -109,6 +108,4 @@ def set_column_description(output_dataset, column_description_dict, input_datase
             ]
             if len(matched_comment) != 0:
                 output_col_info["comment"] = matched_comment[0]
-        if to_lowercase and output_col_name in column_description_dict:
-            output_col_info["name"] = output_col_name.lower()
     output_dataset.write_schema(output_dataset_schema)
