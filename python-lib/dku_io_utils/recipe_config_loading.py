@@ -6,7 +6,7 @@ from dataiku.customrecipe import (
 )
 import re
 from gluonts_forecasts.model_handler import list_available_models
-from dku_io_utils.partitions_handling import get_partition_root
+from dku_io_utils.partitions_handling import get_folder_partition_root
 from constants import FORECASTING_STYLE_PRESELECTED_MODELS
 from safe_logger import SafeLogger
 
@@ -30,11 +30,11 @@ def load_training_config(recipe_config):
     input_dataset_name = get_input_names_for_role("input_dataset")[0]
     params["training_dataset"] = dataiku.Dataset(input_dataset_name)
     training_dataset_columns = [p["name"] for p in params["training_dataset"].read_schema()]
-    params["partition_root"] = get_partition_root(params["training_dataset"])
-    check_equal_partition_dependencies(params["partition_root"], params["training_dataset"])
 
     model_folder_name = get_output_names_for_role("model_folder")[0]
     params["model_folder"] = dataiku.Folder(model_folder_name)
+    params["partition_root"] = get_folder_partition_root(params["model_folder"])
+    check_equal_partition_dependencies(params["partition_root"], params["training_dataset"])
 
     evaluation_dataset_name = get_output_names_for_role("evaluation_dataset")[0]
     params["evaluation_dataset"] = dataiku.Dataset(evaluation_dataset_name)
@@ -141,6 +141,7 @@ def load_predict_config():
     # model folder
     model_folder = dataiku.Folder(get_input_names_for_role("model_folder")[0])
     params["model_folder"] = model_folder
+    params["partition_root"] = get_folder_partition_root(params["model_folder"])
 
     params["external_features_future_dataset"] = None
     external_features_future_dataset_names = get_input_names_for_role("external_features_future_dataset")
@@ -152,7 +153,6 @@ def load_predict_config():
     if len(output_dataset_names) == 0:
         raise PluginParamValidationError("Please specify Forecast dataset in the 'Input / Output' tab of the recipe")
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
-    params["partition_root"] = get_partition_root(params["output_dataset"])
     check_equal_partition_dependencies(params["partition_root"], params["model_folder"])
     check_equal_partition_dependencies(params["partition_root"], params["external_features_future_dataset"])
 
@@ -302,7 +302,7 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
 
     Returns:
         List of quantiles.
-    """    
+    """
     if confidence_interval < 1 or confidence_interval > 99:
         raise PluginParamValidationError("Please choose a confidence interval between 1 and 99.")
     alpha = (100 - confidence_interval) / 2 / 100.0

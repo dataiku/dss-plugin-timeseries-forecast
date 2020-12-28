@@ -93,6 +93,8 @@ class ModelSelection:
         for child in self.folder.get_path_details(path=self.root)["children"]:
             if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
                 session_timestamps += [child["name"]]
+        if len(session_timestamps) == 0:
+            raise ModelSelectionError("Model not found for {}".format(self.root))
         last_session = max(session_timestamps, key=lambda timestamp: timestamp)
         return last_session
 

@@ -16,7 +16,7 @@ def get_partition_root(dataset):
     dku_flow_variables = dataiku.get_flow_variables()
     file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
 
-    dimensions, types = get_dimensions(dataset)
+    dimensions, types = get_dataset_dimensions(dataset)
     partitions = get_partitions(dku_flow_variables, dimensions)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
     file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
@@ -24,7 +24,36 @@ def get_partition_root(dataset):
     return file_path
 
 
-def get_dimensions(dataset):
+def get_folder_partition_root(folder):
+    """Retrieve the partition root path using a dataiku.Folder.
+
+    Args:
+        dataset (dataiku.Dataset): Input or output dataset of the recipe used to retrieve the partition path pattern.
+
+    Returns:
+        Partition path or None if dataset is not partitioned.
+    """
+    folder_id = folder.get_id()
+    dku_flow_variables = dataiku.get_flow_variables()
+    client = dataiku.api_client()
+    project = client.get_project(dataiku.default_project_key())
+    folder = project.get_managed_folder(folder_id)
+    folder.get_definition()["partitioning"]
+    folder_config = folder.get_definition()
+    file_path_pattern = folder_config.get("partitioning").get("filePathPattern", None)
+    dimensions, types = get_dimensions(folder_config)
+    partitions = get_partitions(dku_flow_variables, dimensions)
+    file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
+    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
+    return file_path
+
+
+def get_dataset_dimensions(dataset):
+    dataset_config = dataset.get_config()
+    return get_dimensions(dataset_config)
+
+
+def get_dimensions(dataset_config):
     """Retrieve the list of partition dimension names.
 
     Args:
@@ -33,7 +62,7 @@ def get_dimensions(dataset):
     Returns:
         List of dimensions.
     """
-    dimensions_dict = dataset.get_config().get("partitioning").get("dimensions")
+    dimensions_dict = dataset_config.get("partitioning").get("dimensions")
     dimensions = []
     types = []
     for dimension in dimensions_dict:
