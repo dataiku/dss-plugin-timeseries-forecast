@@ -118,6 +118,13 @@ def load_training_config(recipe_config):
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1
 
+    params["sampling_method"] = recipe_config.get("sampling_method", "last_records")
+    params["max_timeseries_length"] = None
+    if params["sampling_method"] == "last_records":
+        params["max_timeseries_length"] = recipe_config.get("number_records", 10000)
+        if params["max_timeseries_length"] < 1:
+            raise PluginParamValidationError("Number of records must be higher than 1")
+
     params["gpu"] = recipe_config.get("gpu", "no_gpu")
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False

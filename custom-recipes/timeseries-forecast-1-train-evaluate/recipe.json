@@ -434,6 +434,34 @@
             "type": "SEPARATOR"
         },
         {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "",
+            "selectChoices": [
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                },
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                }
+            ],
+            "defaultValue": "last_records"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Number of records to use per timeseries",
+            "type": "INT",
+            "defaultValue": 10000,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.sampling_method==last_records"
+        },
+        {
             "name": "evaluation_strategy",
             "label": "Splitting strategy",
             "type": "SELECT",
