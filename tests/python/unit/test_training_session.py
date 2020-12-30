@@ -28,6 +28,7 @@ class TestTrainingSession:
                 "is_weekend": [1, 0, 0, 1, 0, 0],
             }
         )
+        self.df["date"] = pd.to_datetime(self.df["date"]).dt.tz_localize(tz=None)
         self.models_parameters = {
             "deepar": {"activated": True, "kwargs": {"dropout_rate": "0.3", "cell_type": "gru"}},
             "mqcnn": {"activated": True, "kwargs": {}},
