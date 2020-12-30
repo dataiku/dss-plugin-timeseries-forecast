@@ -61,6 +61,8 @@ class TimeseriesPreparator:
         Check there are no duplicate timestamps.
 
         Examples:
+            '2020-12-15 12:45:30' becomes '2020-12-15 12:40:00' with frequency '20min'
+            '2020-12-15 12:00:00' becomes '2020-12-15 00:00:00' with frequency '24H'
             '2020-12-15 12:30:00' becomes '2020-12-15 00:00:00' with frequency 'D'
             '2020-12-15 12:30:00' becomes '2020-12-31 00:00:00' with frequency 'M'
             '2020-12-15 12:30:00' becomes '2021-01-30 00:00:00' with frequency 'A-JAN'
