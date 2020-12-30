@@ -50,18 +50,14 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError(f"Invalid time column selection: {params['time_column_name']}")
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
-    if len(params["target_columns_names"]) == 0 or not all(
-        column in training_dataset_columns for column in params["target_columns_names"]
-    ):
+    if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
         params["timeseries_identifiers_names"] = sanitize_column_list(recipe_config.get("timeseries_identifiers", []))
         if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
-            raise PluginParamValidationError(
-                f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}"
-            )
+            raise PluginParamValidationError(f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}")
     else:
         params["timeseries_identifiers_names"] = []
 
@@ -70,20 +66,21 @@ def load_training_config(recipe_config):
 
     params["external_features_columns_names"] = sanitize_column_list(recipe_config.get("external_feature_columns", []))
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError(
-            f"Invalid external features selection: {params['external_features_columns_names']}"
-        )
+        raise PluginParamValidationError(f"Invalid external features selection: {params['external_features_columns_names']}")
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    if params["frequency_unit"] not in ["H", "min"]:
+    if params["frequency_unit"] not in ["A", "W", "H", "min"]:
         params["frequency"] = params["frequency_unit"]
     else:
-        if params["frequency_unit"] == "H":
-            params["frequency_step"] = recipe_config.get("frequency_step_hours", 1)
+        if params["frequency_unit"] == "A":
+            params["frequency"] = f"A-{recipe_config.get('frequency_end_of_year', 1)}"
+        elif params["frequency_unit"] == "W":
+            params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
+        elif params["frequency_unit"] == "H":
+            params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
         elif params["frequency_unit"] == "min":
-            params["frequency_step"] = recipe_config.get("frequency_step_minutes", 1)
-        params["frequency"] = f"{params['frequency_step']}{params['frequency_unit']}"
+            params["frequency"] = f"{recipe_config.get('frequency_step_minutes', 1)}min"
 
     params["prediction_length"] = recipe_config.get("prediction_length")
     if not params["prediction_length"]:
@@ -129,9 +126,7 @@ def load_training_config(recipe_config):
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
-    printable_params = {
-        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    }
+    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info(f"Recipe parameters: {printable_params}")
     return params
 
@@ -174,9 +169,7 @@ def load_predict_config():
     params["quantiles"] = convert_confidence_interval_to_quantiles(params["confidence_interval"])
     params["include_history"] = recipe_config.get("include_history", False)
 
-    printable_params = {
-        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    }
+    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info(f"Recipe parameters: {printable_params}")
     return params
 
@@ -198,9 +191,7 @@ def get_models_parameters(config):
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
-                raise ValueError(
-                    "Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter"
-                )
+                raise ValueError("Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter")
             models_parameters.update({model: model_presets})
     models_parameters = set_naive_model_parameters(config, models_parameters)
     if not models_parameters:
@@ -309,7 +300,7 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
 
     Returns:
         List of quantiles.
-    """    
+    """
     if confidence_interval < 1 or confidence_interval > 99:
         raise PluginParamValidationError("Please choose a confidence interval between 1 and 99.")
     alpha = (100 - confidence_interval) / 2 / 100.0

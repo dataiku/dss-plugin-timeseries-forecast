@@ -230,6 +230,7 @@ class Model(ModelHandler):
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = sample_forecasts.quantile_ts(0.5).rename(f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}")
+            print(f"series: {series}")
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
             else:
