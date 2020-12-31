@@ -161,7 +161,7 @@ def load_predict_config():
     params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
     params["performance_metric"] = recipe_config.get("performance_metric")
-    params["selected_session"] = recipe_config.get("manually_selected_session")
+    params["selected_session"] = recipe_config.get("manually_selected_session", "latest_session")
     params["selected_model_label"] = recipe_config.get("manually_selected_model_label")
 
     params["prediction_length"] = recipe_config.get("prediction_length", -1)
