@@ -110,7 +110,7 @@ class TestModel:
     @staticmethod
     def metrics_assertions(metrics, model_name):
         expected_metrics_columns = ["store", "item"]
-        expected_metrics_columns += [METRICS_DATASET.TARGET_COLUMN, METRICS_DATASET.MODEL_COLUMN, METRICS_DATASET.MODEL_PARAMETERS]
+        expected_metrics_columns += [METRICS_DATASET.TARGET_COLUMN, METRICS_DATASET.MODEL_COLUMN, METRICS_DATASET.MODEL_PARAMETERS, METRICS_DATASET.TRAINING_TIME]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         assert len(metrics.index) == 5
         assert set(metrics.columns) == set(expected_metrics_columns)
