@@ -6,6 +6,7 @@ class METRICS_DATASET:
     AGGREGATED_ROW = "__aggregated__"
     MODEL_PARAMETERS = "model_params"
     SESSION = "training_session"
+    TRAINING_TIME = "training_time"
 
 
 class TIMESERIES_KEYS:
@@ -37,6 +38,7 @@ METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",
+    METRICS_DATASET.TRAINING_TIME: "Time to train model for evaluation (in seconds)",
 }
 
 # regex pattern to match the timestamps used for training sessions
@@ -44,6 +46,6 @@ TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
-        "auto": ["naive", "deepar"],
-        "auto_performance": ["naive", "deepar", "transformer"]
+    "auto": ["naive", "deepar"],
+    "auto_performance": ["naive", "deepar", "transformer"]
     }

@@ -171,6 +171,7 @@ class Model(ModelHandler):
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
+        agg_metrics[METRICS_DATASET.TRAINING_TIME] = round(self.evaluation_time, 2)
 
         for identifiers_column in identifiers_columns:
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
@@ -178,7 +179,13 @@ class Model(ModelHandler):
 
         metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + list(EVALUATION_METRICS_DESCRIPTIONS.keys())]
+        metrics = metrics[
+            [METRICS_DATASET.TARGET_COLUMN]
+            + identifiers_columns
+            + [METRICS_DATASET.MODEL_COLUMN]
+            + list(EVALUATION_METRICS_DESCRIPTIONS.keys())
+            + [METRICS_DATASET.TRAINING_TIME]
+        ]
         metrics[METRICS_DATASET.MODEL_PARAMETERS] = self._get_model_parameters_json(train_list_dataset)
 
         return metrics, identifiers_columns
@@ -208,11 +215,12 @@ class Model(ModelHandler):
         return predictor
 
     def _get_model_parameters_json(self, train_list_dataset):
-        """ Returns a string containing a json of model parameters """
+        """ Returns a JSON string containing model parameters and results """
+        timeseries_number = len(train_list_dataset.list_data)
+        timeseries_total_length = sum([len(ts[TIMESERIES_KEYS.TARGET]) for ts in train_list_dataset.list_data])
         return json.dumps(
             {
                 "model_name": ModelHandler.get_label(self),
-                "model_parameters": self.model_parameters,
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
                 "context_length": self.context_length,
@@ -221,9 +229,9 @@ class Model(ModelHandler):
                 "use_feat_static_cat": self.using_feat_static_cat,
                 "batch_size": self.batch_size,
                 "num_batches_per_epoch": self.num_batches_per_epoch,
-                "evaluation_time": round(self.evaluation_time, 2),
-                "timeseries_number": len(train_list_dataset.list_data),
-                "timeseries_length": len(train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]),
+                "timeseries_number": timeseries_number,
+                "timeseries_average_length": round(timeseries_total_length / timeseries_number),
+                "model_parameters": self.model_parameters,
             }
         )
 

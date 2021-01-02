@@ -18,24 +18,22 @@ def do(payload, config, plugin_config, inputs):
         if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
             sessions += [child["name"]]
 
-    model_labels = set()
-    available_models_labels = list_available_models_labels()
-    for session in sessions:
-        for child in input_folder.get_path_details(path="/{}".format(session))["children"]:
-            if child["directory"] and child["name"] in available_models_labels:
-                model_labels.add(child["name"])
-
     if payload.get("parameterName") == "manually_selected_session":
-        for session in sorted(sessions):
-            choices += [{"label": session, "value": session}]
+        choices = [{"label": "Latest", "value": "latest_session"}]
+        if len(sessions) > 0:  # not partitioned folder
+            for i, session in enumerate(sorted(sessions, reverse=True)):
+                if i > 0:  # i==0 for lastest session
+                    choices += [{"label": session, "value": session}]
 
     elif payload.get("parameterName") == "manually_selected_model_label":
-        for model in model_labels:
-            choices += [{"label": model, "value": model}]
+        all_paths = input_folder.list_paths_in_partition()
+        for model_label in list_available_models_labels():
+            for path in all_paths:
+                if bool(re.search(f"({model_label})(/model.pk.gz)", path)):
+                    choices += [{"label": model_label, "value": model_label}]
+                    break
 
     elif payload.get("parameterName") == "model_selection_mode":
-        choices = [{"label": "Automatic", "value": "auto"}]
-        if len(sessions) > 0 and len(model_labels) > 0:
-            choices += [{"label": "Manual", "value": "manual"}]
+        choices = [{"label": "Automatic", "value": "auto"}, {"label": "Manual", "value": "manual"}]
 
     return {"choices": choices}
