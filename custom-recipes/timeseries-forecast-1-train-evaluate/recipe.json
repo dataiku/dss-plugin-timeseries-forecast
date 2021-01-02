@@ -103,11 +103,107 @@
                     "label": "Semester"
                 },
                 {
-                    "value": "Y",
+                    "value": "A",
                     "label": "Year"
                 }
             ],
             "defaultValue": "D"
+        },
+        {
+            "name": "frequency_end_of_year",
+            "label": "End of year month",
+            "type": "SELECT",
+            "mandatory": false,
+            "defaultValue": "DEC",
+            "visibilityCondition": "model.frequency_unit == 'A'",
+            "selectChoices": [
+                {
+                    "value": "JAN",
+                    "label": "January"
+                },
+                {
+                    "value": "FEB",
+                    "label": "February"
+                },
+                {
+                    "value": "MAR",
+                    "label": "March"
+                },
+                {
+                    "value": "APR",
+                    "label": "April"
+                },
+                {
+                    "value": "MAY",
+                    "label": "May"
+                },
+                {
+                    "value": "JUN",
+                    "label": "June"
+                },
+                {
+                    "value": "JUL",
+                    "label": "July"
+                },
+                {
+                    "value": "AUG",
+                    "label": "August"
+                },
+                {
+                    "value": "SEP",
+                    "label": "September"
+                },
+                {
+                    "value": "OCT",
+                    "label": "October"
+                },
+                {
+                    "value": "NOV",
+                    "label": "November"
+                },
+                {
+                    "value": "DEC",
+                    "label": "December"
+                }
+            ]
+        },
+        {
+            "name": "frequency_end_of_week",
+            "label": "End of week day",
+            "type": "SELECT",
+            "mandatory": false,
+            "defaultValue": "SUN",
+            "visibilityCondition": "model.frequency_unit == 'W'",
+            "selectChoices": [
+                {
+                    "value": "SUN",
+                    "label": "Sunday"
+                },
+                {
+                    "value": "MON",
+                    "label": "Monday"
+                },
+                {
+                    "value": "TUE",
+                    "label": "Tuesday"
+                },
+                {
+                    "value": "WED",
+                    "label": "Wednesday"
+                },
+                {
+                    "value": "THU",
+                    "label": "Thursday"
+                },
+                {
+                    "value": "FRI",
+                    "label": "Friday"
+                },
+                {
+                    "value": "SAT",
+                    "label": "Saturday"
+                }
+            ]
         },
         {
             "name": "frequency_step_hours",
@@ -476,6 +572,34 @@
             "name": "separator_evaluation",
             "label": "Train / Test Set",
             "type": "SEPARATOR"
+        },
+        {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "",
+            "selectChoices": [
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                },
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                }
+            ],
+            "defaultValue": "last_records"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Number of records to use per timeseries",
+            "type": "INT",
+            "defaultValue": 10000,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.sampling_method=='last_records'"
         },
         {
             "name": "evaluation_strategy",

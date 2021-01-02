@@ -75,27 +75,17 @@ class TrainingSession:
         self.cardinality = [len(target_columns_names)] if len(target_columns_names) > 1 else None
 
     def init(self, session_name, partition_root=None):
-        """Create the session_path. Convert time column to pandas.Datetime without timezones.
-        Check types of target, external features and timeseries identifiers columns.
+        """Create the session_path. Check types of target, external features and timeseries identifiers columns.
 
         Args:
             session_name (Timestamp)
             partition_root (str, optional): Partition root path, concatenated to session_name to create the session_path. Defaults to None.
-
-        Raises:
-            ValueError: If the time column cannot be parsed as a date by pandas.
         """
         self.session_name = session_name
         if partition_root is None:
             self.session_path = session_name
         else:
             self.session_path = os.path.join(partition_root, session_name)
-        try:
-            self.training_df[self.time_column_name] = pd.to_datetime(
-                self.training_df[self.time_column_name]
-            ).dt.tz_localize(tz=None)
-        except Exception:
-            raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
 
         self._check_target_columns_types()
         self._check_external_features_columns_types()
@@ -163,9 +153,7 @@ class TrainingSession:
         """Evaluate all the selected models and get the metrics dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns) = model.evaluate(
-                self.evaluation_train_list_dataset, self.full_list_dataset
-            )
+            (item_metrics, identifiers_columns) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
@@ -174,22 +162,20 @@ class TrainingSession:
         """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(
-                self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True
-            )
+            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True)
             forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
             if self.forecasts_df.empty:
                 self.forecasts_df = forecasts_df
             else:
-                self.forecasts_df = self.forecasts_df.merge(
-                    forecasts_df, on=[self.time_column_name] + identifiers_columns
-                )
+                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
         self.evaluation_forecasts_df = self.training_df.merge(
-            self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left",
+            self.forecasts_df,
+            on=[self.time_column_name] + identifiers_columns,
+            how="left",
         )
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
@@ -246,9 +232,7 @@ class TrainingSession:
         """
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
-            evaluation_metrics_df = evaluation_metrics_df[
-                evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW
-            ]
+            evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
             evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
             return evaluation_metrics_df
         else:
@@ -269,9 +253,7 @@ class TrainingSession:
     def _check_timeseries_identifiers_columns_types(self):
         """ Raises ValueError if a timeseries identifiers column is not numerical or string """
         for column_name in self.timeseries_identifiers_names:
-            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(
-                self.training_df[column_name]
-            ):
+            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
                 raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
