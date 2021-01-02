@@ -25,6 +25,7 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
+        feat_static_cat_columns_names=None,
         min_length=None,
     ):
         self.dataframe = dataframe
@@ -34,7 +35,10 @@ class GluonDataset:
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.external_features_columns_names = external_features_columns_names
         self.min_length = min_length
-        self.use_feat_static_cat = False  # len(target_columns_names) > 1
+        # self.cardinality = None
+        # if self.timeseries_identifiers_names:
+        #     self.cardinality = list(self.dataframe[self.timeseries_identifiers_names].nunique())
+        self.feat_static_cat_columns_names = feat_static_cat_columns_names
 
     def create_list_datasets(self, cut_lengths=[]):
         """Create timeseries for each identifier tuple and each target.
@@ -110,11 +114,13 @@ class GluonDataset:
         if identifiers_values is not None:
             if len(self.timeseries_identifiers_names) > 1:
                 identifiers_map = {self.timeseries_identifiers_names[i]: identifier_value for i, identifier_value in enumerate(identifiers_values)}
+                feat_static_cat = list(map(lambda x: hash(str(x)) % 1000000, identifiers_values))
             else:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
+                feat_static_cat = [hash(str(identifiers_values)) % 1000000]
             univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
-        if self.use_feat_static_cat:
-            univariate_timeseries["feat_static_cat"] = [self.target_columns_names.index(target_column_name)]
+        if self.feat_static_cat_columns_names:
+            univariate_timeseries["feat_static_cat"] = feat_static_cat  # [self.target_columns_names.index(target_column_name)]
         return univariate_timeseries
 
     def _check_minimum_length(self, dataframe, cut_length):

@@ -6,6 +6,10 @@ from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
+from safe_logger import SafeLogger
+
+
+logger = SafeLogger("Forecast plugin")
 
 
 class TrainingSession:
@@ -41,6 +45,7 @@ class TrainingSession:
         make_forecasts,
         external_features_columns_names=None,
         timeseries_identifiers_names=None,
+        feat_static_cat_columns_names=None,
         batch_size=None,
         user_num_batches_per_epoch=None,
         gpu=None,
@@ -72,7 +77,8 @@ class TrainingSession:
         self.num_batches_per_epoch = None
         self.gpu = gpu
         self.context_length = context_length
-        self.cardinality = [len(target_columns_names)] if len(target_columns_names) > 1 else None
+        self.feat_static_cat_columns_names = feat_static_cat_columns_names
+        self.cardinality = None  # [len(target_columns_names)] if len(target_columns_names) > 1 else None
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -96,6 +102,11 @@ class TrainingSession:
         The last prediction_length time steps are removed from each timeseries of the train dataset.
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
+
+        if self.feat_static_cat_columns_names:
+            self.cardinality = list(self.training_df[self.feat_static_cat_columns_names].nunique())
+            logger.info(f"cardinality: {self.cardinality}")
+
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,
@@ -103,6 +114,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
+            feat_static_cat_columns_names=self.feat_static_cat_columns_names,
             min_length=self.prediction_length + self.context_length,
         )
 

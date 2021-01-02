@@ -64,14 +64,14 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: False
+        CAN_USE_FEAT_STATIC_CAT: True
     },
     "transformer": {
         LABEL: "Transformer",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: False
+        CAN_USE_FEAT_STATIC_CAT: True
     },
     "nbeats": {
         LABEL: "NBEATS",

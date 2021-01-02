@@ -628,6 +628,25 @@
             "defaultValue": false
         },
         {
+            "name": "feat_static_cat",
+            "label": "Feat static cat",
+            "description": "Categorical columns to use as timeseries groupings.",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double",
+                "string",
+                "boolean"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false,
+            "visibilityCondition": "model.advanced_options"
+        },
+        {
             "name": "external_feature_columns",
             "label": "External features",
             "description": "Optional ⚠️  Futures values of external features will be required to forecast.",
@@ -654,16 +673,10 @@
         },
         {
             "name": "gpu",
-            "label": "GPU",
-            "type": "SELECT",
-            "selectChoices": [
-                {
-                    "value": "no_gpu",
-                    "label": "No GPU"
-                }
-            ],
-            "defaultValue": "no_gpu",
-            "visibilityCondition": "false"
+            "label": "Use GPU",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "visibilityCondition": "model.advanced_options"
         }
     ],
     "resourceKeys": []

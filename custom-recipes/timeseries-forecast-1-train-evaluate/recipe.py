@@ -41,6 +41,7 @@ training_session = TrainingSession(
     make_forecasts=params["make_forecasts"],
     external_features_columns_names=params["external_features_columns_names"],
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
+    feat_static_cat_columns_names=params["feat_static_cat_columns_names"],
     batch_size=params["batch_size"],
     user_num_batches_per_epoch=params["num_batches_per_epoch"],
     gpu=params["gpu"],
