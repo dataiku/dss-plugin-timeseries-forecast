@@ -73,7 +73,7 @@ class Model(ModelHandler):
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
         if gpu and mx.context.num_gpus() > 0:
-            trainer_kwargs.update({"ctx": self.mx.context.gpu()})
+            trainer_kwargs.update({"ctx": mx.context.gpu()})
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
