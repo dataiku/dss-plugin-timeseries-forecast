@@ -115,6 +115,8 @@ class Model(ModelHandler):
         logger.info(f"Evaluating {self.get_label()} model performance...")
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)
+        # evaluation_predictor = self._train_estimator(test_list_dataset)
+        # self.predictor = evaluation_predictor
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
         self.evaluation_time = perf_counter() - start

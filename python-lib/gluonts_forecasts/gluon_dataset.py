@@ -114,12 +114,14 @@ class GluonDataset:
         if identifiers_values is not None:
             if len(self.timeseries_identifiers_names) > 1:
                 identifiers_map = {self.timeseries_identifiers_names[i]: identifier_value for i, identifier_value in enumerate(identifiers_values)}
-                feat_static_cat = list(map(lambda x: hash(str(x)) % 1000000, identifiers_values))
             else:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
-                feat_static_cat = [hash(str(identifiers_values)) % 1000000]
             univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
         if self.feat_static_cat_columns_names:
+            feat_static_cat = []
+            for feat_static_cat_column in self.feat_static_cat_columns_names:
+                # TODO assert that dataframe[feat_static_cat_column] only has one unique value
+                feat_static_cat += [hash(str(dataframe[feat_static_cat_column].iloc[0])) % 1000000]
             univariate_timeseries["feat_static_cat"] = feat_static_cat  # [self.target_columns_names.index(target_column_name)]
         return univariate_timeseries
 
