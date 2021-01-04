@@ -1,7 +1,7 @@
 import dataiku
 
 
-TIME_DIMENSION_PATTERNS = {"DKU_DST_YEAR": "%Y", "DKU_DST_MONTH": "%M", "DKU_DST_DAY": "%D", "DKU_DST_HOUR": "%H"}
+TIME_DIMENSION_PATTERNS = {"YEAR": "%Y", "MONTH": "%M", "DAY": "%D", "HOUR": "%H"}
 
 
 def get_partition_root(dataset):
@@ -24,16 +24,18 @@ def get_partition_root(dataset):
     return file_path
 
 
-def get_folder_partition_root(folder):
+def get_folder_partition_root(folder, is_source=False):
     """Retrieve the partition root path using a dataiku.Folder.
 
     Args:
         dataset (dataiku.Dataset): Input or output dataset of the recipe used to retrieve the partition path pattern.
+        Boolean:  True if the folder must be considered as a source, False if destination
 
     Returns:
         Partition path or None if dataset is not partitioned.
     """
     folder_id = folder.get_id()
+    source = folder_id if is_source else None
     dku_flow_variables = dataiku.get_flow_variables()
     client = dataiku.api_client()
     project = client.get_project(dataiku.default_project_key())
@@ -42,9 +44,9 @@ def get_folder_partition_root(folder):
     folder_config = folder.get_definition()
     file_path_pattern = folder_config.get("partitioning").get("filePathPattern", None)
     dimensions, types = get_dimensions(folder_config)
-    partitions = get_partitions(dku_flow_variables, dimensions)
+    partitions = get_partitions(dku_flow_variables, dimensions, source=source)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
-    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
+    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path, source=source)
     return file_path
 
 
@@ -71,12 +73,13 @@ def get_dimensions(dataset_config):
     return dimensions, types
 
 
-def get_partitions(dku_flow_variables, dimensions):
+def get_partitions(dku_flow_variables, dimensions, source=None):
     """Retrieve the list of partition values corresponding to the partition dimensions.
 
     Args:
         dku_flow_variables (dict): Dictionary of flow variables for a project.
         dimensions (list): List of partition dimensions.
+        source (str): folder id if the folder is a source, None if for destination folder
 
     Raises:
         ValueError: If a 'DKU_DST_$DIMENSION' is not in dku_flow_variables.
@@ -86,7 +89,7 @@ def get_partitions(dku_flow_variables, dimensions):
     """
     partitions = []
     for dimension in dimensions:
-        partition = dku_flow_variables.get(f"DKU_DST_{dimension}")
+        partition = get_dimension_value_from_flow_variables(dku_flow_variables, source, dimension)
         if partition is None:
             raise ValueError(
                 f"Partition dimension '{dimension}' not found in output. Please make sure your output has the same partition dimensions as your input."
@@ -128,20 +131,26 @@ def fix_date_elements_folder_path(partitions, types):
     return fixed_partitions
 
 
-def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern):
+def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern, source=None):
     """Fill the placeholders of the partition path pattern for the time dimensions with the right partition values.
 
     Args:
         dku_flow_variables (dict): Dictionary of flow variables for a project.
         file_path_pattern (str)
+        source (str): folder id if the folder is a source, None if for destination folder
 
     Returns:
         File path prefix.
     """
     file_path = file_path_pattern
     for time_dimension in TIME_DIMENSION_PATTERNS:
-        time_value = dku_flow_variables.get(time_dimension)
+        time_value = get_dimension_value_from_flow_variables(dku_flow_variables, source, time_dimension)
         if time_value is not None:
             time_pattern = TIME_DIMENSION_PATTERNS.get(time_dimension)
             file_path = file_path.replace(time_pattern, time_value)
     return file_path
+
+
+def get_dimension_value_from_flow_variables(dku_flow_variables, source, dimension):
+    origin = "DST" if source is None else "SRC_{}".format(source)
+    return dku_flow_variables.get("DKU_{}_{}".format(origin, dimension))

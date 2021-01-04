@@ -141,7 +141,7 @@ def load_predict_config():
     # model folder
     model_folder = dataiku.Folder(get_input_names_for_role("model_folder")[0])
     params["model_folder"] = model_folder
-    params["partition_root"] = get_folder_partition_root(params["model_folder"])
+    params["partition_root"] = get_folder_partition_root(params["model_folder"], is_source=True)
 
     params["external_features_future_dataset"] = None
     external_features_future_dataset_names = get_input_names_for_role("external_features_future_dataset")
