@@ -8,6 +8,7 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
+from gluonts.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 
 
 ESTIMATOR = "estimator"
@@ -87,6 +88,9 @@ MODEL_DESCRIPTORS = {
 }
 
 
+CLASS_PARAMETERS = ["distr_output"]  # these parameter accepts class but are set as strings in the UI
+
+
 class ModelParameterError(ValueError):
     """Custom exception raised when the GluonTS model parameters chosen by the user are invalid"""
     pass
@@ -114,6 +118,7 @@ class ModelHandler:
     def estimator(self, model_parameters, **kwargs):
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
+        kwargs = self._convert_parameters_to_class(kwargs)
         try:
             ret = None if estimator is None else estimator(**kwargs)
         except Exception as err:
@@ -147,6 +152,19 @@ class ModelHandler:
 
     def get_label(self):
         return self.model_descriptor.get(LABEL, "")
+
+    def _convert_parameters_to_class(self, parameters):
+        """Evaluate string parameters that are classes so that they become instances of their class """
+        parameters_converted = parameters.copy()
+        for class_parameter in CLASS_PARAMETERS:
+            if class_parameter in parameters_converted and isinstance(parameters_converted[class_parameter], str):
+                try:
+                    parameters_converted[class_parameter] = eval(parameters_converted[class_parameter])
+                except Exception as err:
+                    raise ModelParameterError(
+                        f"Issue with parameters '{class_parameter}' of model {self.model_name} when trying to cast it into its class. Full error: {err}"
+                    )
+        return parameters_converted
 
 
 def list_available_models():
