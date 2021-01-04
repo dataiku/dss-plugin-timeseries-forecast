@@ -243,7 +243,7 @@
         {
             "name": "seasonal_naive_model_activated",
             "label": "- Seasonal Naive",
-            "description": "Based on the seasonal_naive GluonTS models",
+            "description": "Based on the seasonal_naive GluonTS models, compute seasonality based on the frequency",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
