@@ -16,7 +16,8 @@ def get_partition_root(dataset):
     dku_flow_variables = dataiku.get_flow_variables()
     file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
 
-    dimensions, types = get_dataset_dimensions(dataset)
+    dataset_config = dataset.get_config()
+    dimensions, types = get_dataset_dimensions(dataset_config)
     partitions = get_partitions(dku_flow_variables, dimensions)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
     file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
@@ -24,18 +25,18 @@ def get_partition_root(dataset):
     return file_path
 
 
-def get_folder_partition_root(folder, is_source=False):
+def get_folder_partition_root(folder, is_input=False):
     """Retrieve the partition root path using a dataiku.Folder.
 
     Args:
-        dataset (dataiku.Dataset): Input or output dataset of the recipe used to retrieve the partition path pattern.
-        Boolean:  True if the folder must be considered as a source, False if destination
+        folder (dataiku.Folder): Input or output folder of the recipe used to retrieve the partition path pattern.
+        is_input:  True if the folder must be considered as a input, False if output
 
     Returns:
         Partition path or None if dataset is not partitioned.
     """
     folder_id = folder.get_id()
-    source = folder_id if is_source else None
+    input_id = folder_id if is_input else None
     dku_flow_variables = dataiku.get_flow_variables()
     client = dataiku.api_client()
     project = client.get_project(dataiku.default_project_key())
@@ -43,19 +44,14 @@ def get_folder_partition_root(folder, is_source=False):
     folder.get_definition()["partitioning"]
     folder_config = folder.get_definition()
     file_path_pattern = folder_config.get("partitioning").get("filePathPattern", None)
-    dimensions, types = get_dimensions(folder_config)
-    partitions = get_partitions(dku_flow_variables, dimensions, source=source)
+    dimensions, types = get_dataset_dimensions(folder_config)
+    partitions = get_partitions(dku_flow_variables, dimensions, input_id=input_id)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
-    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path, source=source)
+    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path, input_id=input_id)
     return file_path
 
 
-def get_dataset_dimensions(dataset):
-    dataset_config = dataset.get_config()
-    return get_dimensions(dataset_config)
-
-
-def get_dimensions(dataset_config):
+def get_dataset_dimensions(dataset_config):
     """Retrieve the list of partition dimension names.
 
     Args:
@@ -73,13 +69,13 @@ def get_dimensions(dataset_config):
     return dimensions, types
 
 
-def get_partitions(dku_flow_variables, dimensions, source=None):
+def get_partitions(dku_flow_variables, dimensions, input_id=None):
     """Retrieve the list of partition values corresponding to the partition dimensions.
 
     Args:
         dku_flow_variables (dict): Dictionary of flow variables for a project.
         dimensions (list): List of partition dimensions.
-        source (str): folder id if the folder is a source, None if for destination folder
+        input_id (str): folder id if the folder is an input, None for output folder
 
     Raises:
         ValueError: If a 'DKU_DST_$DIMENSION' is not in dku_flow_variables.
@@ -89,7 +85,7 @@ def get_partitions(dku_flow_variables, dimensions, source=None):
     """
     partitions = []
     for dimension in dimensions:
-        partition = get_dimension_value_from_flow_variables(dku_flow_variables, source, dimension)
+        partition = get_dimension_value_from_flow_variables(dku_flow_variables, input_id, dimension)
         if partition is None:
             raise ValueError(
                 f"Partition dimension '{dimension}' not found in output. Please make sure your output has the same partition dimensions as your input."
@@ -131,26 +127,26 @@ def fix_date_elements_folder_path(partitions, types):
     return fixed_partitions
 
 
-def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern, source=None):
+def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern, input_id=None):
     """Fill the placeholders of the partition path pattern for the time dimensions with the right partition values.
 
     Args:
         dku_flow_variables (dict): Dictionary of flow variables for a project.
         file_path_pattern (str)
-        source (str): folder id if the folder is a source, None if for destination folder
+        input_id (str): folder id if the folder is an input, None if for output folder
 
     Returns:
         File path prefix.
     """
     file_path = file_path_pattern
     for time_dimension in TIME_DIMENSION_PATTERNS:
-        time_value = get_dimension_value_from_flow_variables(dku_flow_variables, source, time_dimension)
+        time_value = get_dimension_value_from_flow_variables(dku_flow_variables, input_id, time_dimension)
         if time_value is not None:
             time_pattern = TIME_DIMENSION_PATTERNS.get(time_dimension)
             file_path = file_path.replace(time_pattern, time_value)
     return file_path
 
 
-def get_dimension_value_from_flow_variables(dku_flow_variables, source, dimension):
-    origin = "DST" if source is None else "SRC_{}".format(source)
+def get_dimension_value_from_flow_variables(dku_flow_variables, input_id, dimension):
+    origin = "DST" if input_id is None else "SRC_{}".format(input_id)
     return dku_flow_variables.get("DKU_{}_{}".format(origin, dimension))
