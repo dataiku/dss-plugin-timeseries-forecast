@@ -3,9 +3,16 @@ from gluonts.model.forecast import SampleForecast
 from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
+from gluonts.time_feature import get_seasonality
 from custom_gluon_models.utils import cast_kwargs
+from constants import TIMESERIES_KEYS
 import pmdarima as pm
 import numpy as np
+from safe_logger import SafeLogger
+from tqdm import tqdm
+
+
+logger = SafeLogger("Forecast plugin - ARIMA")
 
 
 class ArimaPredictor(RepresentablePredictor):
@@ -39,7 +46,8 @@ class ArimaPredictor(RepresentablePredictor):
         Yields:
             SampleForecast of predictions.
         """
-        for i, item in enumerate(dataset):
+        logger.info("Prediction timeseries ...")
+        for i, item in tqdm(enumerate(dataset)):
             yield self.predict_item(item, self.trained_models[i])
 
     def predict_item(self, item, trained_model):
@@ -54,12 +62,20 @@ class ArimaPredictor(RepresentablePredictor):
         """
         start_date = frequency_add(item["start"], len(item["target"]))
 
+        prediction_external_features = self._set_prediction_external_features(item)
+
         samples = []
         for alpha in np.arange(0.02, 1.01, 0.02):
-            confidence_intervals = trained_model.predict(n_periods=self.prediction_length, return_conf_int=True, alpha=alpha)[1]
+            confidence_intervals = trained_model.predict(n_periods=self.prediction_length, X=prediction_external_features, return_conf_int=True, alpha=alpha)[1]
             samples += [confidence_intervals[:, 0], confidence_intervals[:, 1]]
 
         return SampleForecast(samples=np.stack(samples), start_date=start_date, freq=self.freq)
+
+    def _set_prediction_external_features(self, item):
+        prediction_external_features = None
+        if TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES in item:
+            prediction_external_features = item[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL][:, -self.prediction_length :].T
+        return prediction_external_features
 
 
 class ArimaEstimator(Estimator):
@@ -68,7 +84,7 @@ class ArimaEstimator(Estimator):
         super().__init__()
         self.prediction_length = prediction_length
         self.freq = freq
-        self.use_feat_dynamic_real = False
+        self.use_feat_dynamic_real = use_feat_dynamic_real
         self.kwargs = cast_kwargs(kwargs)
 
     def train(self, training_data, validation_data=None):
@@ -81,12 +97,18 @@ class ArimaEstimator(Estimator):
         Returns:
             Predictor containing the trained model.
         """
-
         trained_models = []
-        for item in training_data:
-            # TODO support external features
-            # TODO cast kwargs to required types
-            model = pm.auto_arima(item["target"], trace=True, **self.kwargs)
+        logger.info("Training one model per timeseries ...")
+        for item in tqdm(training_data):
+            external_features = self._set_external_features(self.kwargs, item)
+            model = pm.auto_arima(item["target"], X=external_features, trace=False, **self.kwargs)
             trained_models += [model]
 
         return ArimaPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
+
+    def _set_external_features(self, kwargs, item):
+        external_features = None
+        if self.use_feat_dynamic_real:
+            external_features = item[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].T
+            logger.info("Using external features")
+        return external_features

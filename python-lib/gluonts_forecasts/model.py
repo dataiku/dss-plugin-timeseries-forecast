@@ -6,7 +6,6 @@ from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_al
 from time import perf_counter
 from safe_logger import SafeLogger
 import json
-import mxnet as mx
 
 
 logger = SafeLogger("Forecast plugin")

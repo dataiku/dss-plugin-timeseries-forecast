@@ -96,7 +96,7 @@ MODEL_DESCRIPTORS = {
     },
     "arima": {
         LABEL: "ARIMA",
-        CAN_USE_EXTERNAL_FEATURES: False,
+        CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: ArimaEstimator,
         PREDICTOR: ArimaPredictor,
         TRAINER: None,
