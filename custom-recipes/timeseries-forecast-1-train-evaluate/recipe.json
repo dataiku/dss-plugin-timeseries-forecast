@@ -219,35 +219,26 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
-            "name": "naive_model_activated",
-            "label": "- Baseline",
-            "description": "Based on the trivial.identity/trivial.mean/seasonal_naive GluonTS models",
+            "name": "trivial_identity_model_activated",
+            "label": "- Trivial Identity",
+            "description": "Based on the trivial.identity GluonTS models",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
-            "name": "naive_model_method",
-            "label": "  ↳ method",
-            "type": "SELECT",
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "seasonal_naive_model_activated",
+            "label": "- Seasonal Naive",
+            "description": "Based on the seasonal_naive GluonTS models, compute seasonality based on the frequency",
+            "type": "BOOLEAN",
+            "defaultValue": true,
             "mandatory": true,
-            "defaultValue": "trivial_identity",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.naive_model_activated",
-            "selectChoices": [
-                {
-                    "value": "trivial_identity",
-                    "label": "Forecast preceding values"
-                },
-                {
-                    "value": "trivial_mean",
-                    "label": "Forecast based on mean value"
-                },
-                {
-                    "value": "seasonal_naive",
-                    "label": "Forecast values from previous season"
-                }
-            ]
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "type": "SEPARATOR",
