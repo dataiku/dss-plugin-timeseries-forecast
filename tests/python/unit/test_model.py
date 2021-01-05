@@ -48,7 +48,6 @@ class TestModel:
             use_external_features=True,
             batch_size=32,
             num_batches_per_epoch=50,
-            context_length=self.prediction_length,
         )
         metrics, identifiers_columns, forecasts_df = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
@@ -66,7 +65,6 @@ class TestModel:
             use_external_features=True,
             batch_size=32,
             num_batches_per_epoch=50,
-            context_length=self.prediction_length,
         )
         metrics, identifiers_columns, forecasts_df = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
@@ -84,7 +82,6 @@ class TestModel:
             use_external_features=False,
             batch_size=32,
             num_batches_per_epoch=50,
-            context_length=self.prediction_length,
         )
         metrics, identifiers_columns, forecasts_df = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
@@ -102,7 +99,6 @@ class TestModel:
             use_external_features=False,
             batch_size=32,
             num_batches_per_epoch=50,
-            context_length=self.prediction_length,
         )
         model.train(self.test_list_dataset)
         assert model.predictor is not None

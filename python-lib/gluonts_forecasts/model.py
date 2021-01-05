@@ -29,7 +29,6 @@ class Model(ModelHandler):
         use_external_features (bool)
         batch_size (int): Size of batch used by the GluonTS Trainer class
         gpu (str): Not implemented
-        context_length (int): Number of time steps used by model to make predictions
     """
 
     def __init__(
@@ -43,14 +42,12 @@ class Model(ModelHandler):
         batch_size=None,
         num_batches_per_epoch=None,
         gpu=None,
-        context_length=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
         self.model_parameters = model_parameters
         self.frequency = frequency
         self.prediction_length = prediction_length
-        self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
         self.using_external_features = False
@@ -71,8 +68,6 @@ class Model(ModelHandler):
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             self.using_external_features = True
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if self.context_length is not None and ModelHandler.can_use_context_length(self):
-            estimator_kwargs.update({"context_length": self.context_length})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
         self.evaluation_time = None
@@ -195,8 +190,6 @@ class Model(ModelHandler):
         if self.estimator is None:
             if ModelHandler.needs_num_samples(self):
                 kwargs.update({"num_samples": 100})
-            if self.context_length is not None and ModelHandler.can_use_context_length(self):
-                kwargs.update({"context_length": self.context_length})
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
             try:
@@ -214,7 +207,6 @@ class Model(ModelHandler):
                 "model_name": ModelHandler.get_label(self),
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
-                "context_length": self.context_length,
                 "epoch": self.epoch,
                 "use_external_features": self.using_external_features,
                 "batch_size": self.batch_size,
