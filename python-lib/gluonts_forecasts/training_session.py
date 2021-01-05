@@ -45,7 +45,6 @@ class TrainingSession:
         make_forecasts,
         external_features_columns_names=None,
         timeseries_identifiers_names=None,
-        feat_static_cat_columns_names=None,
         batch_size=None,
         user_num_batches_per_epoch=None,
         gpu=None,
@@ -77,9 +76,6 @@ class TrainingSession:
         self.num_batches_per_epoch = None
         self.gpu = gpu
         self.context_length = context_length
-        self.feat_static_cat_columns_names = feat_static_cat_columns_names
-        self.cardinality = None
-        self.unique_feat_static_cat_values = None
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -104,13 +100,6 @@ class TrainingSession:
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
 
-        if self.feat_static_cat_columns_names:
-            self.cardinality = list(self.training_df[self.feat_static_cat_columns_names].nunique())
-            logger.info(f"cardinality: {self.cardinality}")
-            self.unique_feat_static_cat_values = []  # list of arrays of unique values
-            for feat_static_cat_column in self.feat_static_cat_columns_names:
-                self.unique_feat_static_cat_values += [list(self.training_df[feat_static_cat_column].unique())]
-
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,
@@ -118,8 +107,6 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
-            feat_static_cat_columns_names=self.feat_static_cat_columns_names,
-            unique_feat_static_cat_values=self.unique_feat_static_cat_values,
             min_length=self.prediction_length + self.context_length,
         )
 
@@ -149,7 +136,6 @@ class TrainingSession:
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
                     context_length=self.context_length,
-                    cardinality=self.cardinality,
                 )
             )
 

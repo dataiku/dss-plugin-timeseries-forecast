@@ -8,13 +8,10 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-from gluonts.model.npts import NPTSPredictor
-from custom_gluon_models.arima import ArimaEstimator, ArimaPredictor
 
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
-CAN_USE_FEAT_STATIC_CAT = "can_use_feat_static_cat"
 CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
@@ -64,14 +61,12 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: True
     },
     "transformer": {
         LABEL: "Transformer",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: True
     },
     "nbeats": {
         LABEL: "NBEATS",
@@ -83,28 +78,11 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
-        CAN_USE_FEAT_STATIC_CAT: False
     },
     "tft": {
         LABEL: "TemporalFusionTransformer",
         ESTIMATOR: TemporalFusionTransformerEstimator,
         TRAINER: Trainer
-    },
-    "npts": {
-        LABEL: "NPTS",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: NPTSPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
-    },
-    "arima": {
-        LABEL: "ARIMA",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: ArimaEstimator,
-        PREDICTOR: ArimaPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
 }
 
@@ -161,9 +139,6 @@ class ModelHandler:
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
-
-    def can_use_feat_static_cat(self):
-        return self.model_descriptor.get(CAN_USE_FEAT_STATIC_CAT, False)
 
     def can_use_context_length(self):
         return self.model_descriptor.get(CAN_USE_CONTEXT_LENGTH, True)

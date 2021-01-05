@@ -46,7 +46,6 @@ class Model(ModelHandler):
         num_batches_per_epoch=None,
         gpu=False,
         context_length=None,
-        cardinality=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -56,10 +55,7 @@ class Model(ModelHandler):
         self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
-
         self.using_external_features = False
-        self.cardinality = cardinality
-        self.using_feat_static_cat = False
 
         estimator_kwargs = {
             "freq": self.frequency,
@@ -80,10 +76,6 @@ class Model(ModelHandler):
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             self.using_external_features = True
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if ModelHandler.can_use_feat_static_cat(self) and self.cardinality:
-            self.using_feat_static_cat = True
-            estimator_kwargs.update({"use_feat_static_cat": True})
-            estimator_kwargs.update({"cardinality": self.cardinality})
         if self.context_length is not None and ModelHandler.can_use_context_length(self):
             estimator_kwargs.update({"context_length": self.context_length})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
@@ -115,8 +107,6 @@ class Model(ModelHandler):
         logger.info(f"Evaluating {self.get_label()} model performance...")
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)
-        # evaluation_predictor = self._train_estimator(test_list_dataset)
-        # self.predictor = evaluation_predictor
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
         self.evaluation_time = perf_counter() - start
@@ -232,7 +222,6 @@ class Model(ModelHandler):
                 "context_length": self.context_length,
                 "epoch": self.epoch,
                 "use_external_features": self.using_external_features,
-                "use_feat_static_cat": self.using_feat_static_cat,
                 "batch_size": self.batch_size,
                 "num_batches_per_epoch": self.num_batches_per_epoch,
                 "timeseries_number": timeseries_number,

@@ -371,48 +371,6 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
-            "name": "npts_model_activated",
-            "label": "- NPTS",
-            "description": "Based on the NPTSPredictor GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
-            "name": "npts_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
-        },
-        {
-            "name": "arima_model_activated",
-            "label": "- Arima",
-            "description": "Based on the pyramid-arima package. Slow for multiple timeseries.",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
-            "name": "arima_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.arima_model_activated",
-            "mandatory": false
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
-        },
-        {
             "name": "deepar_model_activated",
             "label": "- DeepAR",
             "description": "Based on the DeepAREstimator GluonTS model",
@@ -452,7 +410,7 @@
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "tft_model_activated",
@@ -461,14 +419,14 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "tft_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "No documentation available yet",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
             "mandatory": false
         },
         {
@@ -650,25 +608,6 @@
             "description": "",
             "type": "BOOLEAN",
             "defaultValue": false
-        },
-        {
-            "name": "feat_static_cat",
-            "label": "Feat static cat",
-            "description": "Categorical columns to use as timeseries groupings.",
-            "type": "COLUMNS",
-            "allowedColumnTypes": [
-                "tinyint",
-                "smallint",
-                "int",
-                "bigint",
-                "float",
-                "double",
-                "string",
-                "boolean"
-            ],
-            "columnRole": "input_dataset",
-            "mandatory": false,
-            "visibilityCondition": "model.advanced_options"
         },
         {
             "name": "evaluation_only",
