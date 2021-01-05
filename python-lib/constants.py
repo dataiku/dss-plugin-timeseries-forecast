@@ -6,6 +6,7 @@ class METRICS_DATASET:
     AGGREGATED_ROW = "__aggregated__"
     MODEL_PARAMETERS = "model_params"
     SESSION = "training_session"
+    TRAINING_TIME = "training_time"
 
 
 class TIMESERIES_KEYS:
@@ -37,6 +38,7 @@ METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",
+    METRICS_DATASET.TRAINING_TIME: "Time to train model for evaluation (in seconds)",
 }
 
 # regex pattern to match the timestamps used for training sessions

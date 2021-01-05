@@ -446,8 +446,8 @@
             "type": "SEPARATOR"
         },
         {
-            "name": "advanced_options",
-            "label": "Display advanced options",
+            "name": "external_feature_activated",
+            "label": "Add external features",
             "description": "External features - e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
@@ -467,7 +467,7 @@
             ],
             "columnRole": "input_dataset",
             "mandatory": false,
-            "visibilityCondition": "model.advanced_options"
+            "visibilityCondition": "model.external_feature_activated"
         },
         {
             "name": "evaluation_only",
