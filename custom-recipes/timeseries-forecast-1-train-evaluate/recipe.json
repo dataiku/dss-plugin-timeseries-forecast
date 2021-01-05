@@ -595,11 +595,11 @@
         {
             "name": "number_records",
             "label": "Nb. records",
-            "description": "Number of records to use per timeseries",
+            "description": "Number of last records to extract per time series",
             "type": "INT",
             "defaultValue": 10000,
             "mandatory": false,
-            "minI": 1,
+            "minI": 4,
             "visibilityCondition": "model.sampling_method=='last_records'"
         },
         {
