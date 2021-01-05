@@ -8,7 +8,7 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-from gluonts.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
+from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 
 
 ESTIMATOR = "estimator"
@@ -88,7 +88,14 @@ MODEL_DESCRIPTORS = {
 }
 
 
-CLASS_PARAMETERS = ["distr_output"]  # these parameter accepts class but are set as strings in the UI
+# these parameter are classes but are set as strings in the UI
+CLASS_PARAMETERS = {
+    "distr_output": {
+        "StudentTOutput()": StudentTOutput(),
+        "GaussianOutput()": GaussianOutput(),
+        "NegativeBinomialOutput()": NegativeBinomialOutput()
+    }
+}  
 
 
 class ModelParameterError(ValueError):
@@ -156,14 +163,15 @@ class ModelHandler:
     def _convert_parameters_to_class(self, parameters):
         """Evaluate string parameters that are classes so that they become instances of their class """
         parameters_converted = parameters.copy()
-        for class_parameter in CLASS_PARAMETERS:
-            if class_parameter in parameters_converted and isinstance(parameters_converted[class_parameter], str):
-                try:
-                    parameters_converted[class_parameter] = eval(parameters_converted[class_parameter])
-                except Exception as err:
-                    raise ModelParameterError(
-                        f"Issue with parameters '{class_parameter}' of model {self.model_name} when trying to cast it into its class. Full error: {err}"
-                    )
+        for class_parameter, class_parameter_values in CLASS_PARAMETERS.items():
+            if class_parameter in parameters_converted:
+                if parameters_converted[class_parameter] not in class_parameter_values:
+                    raise ModelParameterError(f"""
+                        '{parameters_converted[class_parameter]}' is not valid for parameter '{class_parameter}'.
+                        Supported values are {list(class_parameter_values.keys())}. 
+                    """)
+                else:
+                    parameters_converted[class_parameter] = class_parameter_values[parameters_converted[class_parameter]]
         return parameters_converted
 
 
