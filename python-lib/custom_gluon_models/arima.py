@@ -100,11 +100,31 @@ class ArimaEstimator(Estimator):
         trained_models = []
         logger.info("Training one model per timeseries ...")
         for item in tqdm(training_data):
-            external_features = self._set_external_features(self.kwargs, item)
-            model = pm.auto_arima(item["target"], X=external_features, trace=False, **self.kwargs)
+            kwargs = self._set_seasonality(self.kwargs, len(item["target"]))
+            external_features = self._set_external_features(kwargs, item)
+
+            model = pm.auto_arima(item["target"], X=external_features, trace=False, **kwargs)
             trained_models += [model]
 
         return ArimaPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
+
+    def _set_seasonality(self, kwargs, target_length):
+        """Find the seasonality parameter if it was not set by user and if the target is big enough.
+
+        Args:
+            kwargs (dict): auto_arima kwargs.
+            target_length (int): Length of target to train on.
+
+        Returns:
+            Kwargs dictionary updated with seasonality if possible.
+        """
+        kwargs_copy = kwargs.copy()
+        if "m" not in kwargs_copy:
+            season_length = get_seasonality(self.freq)
+            if target_length > 2 * season_length:
+                kwargs_copy["m"] = season_length
+                logger.info(f"Seasonality 'm' set to {season_length}")
+        return kwargs_copy
 
     def _set_external_features(self, kwargs, item):
         external_features = None
