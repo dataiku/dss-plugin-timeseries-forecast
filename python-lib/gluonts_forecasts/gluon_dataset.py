@@ -119,7 +119,8 @@ class GluonDataset:
         if self.feat_static_cat_columns_names:
             feat_static_cat = []
             for i, feat_static_cat_column in enumerate(self.feat_static_cat_columns_names):
-                # TODO assert that dataframe[feat_static_cat_column] is a constant array (only one unique value)
+                if dataframe[feat_static_cat_column].nunique() > 1:
+                    raise ValueError(f"Categorical column '{feat_static_cat_column}' must have unique values for each timeseries")
                 feat_static_cat += [self.unique_feat_static_cat_values[i].index(dataframe[feat_static_cat_column].iloc[0])]
             univariate_timeseries["feat_static_cat"] = feat_static_cat  # [self.target_columns_names.index(target_column_name)]
         return univariate_timeseries
