@@ -6,7 +6,6 @@ from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_al
 from time import perf_counter
 from safe_logger import SafeLogger
 import json
-import mxnet as mx
 
 
 logger = SafeLogger("Forecast plugin")
@@ -44,7 +43,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
-        gpu=False,
+        gpu=None,
         context_length=None,
         cardinality=None,
     ):
@@ -72,8 +71,6 @@ class Model(ModelHandler):
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
-        if gpu and mx.context.num_gpus() > 0:
-            trainer_kwargs.update({"ctx": mx.context.gpu()})
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
@@ -115,8 +112,6 @@ class Model(ModelHandler):
         logger.info(f"Evaluating {self.get_label()} model performance...")
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)
-        # evaluation_predictor = self._train_estimator(test_list_dataset)
-        # self.predictor = evaluation_predictor
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
         self.evaluation_time = perf_counter() - start

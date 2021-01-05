@@ -136,7 +136,7 @@ def load_training_config(recipe_config):
         if params["max_timeseries_length"] < 1:
             raise PluginParamValidationError("Number of records must be higher than 1")
 
-    params["gpu"] = recipe_config.get("gpu", False)
+    params["gpu"] = recipe_config.get("gpu", "no_gpu")
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 

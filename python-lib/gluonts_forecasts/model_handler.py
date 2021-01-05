@@ -8,8 +8,6 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-from gluonts.model.npts import NPTSPredictor
-from custom_gluon_models.arima import ArimaEstimator, ArimaPredictor
 
 
 ESTIMATOR = "estimator"
@@ -89,22 +87,6 @@ MODEL_DESCRIPTORS = {
         LABEL: "TemporalFusionTransformer",
         ESTIMATOR: TemporalFusionTransformerEstimator,
         TRAINER: Trainer
-    },
-    "npts": {
-        LABEL: "NPTS",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: NPTSPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
-    },
-    "arima": {
-        LABEL: "ARIMA",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: ArimaEstimator,
-        PREDICTOR: ArimaPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
 }
 
