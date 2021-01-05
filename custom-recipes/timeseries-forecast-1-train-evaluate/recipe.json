@@ -621,9 +621,33 @@
             "type": "SEPARATOR"
         },
         {
+            "name": "external_feature_activated",
+            "label": "Add external features",
+            "description": "External features - e.g., holidays, special events",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
+            "name": "external_feature_columns",
+            "label": "External features",
+            "description": "Optional ⚠️  Futures values of external features will be required to forecast.",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false,
+            "visibilityCondition": "model.external_feature_activated"
+        },
+        {
             "name": "advanced_options",
             "label": "Display advanced options",
-            "description": "External features - e.g., holidays, special events",
+            "description": "",
             "type": "BOOLEAN",
             "defaultValue": false
         },
@@ -641,23 +665,6 @@
                 "double",
                 "string",
                 "boolean"
-            ],
-            "columnRole": "input_dataset",
-            "mandatory": false,
-            "visibilityCondition": "model.advanced_options"
-        },
-        {
-            "name": "external_feature_columns",
-            "label": "External features",
-            "description": "Optional ⚠️  Futures values of external features will be required to forecast.",
-            "type": "COLUMNS",
-            "allowedColumnTypes": [
-                "tinyint",
-                "smallint",
-                "int",
-                "bigint",
-                "float",
-                "double"
             ],
             "columnRole": "input_dataset",
             "mandatory": false,
