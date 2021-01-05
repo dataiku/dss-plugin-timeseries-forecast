@@ -78,7 +78,8 @@ class TrainingSession:
         self.gpu = gpu
         self.context_length = context_length
         self.feat_static_cat_columns_names = feat_static_cat_columns_names
-        self.cardinality = None  # [len(target_columns_names)] if len(target_columns_names) > 1 else None
+        self.cardinality = None
+        self.unique_feat_static_cat_values = None
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -106,6 +107,9 @@ class TrainingSession:
         if self.feat_static_cat_columns_names:
             self.cardinality = list(self.training_df[self.feat_static_cat_columns_names].nunique())
             logger.info(f"cardinality: {self.cardinality}")
+            self.unique_feat_static_cat_values = []  # list of arrays of unique values
+            for feat_static_cat_column in self.feat_static_cat_columns_names:
+                self.unique_feat_static_cat_values += [list(self.training_df[feat_static_cat_column].unique())]
 
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
@@ -115,6 +119,7 @@ class TrainingSession:
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
             feat_static_cat_columns_names=self.feat_static_cat_columns_names,
+            unique_feat_static_cat_values=self.unique_feat_static_cat_values,
             min_length=self.prediction_length + self.context_length,
         )
 
