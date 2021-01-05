@@ -54,9 +54,9 @@ class TestTrainedModel:
             "is_holiday",
             "is_weekend",
             "sales",
-            "forecast_percentile_10_sales",
-            "forecast_median_sales",
-            "forecast_percentile_90_sales",
+            "forecast_lower_sales",
+            "forecast_sales",
+            "forecast_upper_sales",
             METRICS_DATASET.SESSION,
             METRICS_DATASET.MODEL_COLUMN,
         ]
@@ -66,4 +66,4 @@ class TestTrainedModel:
         history_df = forecasts_df[forecasts_df["item"] == 2].iloc[2:]
 
         assert future_df["sales"].count() == 0 and history_df["sales"].count() == 4
-        assert future_df["forecast_median_sales"].count() == 2 and history_df["forecast_median_sales"].count() == 0
+        assert future_df["forecast_sales"].count() == 2 and history_df["forecast_sales"].count() == 0
