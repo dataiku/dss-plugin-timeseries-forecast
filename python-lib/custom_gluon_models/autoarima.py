@@ -12,7 +12,7 @@ from safe_logger import SafeLogger
 from tqdm import tqdm
 
 
-logger = SafeLogger("Forecast plugin - Auto ARIMA")
+logger = SafeLogger("Forecast plugin - AutoARIMA")
 
 
 class AutoARIMAPredictor(RepresentablePredictor):
@@ -98,7 +98,7 @@ class AutoARIMAEstimator(Estimator):
             Predictor containing the trained model.
         """
         trained_models = []
-        logger.info("Training one Auto ARIMA model per time series ...")
+        logger.info("Training one AutoARIMA model per time series ...")
         for item in tqdm(training_data):
             kwargs = self._set_seasonality(self.kwargs, len(item[TIMESERIES_KEYS.TARGET]))
             external_features = self._set_external_features(kwargs, item)

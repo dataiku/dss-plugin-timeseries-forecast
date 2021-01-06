@@ -393,7 +393,7 @@
         },
         {
             "name": "autoarima_model_activated",
-            "label": "- Auto ARIMA",
+            "label": "- AutoARIMA",
             "description": "Based on the pyramid-arima package. Slow for multiple time series.",
             "type": "BOOLEAN",
             "defaultValue": false,
