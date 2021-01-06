@@ -317,7 +317,7 @@
         {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
-            "description": "Based on the trivial.identity GluonTS models",
+            "description": "Based on the trivial.identity GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
