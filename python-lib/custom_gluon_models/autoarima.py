@@ -4,7 +4,7 @@ from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
 from gluonts.time_feature import get_seasonality
-from custom_gluon_models.utils import cast_kwargs
+from custom_gluon_models.utils import cast_kwargs, DEFAULT_SEASONALITIES
 from constants import TIMESERIES_KEYS
 import pmdarima as pm
 import numpy as np
@@ -120,7 +120,7 @@ class AutoARIMAEstimator(Estimator):
         """
         kwargs_copy = kwargs.copy()
         if "m" not in kwargs_copy:
-            season_length = get_seasonality(self.freq)
+            season_length = get_seasonality(self.freq, DEFAULT_SEASONALITIES)
             if target_length > 2 * season_length:
                 kwargs_copy["m"] = season_length
                 logger.info(f"Seasonality 'm' set to {season_length}")
