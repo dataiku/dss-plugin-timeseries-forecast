@@ -60,7 +60,7 @@ class AutoARIMAPredictor(RepresentablePredictor):
         Returns:
             SampleForecast of quantiles.
         """
-        start_date = frequency_add(item["start"], len(item["target"]))
+        start_date = frequency_add(item[TIMESERIES_KEYS.START], len(item[TIMESERIES_KEYS.TARGET]))
 
         prediction_external_features = self._set_prediction_external_features(item)
 
@@ -100,10 +100,10 @@ class AutoARIMAEstimator(Estimator):
         trained_models = []
         logger.info("Training one Auto ARIMA model per time series ...")
         for item in tqdm(training_data):
-            kwargs = self._set_seasonality(self.kwargs, len(item["target"]))
+            kwargs = self._set_seasonality(self.kwargs, len(item[TIMESERIES_KEYS.TARGET]))
             external_features = self._set_external_features(kwargs, item)
 
-            model = pm.auto_arima(item["target"], X=external_features, **kwargs)
+            model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, **kwargs)
             trained_models += [model]
 
         return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
