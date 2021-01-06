@@ -572,14 +572,14 @@
         {
             "name": "external_feature_activated",
             "label": "Add external features",
-            "description": "External features - e.g., holidays, special events",
+            "description": "Optional - e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Optional ⚠️  Futures values of external features will be required to forecast.",
+            "description": "⚠️  Futures values of external features will be required to forecast.",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
