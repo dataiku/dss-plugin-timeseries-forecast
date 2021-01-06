@@ -9,7 +9,7 @@ from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
-from custom_gluon_models.arima import ArimaEstimator, ArimaPredictor
+from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 
 
 ESTIMATOR = "estimator"
@@ -94,11 +94,11 @@ MODEL_DESCRIPTORS = {
         TRAINER: None,
         CAN_USE_CONTEXT_LENGTH: False,
     },
-    "arima": {
-        LABEL: "ARIMA",
+    "autoarima": {
+        LABEL: "AutoARIMA",
         CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: ArimaEstimator,
-        PREDICTOR: ArimaPredictor,
+        ESTIMATOR: AutoARIMAEstimator,
+        PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
         CAN_USE_CONTEXT_LENGTH: False,
     },

@@ -12,10 +12,10 @@ from safe_logger import SafeLogger
 from tqdm import tqdm
 
 
-logger = SafeLogger("Forecast plugin - ARIMA")
+logger = SafeLogger("Forecast plugin - Auto ARIMA")
 
 
-class ArimaPredictor(RepresentablePredictor):
+class AutoARIMAPredictor(RepresentablePredictor):
     """
     An abstract predictor that can be subclassed by models that are not based
     on Gluon. Subclasses should have @validated() constructors.
@@ -46,16 +46,16 @@ class ArimaPredictor(RepresentablePredictor):
         Yields:
             SampleForecast of predictions.
         """
-        logger.info("Prediction timeseries ...")
+        logger.info("Predicting time series ...")
         for i, item in tqdm(enumerate(dataset)):
             yield self.predict_item(item, self.trained_models[i])
 
     def predict_item(self, item, trained_model):
-        """Compute quantiles using the confidence intervals of auto_arima.
+        """Compute quantiles using the confidence intervals of autoarima.
 
         Args:
             item (DataEntry): One timeseries.
-            trained_model (list): List of trained auto_arima models.
+            trained_model (list): List of trained autoarima models.
 
         Returns:
             SampleForecast of quantiles.
@@ -78,7 +78,7 @@ class ArimaPredictor(RepresentablePredictor):
         return prediction_external_features
 
 
-class ArimaEstimator(Estimator):
+class AutoARIMAEstimator(Estimator):
     @validated()
     def __init__(self, prediction_length, freq, use_feat_dynamic_real=False, **kwargs):
         super().__init__()
@@ -98,21 +98,21 @@ class ArimaEstimator(Estimator):
             Predictor containing the trained model.
         """
         trained_models = []
-        logger.info("Training one model per timeseries ...")
+        logger.info("Training one Auto ARIMA model per time series ...")
         for item in tqdm(training_data):
             kwargs = self._set_seasonality(self.kwargs, len(item["target"]))
             external_features = self._set_external_features(kwargs, item)
 
-            model = pm.auto_arima(item["target"], X=external_features, trace=False, **kwargs)
+            model = pm.auto_arima(item["target"], X=external_features, **kwargs)
             trained_models += [model]
 
-        return ArimaPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
+        return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
 
     def _set_seasonality(self, kwargs, target_length):
         """Find the seasonality parameter if it was not set by user and if the target is big enough.
 
         Args:
-            kwargs (dict): auto_arima kwargs.
+            kwargs (dict): autoarima kwargs.
             target_length (int): Length of target to train on.
 
         Returns:
@@ -126,7 +126,7 @@ class ArimaEstimator(Estimator):
                 logger.info(f"Seasonality 'm' set to {season_length}")
         return kwargs_copy
 
-    def _set_external_features(self, kwargs, item):
+    def _set_external_features(self, kwargs, item):   
         external_features = None
         if self.use_feat_dynamic_real:
             external_features = item[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].T
