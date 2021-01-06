@@ -315,6 +315,12 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
+            "type": "SEPARATOR",
+            "label": " ",
+            "description": "Baseline and statistical models",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
             "description": "Based on the trivial.identity GluonTS models",
@@ -339,6 +345,12 @@
         {
             "type": "SEPARATOR",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "type": "SEPARATOR",
+            "label": " ",
+            "description": "Deep learning models",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "simplefeedforward_model_activated",
