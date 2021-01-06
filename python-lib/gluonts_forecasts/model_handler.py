@@ -22,7 +22,6 @@ IS_NAIVE = "is_naive"
 
 
 MODEL_DESCRIPTORS = {
-    "naive": {},  # to check if a baseline model is selected
     "trivial_identity": {
         LABEL: "TrivialIdentity",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -111,7 +110,7 @@ class ModelHandler:
     def _get_model_descriptor(self):
         model_descriptor = MODEL_DESCRIPTORS.get(self.model_name)
         if model_descriptor is None:
-            return MODEL_DESCRIPTORS.get("naive")
+            return {}
         else:
             return model_descriptor
 
