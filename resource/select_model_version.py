@@ -19,11 +19,10 @@ def do(payload, config, plugin_config, inputs):
             sessions += [child["name"]]
 
     if payload.get("parameterName") == "manually_selected_session":
-        choices = [{"label": "Latest", "value": "latest_session"}]
+        choices = [{"label": "Latest available", "value": "latest_session"}]
         if len(sessions) > 0:  # not partitioned folder
             for i, session in enumerate(sorted(sessions, reverse=True)):
-                if i > 0:  # i==0 for lastest session
-                    choices += [{"label": session, "value": session}]
+                choices += [{"label": session, "value": session}]
 
     elif payload.get("parameterName") == "manually_selected_model_label":
         all_paths = input_folder.list_paths_in_partition()
