@@ -71,8 +71,8 @@ class TestModel:
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
 
-    def test_trivial_mean(self):
-        model_name = "trivial_mean"
+    def test_seasonal_naive(self):
+        model_name = "seasonal_naive"
         model = Model(
             model_name,
             model_parameters={"activated": True, "kwargs": {}},
