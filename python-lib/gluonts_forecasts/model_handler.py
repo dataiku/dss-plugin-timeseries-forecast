@@ -1,11 +1,11 @@
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
-from gluonts.model.n_beats import NBEATSEstimator
+# from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.seq2seq import MQCNNEstimator
 from gluonts.model.transformer import TransformerEstimator
-from gluonts.model.tft import TemporalFusionTransformerEstimator
+# from gluonts.model.tft import TemporalFusionTransformerEstimator
 from gluonts.mx.trainer import Trainer
-from gluonts.model.trivial.mean import MeanPredictor
+# from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
@@ -37,15 +37,6 @@ MODEL_DESCRIPTORS = {
             "num_samples": 100
         },
     },
-    "trivial_mean": {
-        LABEL: "TrivialMean",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: MeanPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: True,
-        IS_NAIVE: True,
-    },
     "seasonal_naive": {
         LABEL: "SeasonalNaive",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -54,6 +45,22 @@ MODEL_DESCRIPTORS = {
         TRAINER: None,
         CAN_USE_CONTEXT_LENGTH: False,
         IS_NAIVE: True,
+    },
+    "autoarima": {
+        LABEL: "AutoARIMA",
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: AutoARIMAEstimator,
+        PREDICTOR: AutoARIMAPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    },
+    "npts": {
+        LABEL: "NPTS",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: NPTSPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
     },
     "simplefeedforward": {
         LABEL: "FeedForward",
@@ -73,38 +80,31 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
     },
-    "nbeats": {
-        LABEL: "NBEATS",
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-    },
     "mqcnn": {
         LABEL: "MQ-CNN",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
     },
-    "tft": {
-        LABEL: "TemporalFusionTransformer",
-        ESTIMATOR: TemporalFusionTransformerEstimator,
-        TRAINER: Trainer
-    },
-    "npts": {
-        LABEL: "NPTS",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: NPTSPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
-    },
-    "autoarima": {
-        LABEL: "AutoARIMA",
-        CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: AutoARIMAEstimator,
-        PREDICTOR: AutoARIMAPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
-    },
+    # "trivial_mean": {
+    #     LABEL: "TrivialMean",
+    #     CAN_USE_EXTERNAL_FEATURES: False,
+    #     ESTIMATOR: None,
+    #     PREDICTOR: MeanPredictor,
+    #     TRAINER: None,
+    #     CAN_USE_CONTEXT_LENGTH: True,
+    #     IS_NAIVE: True,
+    # },
+    # "nbeats": {
+    #     LABEL: "NBEATS",
+    #     ESTIMATOR: NBEATSEstimator,
+    #     TRAINER: Trainer
+    # },
+    # "tft": {
+    #     LABEL: "TemporalFusionTransformer",
+    #     ESTIMATOR: TemporalFusionTransformerEstimator,
+    #     TRAINER: Trainer
+    # },
 }
 
 
