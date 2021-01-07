@@ -25,8 +25,6 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
-        feat_static_cat_columns_names=None,
-        unique_feat_static_cat_values=None,
         min_length=None,
     ):
         self.dataframe = dataframe
@@ -36,8 +34,6 @@ class GluonDataset:
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.external_features_columns_names = external_features_columns_names
         self.min_length = min_length
-        self.feat_static_cat_columns_names = feat_static_cat_columns_names
-        self.unique_feat_static_cat_values = unique_feat_static_cat_values
 
     def create_list_datasets(self, cut_lengths=[]):
         """Create timeseries for each identifier tuple and each target.
