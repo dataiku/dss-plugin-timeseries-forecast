@@ -49,7 +49,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: AutoARIMAEstimator,
         PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
     "npts": {
         LABEL: "NPTS",
@@ -108,7 +107,6 @@ MODEL_DESCRIPTORS = {
     #     ESTIMATOR: None,
     #     PREDICTOR: MeanPredictor,
     #     TRAINER: None,
-    #     CAN_USE_CONTEXT_LENGTH: True,
     #     IS_NAIVE: True,
     # },
     # "nbeats": {
