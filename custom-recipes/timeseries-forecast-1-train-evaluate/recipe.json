@@ -513,16 +513,6 @@
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
-            "name": "context_length",
-            "label": "Context length",
-            "type": "INT",
-            "description": "Number of input lags. If -1, same as forecasting horizon. Higher values increase runtime.",
-            "defaultValue": -1,
-            "mandatory": false,
-            "minI": -1,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
             "name": "epoch",
             "label": "Number of epochs",
             "description": "Higher values increase performance but increase runtime linearly",

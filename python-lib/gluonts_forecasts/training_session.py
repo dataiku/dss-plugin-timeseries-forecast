@@ -30,7 +30,6 @@ class TrainingSession:
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
         gpu (str): Not implemented
-        context_length (int): Number of time steps used by model to make predictions
     """
 
     def __init__(
@@ -48,7 +47,6 @@ class TrainingSession:
         batch_size=None,
         user_num_batches_per_epoch=None,
         gpu=None,
-        context_length=None,
     ):
         self.models_parameters = models_parameters
         self.models = None
@@ -75,7 +73,6 @@ class TrainingSession:
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
         self.gpu = gpu
-        self.context_length = context_length
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -107,7 +104,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
-            min_length=self.prediction_length + self.context_length,
+            min_length=2 * self.prediction_length,  # Assuming that context_length = prediction_length
         )
 
         gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
@@ -135,7 +132,6 @@ class TrainingSession:
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
-                    context_length=self.context_length,
                 )
             )
 
@@ -261,7 +257,7 @@ class TrainingSession:
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        sample_length = self.prediction_length + self.context_length
+        sample_length = 2 * self.prediction_length  # Assuming that context_length = prediction_length
         sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
         num_samples_total = 0
         for timeseries in self.evaluation_train_list_dataset.list_data:

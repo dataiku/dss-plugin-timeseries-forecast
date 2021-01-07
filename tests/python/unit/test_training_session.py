@@ -50,7 +50,6 @@ class TestTrainingSession:
             timeseries_identifiers_names=["store", "item"],
             batch_size=32,
             user_num_batches_per_epoch=-1,
-            context_length=1,
         )
         self.training_session.init(self.session_name)
         self.training_session.create_gluon_datasets()

@@ -44,7 +44,6 @@ training_session = TrainingSession(
     batch_size=params["batch_size"],
     user_num_batches_per_epoch=params["num_batches_per_epoch"],
     gpu=params["gpu"],
-    context_length=params["context_length"],
 )
 training_session.init(partition_root=params["partition_root"], session_name=session_name)
 

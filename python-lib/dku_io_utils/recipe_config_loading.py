@@ -92,12 +92,6 @@ def load_training_config(recipe_config):
     if not params["prediction_length"]:
         raise PluginParamValidationError("Please specify forecasting horizon")
 
-    params["context_length"] = recipe_config.get("context_length", -1)
-    if params["context_length"] < 0:
-        params["context_length"] = params["prediction_length"]
-    if params["context_length"] == 0:
-        raise PluginParamValidationError("Context length cannot be 0")
-
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
     params["epoch"] = recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
@@ -113,12 +107,10 @@ def load_training_config(recipe_config):
 
     # Overwrite values in case of autoML mode selected
     if params["forecasting_style"] == "auto":
-        params["context_length"] = params["prediction_length"]
         params["epoch"] = 10
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
-        params["context_length"] = params["prediction_length"]
         params["epoch"] = 30
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1

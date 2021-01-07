@@ -14,7 +14,6 @@ from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
-CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
 DEFAULT_KWARGS = "default_kwargs"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
@@ -30,7 +29,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: IdentityPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
         NEEDS_NUM_SAMPLES: True,
         IS_NAIVE: True,
         DEFAULT_KWARGS: {
@@ -43,7 +41,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: MeanPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: True,
         IS_NAIVE: True,
     },
     "seasonal_naive": {
@@ -52,7 +49,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: SeasonalNaivePredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
         IS_NAIVE: True,
     },
     "simplefeedforward": {
@@ -95,7 +91,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: NPTSPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
     "autoarima": {
         LABEL: "AutoARIMA",
@@ -103,7 +98,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: AutoARIMAEstimator,
         PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
 }
 
@@ -162,9 +156,6 @@ class ModelHandler:
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
-
-    def can_use_context_length(self):
-        return self.model_descriptor.get(CAN_USE_CONTEXT_LENGTH, True)
 
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)
