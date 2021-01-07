@@ -82,25 +82,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
     },
-    "tft": {
-        LABEL: "TemporalFusionTransformer",
-        ESTIMATOR: TemporalFusionTransformerEstimator,
-        TRAINER: Trainer
-    },
-    "npts": {
-        LABEL: "NPTS",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: NPTSPredictor,
-        TRAINER: None,
-    },
-    "autoarima": {
-        LABEL: "AutoARIMA",
-        CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: AutoARIMAEstimator,
-        PREDICTOR: AutoARIMAPredictor,
-        TRAINER: None,
-    },
     # "trivial_mean": {
     #     LABEL: "TrivialMean",
     #     CAN_USE_EXTERNAL_FEATURES: False,
