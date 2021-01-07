@@ -12,7 +12,7 @@ def get_folder_partition_root(folder, is_input=False):
         is_input:  True if the folder must be considered as a input, False if output
 
     Returns:
-        Partition path or None if dataset is not partitioned.
+        Partition path or None if folder is not partitioned.
     """
     folder_id = folder.get_id()
     input_id = folder_id if is_input else None
@@ -20,26 +20,28 @@ def get_folder_partition_root(folder, is_input=False):
     client = dataiku.api_client()
     project = client.get_project(dataiku.default_project_key())
     folder = project.get_managed_folder(folder_id)
-    folder.get_definition()["partitioning"]
     folder_config = folder.get_definition()
-    file_path_pattern = folder_config.get("partitioning").get("filePathPattern", None)
-    dimensions, types = get_dataset_dimensions(folder_config)
+    partitioning_config = folder_config.get("partitioning")
+    if not partitioning_config:
+        return ""
+    file_path_pattern = partitioning_config.get("filePathPattern", None)
+    dimensions, types = get_dimensions(partitioning_config)
     partitions = get_partitions(dku_flow_variables, dimensions, input_id=input_id)
     file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
     file_path = complete_file_path_time_pattern(dku_flow_variables, file_path, input_id=input_id)
     return file_path
 
 
-def get_dataset_dimensions(dataset_config):
+def get_dimensions(partitioning_config):
     """Retrieve the list of partition dimension names.
 
     Args:
-        dataset (dataiku.Dataset)
+        partitioning_config (dict): Dictionary of partitioning variables.
 
     Returns:
         List of dimensions.
     """
-    dimensions_dict = dataset_config.get("partitioning").get("dimensions")
+    dimensions_dict = partitioning_config.get("dimensions")
     dimensions = []
     types = []
     for dimension in dimensions_dict:
@@ -86,7 +88,6 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
     """
 
     if file_path_pattern is None:
-        # Probably SQL dataset
         partitions = fix_date_elements_folder_path(partitions, types)
         return "/".join(partitions)
     file_path = file_path_pattern.replace(".*", "")
@@ -96,7 +97,7 @@ def complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
 
 
 def fix_date_elements_folder_path(partitions, types):
-    """ Replace the '-' separator in time dimension on SQL-type dataset by '/' so they can be used in folder paths """
+    """ Replace the '-' separator in time dimension with '/' so they can be used in folder paths """
     fixed_partitions = []
     for partition, type in zip(partitions, types):
         if type == "time":
