@@ -91,7 +91,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: NPTSPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
     "autoarima": {
         LABEL: "AutoARIMA",
@@ -99,7 +98,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: AutoARIMAEstimator,
         PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
     },
 }
 
