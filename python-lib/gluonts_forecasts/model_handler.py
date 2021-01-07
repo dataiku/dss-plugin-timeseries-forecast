@@ -15,6 +15,7 @@ from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
 CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
+DEFAULT_KWARGS = "default_kwargs"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
 NEEDS_NUM_SAMPLES = "needs_num_samples"
@@ -33,6 +34,9 @@ MODEL_DESCRIPTORS = {
         CAN_USE_CONTEXT_LENGTH: False,
         NEEDS_NUM_SAMPLES: True,
         IS_NAIVE: True,
+        DEFAULT_KWARGS: {
+            "num_samples": 100
+        },
     },
     "trivial_mean": {
         LABEL: "TrivialMean",
@@ -131,6 +135,8 @@ class ModelHandler:
             return model_descriptor
 
     def estimator(self, model_parameters, **kwargs):
+        default_kwargs = self.model_descriptor.get(DEFAULT_KWARGS, {})
+        kwargs.update(default_kwargs)
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
         try:
