@@ -7,6 +7,7 @@ from time import perf_counter
 from safe_logger import SafeLogger
 import json
 
+
 logger = SafeLogger("Forecast plugin")
 
 
@@ -53,7 +54,9 @@ class Model(ModelHandler):
         self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
+
         self.using_external_features = False
+
         estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length,

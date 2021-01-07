@@ -1,6 +1,6 @@
-from gluonts_forecasts.utils import assert_time_column_valid
 from gluonts.dataset.common import ListDataset
 from constants import TIMESERIES_KEYS
+import numpy as np
 
 
 class GluonDataset:
@@ -16,6 +16,7 @@ class GluonDataset:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         external_features_columns_names (list): List of columns with dynamic real features over time
     """
+
     def __init__(
         self,
         dataframe,
@@ -24,9 +25,9 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
-        min_length=None
+        min_length=None,
     ):
-        self.dataframe = dataframe.sort_values(by=time_column_name, ascending=True)
+        self.dataframe = dataframe
         self.time_column_name = time_column_name
         self.frequency = frequency
         self.target_columns_names = target_columns_names
@@ -47,22 +48,17 @@ class GluonDataset:
         multivariate_timeseries_per_cut_length = [[] for cut_length in cut_lengths]
         if self.timeseries_identifiers_names:
             for identifiers_values, identifiers_df in self.dataframe.groupby(self.timeseries_identifiers_names):
-                assert_time_column_valid(
-                    identifiers_df,
-                    self.time_column_name,
-                    self.frequency
-                )
                 for cut_length_index, cut_length in enumerate(cut_lengths):
-                    multivariate_timeseries_per_cut_length[cut_length_index] += self._create_gluon_multivariate_timeseries(identifiers_df, cut_length, identifiers_values=identifiers_values)
+                    multivariate_timeseries_per_cut_length[cut_length_index] += self._create_gluon_multivariate_timeseries(
+                        identifiers_df, cut_length, identifiers_values=identifiers_values
+                    )
         else:
-            assert_time_column_valid(self.dataframe, self.time_column_name, self.frequency)
             for cut_length_index, cut_length in enumerate(cut_lengths):
                 multivariate_timeseries_per_cut_length[cut_length_index] += self._create_gluon_multivariate_timeseries(self.dataframe, cut_length)
         gluon_list_dataset_per_cut_length = []
         for multivariate_timeseries in multivariate_timeseries_per_cut_length:
             gluon_list_dataset_per_cut_length += [ListDataset(multivariate_timeseries, freq=self.frequency)]
         return gluon_list_dataset_per_cut_length
-
 
     def _create_gluon_multivariate_timeseries(self, dataframe, cut_length, identifiers_values=None):
         """Create a list of timeseries dictionaries for each target column
