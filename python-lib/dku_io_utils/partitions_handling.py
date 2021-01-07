@@ -4,27 +4,6 @@ import dataiku
 TIME_DIMENSION_PATTERNS = {"YEAR": "%Y", "MONTH": "%M", "DAY": "%D", "HOUR": "%H"}
 
 
-def get_partition_root(dataset):
-    """Retrieve the partition root path using a dataiku.Dataset.
-
-    Args:
-        dataset (dataiku.Dataset): Input or output dataset of the recipe used to retrieve the partition path pattern.
-
-    Returns:
-        Partition path or None if dataset is not partitioned.
-    """
-    dku_flow_variables = dataiku.get_flow_variables()
-    file_path_pattern = dataset.get_config().get("partitioning").get("filePathPattern", None)
-
-    dataset_config = dataset.get_config()
-    dimensions, types = get_dataset_dimensions(dataset_config)
-    partitions = get_partitions(dku_flow_variables, dimensions)
-    file_path = complete_file_path_pattern(file_path_pattern, partitions, dimensions, types)
-    file_path = complete_file_path_time_pattern(dku_flow_variables, file_path)
-
-    return file_path
-
-
 def get_folder_partition_root(folder, is_input=False):
     """Retrieve the partition root path using a dataiku.Folder.
 
