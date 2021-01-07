@@ -21,6 +21,7 @@ class TIMESERIES_KEYS:
     TIME_COLUMN_NAME = "time_column_name"
     FEAT_DYNAMIC_REAL = FieldName.FEAT_DYNAMIC_REAL
     FEAT_DYNAMIC_REAL_COLUMNS_NAMES = "feat_dynamic_real_columns_names"
+    FEAT_STATIC_CAT = FieldName.FEAT_STATIC_CAT
     IDENTIFIERS = "identifiers"
 
 
