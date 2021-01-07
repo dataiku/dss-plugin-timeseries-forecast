@@ -7,6 +7,7 @@ from dku_io_utils.recipe_config_loading import load_training_config, get_models_
 from dku_io_utils.utils import write_to_folder
 from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_COLUMNS_DESCRIPTIONS
 from gluonts_forecasts.model_handler import get_model_label
+from gluonts_forecasts.timeseries_preparation import prepare_timeseries_dataframe
 from safe_logger import SafeLogger
 from time import perf_counter
 
@@ -21,6 +22,14 @@ logger.info("Starting training session {}...".format(session_name))
 
 training_df = params["training_dataset"].get_dataframe()
 
+training_df_prepared = prepare_timeseries_dataframe(
+    training_df,
+    time_column_name=params["time_column_name"],
+    frequency=params["frequency"],
+    timeseries_identifiers_names=params["timeseries_identifiers_names"],
+    max_timeseries_length=params["max_timeseries_length"],
+)
+
 training_session = TrainingSession(
     target_columns_names=params["target_columns_names"],
     time_column_name=params["time_column_name"],
@@ -28,7 +37,7 @@ training_session = TrainingSession(
     epoch=params["epoch"],
     models_parameters=models_parameters,
     prediction_length=params["prediction_length"],
-    training_df=training_df,
+    training_df=training_df_prepared,
     make_forecasts=params["make_forecasts"],
     external_features_columns_names=params["external_features_columns_names"],
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
