@@ -6,6 +6,10 @@ from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
+from safe_logger import SafeLogger
+
+
+logger = SafeLogger("Forecast plugin")
 
 
 class TrainingSession:
@@ -95,6 +99,7 @@ class TrainingSession:
         The last prediction_length time steps are removed from each timeseries of the train dataset.
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
+
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,

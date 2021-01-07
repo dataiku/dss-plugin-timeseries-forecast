@@ -323,7 +323,7 @@
         {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
-            "description": "Based on the trivial.identity GluonTS models",
+            "description": "Based on the trivial.identity GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -359,15 +359,58 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "false && model.simplefeedforward_model_activated"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
-            "visibilityCondition": "false",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
             "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "npts_model_activated",
+            "label": "- NPTS",
+            "description": "Based on the NPTSPredictor GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "npts_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "autoarima_model_activated",
+            "label": "- AutoARIMA",
+            "description": "Based on the pyramid-arima package. Slow for multiple time series.",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "autoarima_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
+            "mandatory": false,
+            "defaultValue": {"maxiter": 50}
         },
         {
             "type": "SEPARATOR",
@@ -413,7 +456,7 @@
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "tft_model_activated",
@@ -539,7 +582,7 @@
             "label": "Sampling method",
             "type": "SELECT",
             "mandatory": true,
-            "description": "",
+            "description": "Train using only the most recent data and reduce runtime",
             "selectChoices": [
                 {
                     "value": "last_records",
@@ -555,11 +598,11 @@
         {
             "name": "number_records",
             "label": "Nb. records",
-            "description": "Number of records to use per timeseries",
+            "description": "Number of last records to extract per time series",
             "type": "INT",
             "defaultValue": 10000,
             "mandatory": false,
-            "minI": 1,
+            "minI": 4,
             "visibilityCondition": "model.sampling_method=='last_records'"
         },
         {
@@ -584,14 +627,14 @@
         {
             "name": "external_feature_activated",
             "label": "Add external features",
-            "description": "External features - e.g., holidays, special events",
+            "description": "Optional - e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Optional ⚠️  Futures values of external features will be required to forecast.",
+            "description": "⚠️  Futures values of external features will be required to forecast.",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -615,15 +658,9 @@
         },
         {
             "name": "gpu",
-            "label": "GPU",
-            "type": "SELECT",
-            "selectChoices": [
-                {
-                    "value": "no_gpu",
-                    "label": "No GPU"
-                }
-            ],
-            "defaultValue": "no_gpu",
+            "label": "Use GPU",
+            "type": "BOOLEAN",
+            "defaultValue": false,
             "visibilityCondition": "false"
         }
     ],
