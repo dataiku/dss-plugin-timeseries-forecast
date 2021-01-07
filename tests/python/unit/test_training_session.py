@@ -28,6 +28,7 @@ class TestTrainingSession:
                 "is_weekend": [1, 0, 0, 1, 0, 0],
             }
         )
+        self.df["date"] = pd.to_datetime(self.df["date"]).dt.tz_localize(tz=None)
         self.models_parameters = {
             "deepar": {"activated": True, "kwargs": {"dropout_rate": "0.3", "cell_type": "gru"}},
             "mqcnn": {"activated": True, "kwargs": {}},
@@ -64,7 +65,7 @@ class TestTrainingSession:
     def test_evaluation_metrics(self):
         self.training_session.evaluate()
         expected_metrics_columns = ["store", "item"]
-        expected_metrics_columns += [METRICS_DATASET.TARGET_COLUMN, METRICS_DATASET.MODEL_COLUMN, METRICS_DATASET.MODEL_PARAMETERS, METRICS_DATASET.SESSION]
+        expected_metrics_columns += [METRICS_DATASET.TARGET_COLUMN, METRICS_DATASET.MODEL_COLUMN, METRICS_DATASET.MODEL_PARAMETERS, METRICS_DATASET.TRAINING_TIME, METRICS_DATASET.SESSION]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         metrics_models = self.training_session.metrics_df[METRICS_DATASET.MODEL_COLUMN].unique()
         expected_metrics_models = [MODEL_DESCRIPTORS["deepar"][LABEL], MODEL_DESCRIPTORS["mqcnn"][LABEL], MODEL_DESCRIPTORS["trivial_identity"][LABEL]]

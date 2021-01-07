@@ -8,11 +8,14 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
+from gluonts.model.npts import NPTSPredictor
+from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
 CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
+DEFAULT_KWARGS = "default_kwargs"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
 NEEDS_NUM_SAMPLES = "needs_num_samples"
@@ -21,7 +24,6 @@ IS_NAIVE = "is_naive"
 
 
 MODEL_DESCRIPTORS = {
-    "naive": {},  # to check if a baseline model is selected
     "trivial_identity": {
         LABEL: "TrivialIdentity",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -31,6 +33,9 @@ MODEL_DESCRIPTORS = {
         CAN_USE_CONTEXT_LENGTH: False,
         NEEDS_NUM_SAMPLES: True,
         IS_NAIVE: True,
+        DEFAULT_KWARGS: {
+            "num_samples": 100
+        },
     },
     "trivial_mean": {
         LABEL: "TrivialMean",
@@ -84,11 +89,28 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: TemporalFusionTransformerEstimator,
         TRAINER: Trainer
     },
+    "npts": {
+        LABEL: "NPTS",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: NPTSPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    },
+    "autoarima": {
+        LABEL: "AutoARIMA",
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: AutoARIMAEstimator,
+        PREDICTOR: AutoARIMAPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    },
 }
 
 
 class ModelParameterError(ValueError):
     """Custom exception raised when the GluonTS model parameters chosen by the user are invalid"""
+
     pass
 
 
@@ -107,11 +129,13 @@ class ModelHandler:
     def _get_model_descriptor(self):
         model_descriptor = MODEL_DESCRIPTORS.get(self.model_name)
         if model_descriptor is None:
-            return MODEL_DESCRIPTORS.get("naive")
+            return {}
         else:
             return model_descriptor
 
     def estimator(self, model_parameters, **kwargs):
+        default_kwargs = self.model_descriptor.get(DEFAULT_KWARGS, {})
+        kwargs.update(default_kwargs)
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
         try:
