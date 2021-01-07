@@ -70,7 +70,9 @@ def load_training_config(recipe_config):
     else:
         params["external_features_columns_names"] = []
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError(f"Invalid external features selection: {params['external_features_columns_names']}")
+        raise PluginParamValidationError(
+            f"Invalid external features selection: {params['external_features_columns_names']}"
+        )
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
@@ -125,8 +127,8 @@ def load_training_config(recipe_config):
     params["max_timeseries_length"] = None
     if params["sampling_method"] == "last_records":
         params["max_timeseries_length"] = recipe_config.get("number_records", 10000)
-        if params["max_timeseries_length"] < 1:
-            raise PluginParamValidationError("Number of records must be higher than 1")
+        if params["max_timeseries_length"] < 4:
+            raise PluginParamValidationError("Number of records must be higher than 4")
 
     params["gpu"] = recipe_config.get("gpu", "no_gpu")
     params["evaluation_strategy"] = "split"

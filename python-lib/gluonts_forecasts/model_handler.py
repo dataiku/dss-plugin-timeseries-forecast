@@ -8,6 +8,8 @@ from gluonts.mx.trainer import Trainer
 from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
+from gluonts.model.npts import NPTSPredictor
+from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 
 
 ESTIMATOR = "estimator"
@@ -87,11 +89,28 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: TemporalFusionTransformerEstimator,
         TRAINER: Trainer
     },
+    "npts": {
+        LABEL: "NPTS",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: NPTSPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    },
+    "autoarima": {
+        LABEL: "AutoARIMA",
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: AutoARIMAEstimator,
+        PREDICTOR: AutoARIMAPredictor,
+        TRAINER: None,
+        CAN_USE_CONTEXT_LENGTH: False,
+    },
 }
 
 
 class ModelParameterError(ValueError):
     """Custom exception raised when the GluonTS model parameters chosen by the user are invalid"""
+
     pass
 
 
