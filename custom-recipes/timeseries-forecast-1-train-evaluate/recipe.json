@@ -317,7 +317,7 @@
         {
             "type": "SEPARATOR",
             "label": " ",
-            "description": "Baseline and statistical models",
+            "description": "Statistical models",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
@@ -349,7 +349,7 @@
         {
             "type": "SEPARATOR",
             "label": " ",
-            "description": "Deep learning models",
+            "description": "Deep Learning models",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
