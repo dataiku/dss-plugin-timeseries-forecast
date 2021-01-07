@@ -636,6 +636,32 @@
             "mandatory": false,
             "visibilityCondition": "model.external_feature_activated"
         },
+        {	
+            "name": "advanced_options",	
+            "label": "Display advanced options",	
+            "description": "",	
+            "type": "BOOLEAN",	
+            "defaultValue": false	
+        },	
+        {	
+            "name": "feat_static_cat",	
+            "label": "Feat static cat",	
+            "description": "Categorical columns to use as timeseries groupings.",	
+            "type": "COLUMNS",	
+            "allowedColumnTypes": [	
+                "tinyint",	
+                "smallint",	
+                "int",	
+                "bigint",	
+                "float",	
+                "double",	
+                "string",	
+                "boolean"	
+            ],	
+            "columnRole": "input_dataset",	
+            "mandatory": false,	
+            "visibilityCondition": "model.advanced_options"	
+        },
         {
             "name": "evaluation_only",
             "label": "Evaluation only",

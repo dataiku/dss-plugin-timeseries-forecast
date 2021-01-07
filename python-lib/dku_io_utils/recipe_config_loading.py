@@ -73,6 +73,12 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError(
             f"Invalid external features selection: {params['external_features_columns_names']}"
         )
+    
+    params["feat_static_cat_columns_names"] = sanitize_column_list(recipe_config.get("feat_static_cat", []))	
+    if not all(column in training_dataset_columns for column in params["feat_static_cat_columns_names"]):	
+        raise PluginParamValidationError(	
+            f"Invalid feat static cat selection: {params['feat_static_cat_columns_names']}"	
+        )
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 

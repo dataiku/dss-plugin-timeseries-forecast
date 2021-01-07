@@ -25,6 +25,8 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
+        feat_static_cat_columns_names=None,	
+        unique_feat_static_cat_values=None,
         min_length=None,
     ):
         self.dataframe = dataframe
@@ -34,6 +36,8 @@ class GluonDataset:
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.external_features_columns_names = external_features_columns_names
         self.min_length = min_length
+        self.feat_static_cat_columns_names = feat_static_cat_columns_names	
+        self.unique_feat_static_cat_values = unique_feat_static_cat_values
 
     def create_list_datasets(self, cut_lengths=[]):
         """Create timeseries for each identifier tuple and each target.
@@ -118,7 +122,7 @@ class GluonDataset:
                 if dataframe[feat_static_cat_column].nunique() > 1:
                     raise ValueError(f"Categorical column '{feat_static_cat_column}' must have unique values for each timeseries")
                 feat_static_cat += [self.unique_feat_static_cat_values[i].index(dataframe[feat_static_cat_column].iloc[0])]
-            univariate_timeseries["feat_static_cat"] = feat_static_cat  # [self.target_columns_names.index(target_column_name)]
+            univariate_timeseries[TIMESERIES_KEYS.FEAT_STATIC_CAT] = feat_static_cat  # [self.target_columns_names.index(target_column_name)]
         return univariate_timeseries
 
     def _check_minimum_length(self, dataframe, cut_length):
