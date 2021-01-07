@@ -50,7 +50,6 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError(f"Invalid time column selection: {params['time_column_name']}")
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
-    params["is_training_multivariate"] = True if len(params["target_columns_names"]) > 1 else False
     if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
 
@@ -61,6 +60,9 @@ def load_training_config(recipe_config):
             raise PluginParamValidationError(f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}")
     else:
         params["timeseries_identifiers_names"] = []
+
+    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) \
+        or (len(params["timeseries_identifiers_names"]) > 0) else False
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
