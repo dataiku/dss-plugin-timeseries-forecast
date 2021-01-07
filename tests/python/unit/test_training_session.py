@@ -1,6 +1,6 @@
 from gluonts_forecasts.training_session import TrainingSession
 from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL
-from constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
+from constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from datetime import datetime
 from pandas.api.types import is_datetime64_ns_dtype
 import pandas as pd
@@ -64,7 +64,13 @@ class TestTrainingSession:
     def test_evaluation_metrics(self):
         self.training_session.evaluate()
         expected_metrics_columns = ["store", "item"]
-        expected_metrics_columns += [METRICS_DATASET.TARGET_COLUMN, METRICS_DATASET.MODEL_COLUMN, METRICS_DATASET.MODEL_PARAMETERS, METRICS_DATASET.TRAINING_TIME, METRICS_DATASET.SESSION]
+        expected_metrics_columns += [
+            METRICS_DATASET.TARGET_COLUMN,
+            METRICS_DATASET.MODEL_COLUMN,
+            METRICS_DATASET.MODEL_PARAMETERS,
+            METRICS_DATASET.TRAINING_TIME,
+            METRICS_DATASET.SESSION,
+        ]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         metrics_models = self.training_session.metrics_df[METRICS_DATASET.MODEL_COLUMN].unique()
         expected_metrics_models = [MODEL_DESCRIPTORS["deepar"][LABEL], MODEL_DESCRIPTORS["mqcnn"][LABEL], MODEL_DESCRIPTORS["trivial_identity"][LABEL]]
@@ -88,7 +94,8 @@ class TestTrainingSession:
             "mqcnn_revenue",
             "trivial_identity_volume",
             "trivial_identity_revenue",
-            "training_session",
+            METRICS_DATASET.SESSION,
+            ROW_ORIGIN.COLUMN_NAME,
         ]
         not_nan_count = self.training_session.evaluation_forecasts_df.count()
         assert len(self.training_session.evaluation_forecasts_df.index) == 6
