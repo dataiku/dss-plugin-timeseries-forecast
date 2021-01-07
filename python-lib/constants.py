@@ -46,6 +46,8 @@ TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
-        "auto": ["trivial_identity", "seasonal_naive", "deepar"],
-        "auto_performance": ["trivial_identity", "seasonal_naive", "deepar", "transformer"]
+        "auto_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "autoarima"],
+        "auto_performance_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "autoarima"],
+        "auto_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
+        "auto_performance_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"]
     }
