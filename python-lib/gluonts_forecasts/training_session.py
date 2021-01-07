@@ -6,6 +6,10 @@ from gluonts_forecasts.model import Model
 from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
+from safe_logger import SafeLogger
+
+
+logger = SafeLogger("Forecast plugin")
 
 
 class TrainingSession:
@@ -26,7 +30,6 @@ class TrainingSession:
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
         gpu (str): Not implemented
-        context_length (int): Number of time steps used by model to make predictions
     """
 
     def __init__(
@@ -44,7 +47,6 @@ class TrainingSession:
         batch_size=None,
         user_num_batches_per_epoch=None,
         gpu=None,
-        context_length=None,
     ):
         self.models_parameters = models_parameters
         self.models = None
@@ -71,30 +73,19 @@ class TrainingSession:
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
         self.gpu = gpu
-        self.context_length = context_length
 
     def init(self, session_name, partition_root=None):
-        """Create the session_path. Convert time column to pandas.Datetime without timezones.
-        Check types of target, external features and timeseries identifiers columns.
+        """Create the session_path. Check types of target, external features and timeseries identifiers columns.
 
         Args:
             session_name (Timestamp)
             partition_root (str, optional): Partition root path, concatenated to session_name to create the session_path. Defaults to None.
-
-        Raises:
-            ValueError: If the time column cannot be parsed as a date by pandas.
         """
         self.session_name = session_name
         if partition_root is None:
             self.session_path = session_name
         else:
             self.session_path = os.path.join(partition_root, session_name)
-        try:
-            self.training_df[self.time_column_name] = pd.to_datetime(
-                self.training_df[self.time_column_name]
-            ).dt.tz_localize(tz=None)
-        except Exception:
-            raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
 
         self._check_target_columns_types()
         self._check_external_features_columns_types()
@@ -105,6 +96,7 @@ class TrainingSession:
         The last prediction_length time steps are removed from each timeseries of the train dataset.
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
+
         gluon_dataset = GluonDataset(
             dataframe=self.training_df,
             time_column_name=self.time_column_name,
@@ -112,7 +104,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
-            min_length=self.prediction_length + self.context_length,
+            min_length=2 * self.prediction_length,  # Assuming that context_length = prediction_length
         )
 
         gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
@@ -140,7 +132,6 @@ class TrainingSession:
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
-                    context_length=self.context_length,
                 )
             )
 
@@ -161,9 +152,7 @@ class TrainingSession:
         """Evaluate all the selected models and get the metrics dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns) = model.evaluate(
-                self.evaluation_train_list_dataset, self.full_list_dataset
-            )
+            (item_metrics, identifiers_columns) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
@@ -172,22 +161,20 @@ class TrainingSession:
         """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(
-                self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True
-            )
+            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True)
             forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
             if self.forecasts_df.empty:
                 self.forecasts_df = forecasts_df
             else:
-                self.forecasts_df = self.forecasts_df.merge(
-                    forecasts_df, on=[self.time_column_name] + identifiers_columns
-                )
+                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
         self.evaluation_forecasts_df = self.training_df.merge(
-            self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left",
+            self.forecasts_df,
+            on=[self.time_column_name] + identifiers_columns,
+            how="left",
         )
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
@@ -247,9 +234,8 @@ class TrainingSession:
             column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
         ]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
-            evaluation_metrics_df = evaluation_metrics_df[
-                evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW
-            ]
+            evaluation_metrics_df = self.metrics_df.copy()
+            evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
             evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
         return evaluation_metrics_df
 
@@ -279,14 +265,12 @@ class TrainingSession:
     def _check_timeseries_identifiers_columns_types(self):
         """ Raises ValueError if a timeseries identifiers column is not numerical or string """
         for column_name in self.timeseries_identifiers_names:
-            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(
-                self.training_df[column_name]
-            ):
+            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
                 raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        sample_length = self.prediction_length + self.context_length
+        sample_length = 2 * self.prediction_length  # Assuming that context_length = prediction_length
         sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
         num_samples_total = 0
         for timeseries in self.evaluation_train_list_dataset.list_data:

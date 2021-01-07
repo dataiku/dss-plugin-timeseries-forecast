@@ -1,6 +1,6 @@
 {
     "meta": {
-        "label": "Train and test forecasting models",
+        "label": "1. Train and test forecasting models",
         "description": "Train forecasting models and test their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
@@ -10,7 +10,7 @@
     "inputRoles": [
         {
             "name": "input_dataset",
-            "label": "Input dataset",
+            "label": "Historical dataset",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -29,8 +29,8 @@
         },
         {
             "name": "evaluation_dataset",
-            "label": "Performance metrics",
-            "description": "Performance metrics of forecasting models tested on historical data",
+            "label": "Performance metrics dataset",
+            "description": "Performance metrics of forecasting models evaluated on the historical dataset (splitting strategy can be specified in the recipe settings) ",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -38,8 +38,8 @@
         },
         {
             "name": "evaluation_forecasts_dataset",
-            "label": "Test dataset",
-            "description": "Test dataset with forecasts used to compute performance metrics",
+            "label": "Evaluation dataset",
+            "description": "Dataset with evaluation forecasts used to compute the performance metrics",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -67,6 +67,7 @@
             "name": "frequency_unit",
             "label": "Frequency",
             "type": "SELECT",
+            "description": "Frequency of your historical data",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -102,11 +103,107 @@
                     "label": "Semester"
                 },
                 {
-                    "value": "Y",
+                    "value": "A",
                     "label": "Year"
                 }
             ],
             "defaultValue": "D"
+        },
+        {
+            "name": "frequency_end_of_year",
+            "label": "End of year month",
+            "type": "SELECT",
+            "mandatory": false,
+            "defaultValue": "DEC",
+            "visibilityCondition": "model.frequency_unit == 'A'",
+            "selectChoices": [
+                {
+                    "value": "JAN",
+                    "label": "January"
+                },
+                {
+                    "value": "FEB",
+                    "label": "February"
+                },
+                {
+                    "value": "MAR",
+                    "label": "March"
+                },
+                {
+                    "value": "APR",
+                    "label": "April"
+                },
+                {
+                    "value": "MAY",
+                    "label": "May"
+                },
+                {
+                    "value": "JUN",
+                    "label": "June"
+                },
+                {
+                    "value": "JUL",
+                    "label": "July"
+                },
+                {
+                    "value": "AUG",
+                    "label": "August"
+                },
+                {
+                    "value": "SEP",
+                    "label": "September"
+                },
+                {
+                    "value": "OCT",
+                    "label": "October"
+                },
+                {
+                    "value": "NOV",
+                    "label": "November"
+                },
+                {
+                    "value": "DEC",
+                    "label": "December"
+                }
+            ]
+        },
+        {
+            "name": "frequency_end_of_week",
+            "label": "End of week day",
+            "type": "SELECT",
+            "mandatory": false,
+            "defaultValue": "SUN",
+            "visibilityCondition": "model.frequency_unit == 'W'",
+            "selectChoices": [
+                {
+                    "value": "SUN",
+                    "label": "Sunday"
+                },
+                {
+                    "value": "MON",
+                    "label": "Monday"
+                },
+                {
+                    "value": "TUE",
+                    "label": "Tuesday"
+                },
+                {
+                    "value": "WED",
+                    "label": "Wednesday"
+                },
+                {
+                    "value": "THU",
+                    "label": "Thursday"
+                },
+                {
+                    "value": "FRI",
+                    "label": "Friday"
+                },
+                {
+                    "value": "SAT",
+                    "label": "Saturday"
+                }
+            ]
         },
         {
             "name": "frequency_step_hours",
@@ -144,7 +241,7 @@
         {
             "name": "additional_columns",
             "label": "Long format",
-            "description": "If your dataset has columns to identify multiple time series",
+            "description": "If multiple time series are stored in the same column",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
@@ -152,7 +249,7 @@
         {
             "name": "timeseries_identifiers",
             "label": "Time series identifiers",
-            "description": "Mandatory for long format",
+            "description": "Columns that identify the multiple time series - mandatory for long format",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -169,21 +266,20 @@
         {
             "name": "separator_modeling",
             "label": "Modeling",
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style != 'customize_algorithms'"
+            "type": "SEPARATOR"
         },
         {
             "name": "separator_modeling_customize_algorithms",
-            "label": "Modeling",
+            "label": "",
             "type": "SEPARATOR",
             "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.model.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "prediction_length",
             "label": "Forecasting horizon",
             "type": "INT",
-            "description": "Number of future values to predict",
+            "description": "Number of future values to predict. Higher values increase runtime.",
             "defaultValue": 1,
             "mandatory": true,
             "minI": 1
@@ -192,6 +288,7 @@
             "name": "forecasting_style",
             "label": "Forecasting mode",
             "type": "SELECT",
+            "description": "AutoML to let Dataiku choose your models or Expert to have full control.",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -215,47 +312,84 @@
         },
         {
             "type": "SEPARATOR",
+            "label": " ",
+            "description": "Statistical models",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "type": "SEPARATOR",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
-            "name": "naive_model_activated",
-            "label": "- Baseline",
+            "name": "trivial_identity_model_activated",
+            "label": "- Trivial Identity",
             "description": "Based on the trivial.identity GluonTS model",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
-            "visibilityCondition": "model.forecasting_style == 'choose_algorithms'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
-            "name": "naive_model_activated",
-            "label": "- Baseline",
-            "description": "Based on the trivial.identity/trivial.mean/seasonal_naive GluonTS models",
-            "type": "BOOLEAN",
-            "defaultValue": true,
-            "mandatory": true,
+            "type": "SEPARATOR",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
-            "name": "naive_model_method",
-            "label": "  ↳ method",
-            "type": "SELECT",
+            "name": "seasonal_naive_model_activated",
+            "label": "- Seasonal Naive",
+            "description": "Based on the seasonal_naive GluonTS models, compute seasonality based on the frequency",
+            "type": "BOOLEAN",
+            "defaultValue": true,
             "mandatory": true,
-            "defaultValue": "trivial_identity",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.naive_model_activated",
-            "selectChoices": [
-                {
-                    "value": "trivial_identity",
-                    "label": "Forecast preceding values"
-                },
-                {
-                    "value": "trivial_mean",
-                    "label": "Forecast based on mean value"
-                },
-                {
-                    "value": "seasonal_naive",
-                    "label": "Forecast values from previous season"
-                }
-            ]
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "autoarima_model_activated",
+            "label": "- AutoARIMA",
+            "description": "Based on the pyramid-arima package. Slow for multiple time series.",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "autoarima_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
+            "mandatory": false,
+            "defaultValue": {"maxiter": 50}
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "npts_model_activated",
+            "label": "- NPTS",
+            "description": "Based on the NPTSPredictor GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "npts_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "label": " ",
+            "description": "Deep Learning models",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "type": "SEPARATOR",
@@ -268,14 +402,14 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "false && model.simplefeedforward_model_activated"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
-            "visibilityCondition": "false",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
             "mandatory": false
         },
         {
@@ -322,7 +456,28 @@
         },
         {
             "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "mqcnn_model_activated",
+            "label": "- MQ-CNN",
+            "description": "Based on the MQCNNEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "mqcnn_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "tft_model_activated",
@@ -363,46 +518,16 @@
             "mandatory": false
         },
         {
-            "type": "SEPARATOR",
-            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
-        },
-        {
-            "name": "mqcnn_model_activated",
-            "label": "- MQ-CNN",
-            "description": "Based on the MQCNNEstimator GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
-            "name": "mqcnn_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
-            "mandatory": false
-        },
-        {
             "name": "training_options_separator",
             "label": "Training options",
             "type": "SEPARATOR",
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
-            "name": "context_length",
-            "label": "Context length",
-            "type": "INT",
-            "description": "If -1, same as forecasting horizon",
-            "defaultValue": -1,
-            "mandatory": false,
-            "minI": -1,
+            "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.trainer.html",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "epoch",
             "label": "Number of epochs",
-            "description": "More epochs lead to better performance, but increase runtime linearly",
+            "description": "Higher values increase performance but increase runtime linearly",
             "type": "INT",
             "defaultValue": 10,
             "mandatory": false,
@@ -412,7 +537,7 @@
         {
             "name": "batch_size",
             "label": "Batch size",
-            "description": "Number of samples in one batch",
+            "description": "Higher values may reduce runtime but decrease performance",
             "type": "INT",
             "defaultValue": 32,
             "mandatory": false,
@@ -422,7 +547,7 @@
         {
             "name": "auto_num_batches_per_epoch",
             "label": "Sample all data",
-            "description": "Automatically scale the number of batches per epoch with the training data size",
+            "description": "Automatically choose the number of batches per epoch to sample all data in one epoch",
             "type": "BOOLEAN",
             "defaultValue": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
@@ -430,7 +555,7 @@
         {
             "name": "num_batches_per_epoch",
             "label": "Number of batches per epoch",
-            "description": "Number of training batches used in one epoch",
+            "description": "Number of training batches used in one epoch. Higher values increase runtime",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
@@ -443,11 +568,39 @@
             "type": "SEPARATOR"
         },
         {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Train using only the most recent data and reduce runtime",
+            "selectChoices": [
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                },
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                }
+            ],
+            "defaultValue": "last_records"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Number of last records to extract per time series",
+            "type": "INT",
+            "defaultValue": 10000,
+            "mandatory": false,
+            "minI": 4,
+            "visibilityCondition": "model.sampling_method=='last_records'"
+        },
+        {
             "name": "evaluation_strategy",
             "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Test set will have \"Forecasting horizon\" steps",
+            "description": "Only supported method - Test set will have \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
@@ -462,16 +615,16 @@
             "type": "SEPARATOR"
         },
         {
-            "name": "advanced_options",
-            "label": "Display advanced options",
-            "description": "External features",
+            "name": "external_feature_activated",
+            "label": "Add external features",
+            "description": "Optional - e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
             "label": "External features",
-            "description": "Optional ⚠️  Futures values of external features will be required to forecast. Only used by DeepAR, Transformer and MQ-CNN",
+            "description": "⚠️  Futures values of external features will be required to forecast.",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
@@ -483,7 +636,7 @@
             ],
             "columnRole": "input_dataset",
             "mandatory": false,
-            "visibilityCondition": "model.advanced_options"
+            "visibilityCondition": "model.external_feature_activated"
         },
         {
             "name": "evaluation_only",
@@ -495,15 +648,9 @@
         },
         {
             "name": "gpu",
-            "label": "GPU",
-            "type": "SELECT",
-            "selectChoices": [
-                {
-                    "value": "no_gpu",
-                    "label": "No GPU"
-                }
-            ],
-            "defaultValue": "no_gpu",
+            "label": "Use GPU",
+            "type": "BOOLEAN",
+            "defaultValue": false,
             "visibilityCondition": "false"
         }
     ],

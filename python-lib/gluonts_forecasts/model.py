@@ -7,6 +7,7 @@ from time import perf_counter
 from safe_logger import SafeLogger
 import json
 
+
 logger = SafeLogger("Forecast plugin")
 
 
@@ -29,7 +30,6 @@ class Model(ModelHandler):
         use_external_features (bool)
         batch_size (int): Size of batch used by the GluonTS Trainer class
         gpu (str): Not implemented
-        context_length (int): Number of time steps used by model to make predictions
     """
 
     def __init__(
@@ -43,17 +43,17 @@ class Model(ModelHandler):
         batch_size=None,
         num_batches_per_epoch=None,
         gpu=None,
-        context_length=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
         self.model_parameters = model_parameters
         self.frequency = frequency
         self.prediction_length = prediction_length
-        self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
+
         self.using_external_features = False
+
         estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length,
@@ -71,8 +71,6 @@ class Model(ModelHandler):
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             self.using_external_features = True
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-        if self.context_length is not None and ModelHandler.can_use_context_length(self):
-            estimator_kwargs.update({"context_length": self.context_length})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
         self.evaluation_time = None
@@ -162,6 +160,7 @@ class Model(ModelHandler):
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
+        agg_metrics[METRICS_DATASET.TRAINING_TIME] = round(self.evaluation_time, 2)
 
         for identifiers_column in identifiers_columns:
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
@@ -169,7 +168,13 @@ class Model(ModelHandler):
 
         metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
-        metrics = metrics[[METRICS_DATASET.TARGET_COLUMN] + identifiers_columns + [METRICS_DATASET.MODEL_COLUMN] + list(EVALUATION_METRICS_DESCRIPTIONS.keys())]
+        metrics = metrics[
+            [METRICS_DATASET.TARGET_COLUMN]
+            + identifiers_columns
+            + [METRICS_DATASET.MODEL_COLUMN]
+            + list(EVALUATION_METRICS_DESCRIPTIONS.keys())
+            + [METRICS_DATASET.TRAINING_TIME]
+        ]
         metrics[METRICS_DATASET.MODEL_PARAMETERS] = self._get_model_parameters_json(train_list_dataset)
 
         return metrics, identifiers_columns
@@ -188,8 +193,6 @@ class Model(ModelHandler):
         if self.estimator is None:
             if ModelHandler.needs_num_samples(self):
                 kwargs.update({"num_samples": 100})
-            if self.context_length is not None and ModelHandler.can_use_context_length(self):
-                kwargs.update({"context_length": self.context_length})
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
             try:
@@ -199,21 +202,21 @@ class Model(ModelHandler):
         return predictor
 
     def _get_model_parameters_json(self, train_list_dataset):
-        """ Returns a string containing a json of model parameters """
+        """ Returns a JSON string containing model parameters and results """
+        timeseries_number = len(train_list_dataset.list_data)
+        timeseries_total_length = sum([len(ts[TIMESERIES_KEYS.TARGET]) for ts in train_list_dataset.list_data])
         return json.dumps(
             {
                 "model_name": ModelHandler.get_label(self),
-                "model_parameters": self.model_parameters,
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
-                "context_length": self.context_length,
                 "epoch": self.epoch,
                 "use_external_features": self.using_external_features,
                 "batch_size": self.batch_size,
                 "num_batches_per_epoch": self.num_batches_per_epoch,
-                "evaluation_time": round(self.evaluation_time, 2),
-                "timeseries_number": len(train_list_dataset.list_data),
-                "timeseries_length": len(train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]),
+                "timeseries_number": timeseries_number,
+                "timeseries_average_length": round(timeseries_total_length / timeseries_number),
+                "model_parameters": self.model_parameters,
             }
         )
 

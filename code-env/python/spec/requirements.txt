@@ -1,3 +1,4 @@
 mxnet==1.6.0
 gluonts==0.6.2
 dill==0.3.2
+pmdarima==1.8.0

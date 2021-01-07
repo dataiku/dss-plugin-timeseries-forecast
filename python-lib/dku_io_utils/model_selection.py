@@ -41,7 +41,10 @@ class ModelSelection:
             model_label (str): Label of the selected model.
         """
         self.manual_selection = True
-        self.session_name = session_name
+        if session_name == "latest_session":
+            self.session_name = self._get_last_session()
+        else:
+            self.session_name = session_name
         self.session_path = os.path.join(self.root, self.session_name)
         self.model_label = model_label
 

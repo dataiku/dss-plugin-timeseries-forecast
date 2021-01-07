@@ -49,5 +49,5 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
     elif trained_with_external_features and not external_features_future_dataset:
         raise ValueError("Please provide a dataset of future values of external features in the 'Input / Output' tab of the recipe")
     elif not trained_with_external_features and external_features_future_dataset:
-        logger.info("""A dataset of future values of external features was provided, but no external features were used when training the selected model.""")
+        logger.warning("""A dataset of future values of external features was provided, but no external features were used when training the selected model.""")
     return False

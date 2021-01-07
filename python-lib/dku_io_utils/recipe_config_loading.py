@@ -50,25 +50,25 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError(f"Invalid time column selection: {params['time_column_name']}")
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
-    if len(params["target_columns_names"]) == 0 or not all(
-        column in training_dataset_columns for column in params["target_columns_names"]
-    ):
+    if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
         params["timeseries_identifiers_names"] = sanitize_column_list(recipe_config.get("timeseries_identifiers", []))
         if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
-            raise PluginParamValidationError(
-                f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}"
-            )
+            raise PluginParamValidationError(f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}")
     else:
         params["timeseries_identifiers_names"] = []
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
 
-    params["external_features_columns_names"] = sanitize_column_list(recipe_config.get("external_feature_columns", []))
+    external_feature_activated = recipe_config.get("external_feature_activated", False)
+    if external_feature_activated:
+        params["external_features_columns_names"] = sanitize_column_list(recipe_config.get("external_feature_columns", []))
+    else:
+        params["external_features_columns_names"] = []
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
         raise PluginParamValidationError(
             f"Invalid external features selection: {params['external_features_columns_names']}"
@@ -76,24 +76,21 @@ def load_training_config(recipe_config):
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    if params["frequency_unit"] not in ["H", "min"]:
+    if params["frequency_unit"] not in ["A", "W", "H", "min"]:
         params["frequency"] = params["frequency_unit"]
     else:
-        if params["frequency_unit"] == "H":
-            params["frequency_step"] = recipe_config.get("frequency_step_hours", 1)
+        if params["frequency_unit"] == "A":
+            params["frequency"] = f"A-{recipe_config.get('frequency_end_of_year', 1)}"
+        elif params["frequency_unit"] == "W":
+            params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
+        elif params["frequency_unit"] == "H":
+            params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
         elif params["frequency_unit"] == "min":
-            params["frequency_step"] = recipe_config.get("frequency_step_minutes", 1)
-        params["frequency"] = f"{params['frequency_step']}{params['frequency_unit']}"
+            params["frequency"] = f"{recipe_config.get('frequency_step_minutes', 1)}min"
 
     params["prediction_length"] = recipe_config.get("prediction_length")
     if not params["prediction_length"]:
         raise PluginParamValidationError("Please specify forecasting horizon")
-
-    params["context_length"] = recipe_config.get("context_length", -1)
-    if params["context_length"] < 0:
-        params["context_length"] = params["prediction_length"]
-    if params["context_length"] == 0:
-        raise PluginParamValidationError("Context length cannot be 0")
 
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
     params["epoch"] = recipe_config.get("epoch", 10)
@@ -112,19 +109,24 @@ def load_training_config(recipe_config):
     if params["forecasting_style"] == "auto":
         params["epoch"] = 10
         params["batch_size"] = 32
-        params["num_batches_per_epoch"] = -1
+        params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
-        params["epoch"] = 50
+        params["epoch"] = 30
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1
+
+    params["sampling_method"] = recipe_config.get("sampling_method", "last_records")
+    params["max_timeseries_length"] = None
+    if params["sampling_method"] == "last_records":
+        params["max_timeseries_length"] = recipe_config.get("number_records", 10000)
+        if params["max_timeseries_length"] < 4:
+            raise PluginParamValidationError("Number of records must be higher than 4")
 
     params["gpu"] = recipe_config.get("gpu", "no_gpu")
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
-    printable_params = {
-        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    }
+    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info(f"Recipe parameters: {printable_params}")
     return params
 
@@ -159,7 +161,7 @@ def load_predict_config():
     params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
     params["performance_metric"] = recipe_config.get("performance_metric")
-    params["selected_session"] = recipe_config.get("manually_selected_session")
+    params["selected_session"] = recipe_config.get("manually_selected_session", "latest_session")
     params["selected_model_label"] = recipe_config.get("manually_selected_model_label")
 
     params["prediction_length"] = recipe_config.get("prediction_length", -1)
@@ -167,9 +169,7 @@ def load_predict_config():
     params["quantiles"] = convert_confidence_interval_to_quantiles(params["confidence_interval"])
     params["include_history"] = recipe_config.get("include_history", False)
 
-    printable_params = {
-        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    }
+    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info(f"Recipe parameters: {printable_params}")
     return params
 
@@ -191,42 +191,12 @@ def get_models_parameters(config):
         if is_activated(config, model):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
-                raise ValueError(
-                    "Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter"
-                )
+                raise ValueError("Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter")
             models_parameters.update({model: model_presets})
-    models_parameters = set_naive_model_parameters(config, models_parameters)
     if not models_parameters:
         raise PluginParamValidationError("Please select at least one model")
     logger.info(f"Model parameters: {models_parameters}")
     return models_parameters
-
-
-def set_naive_model_parameters(config, models_parameters):
-    """Update models_parameters to add specific parameters that some baselines models have.
-
-    Args:
-        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
-        models_parameters (dict): Obtained with get_models_parameters.
-
-    Returns:
-        Dictionary of model parameter (value) by activated model name (key).
-    """
-    naive_model_parameters = models_parameters.get("naive")
-    if naive_model_parameters is not None:
-        model_name = get_naive_model_name(config)
-        models_parameters[model_name] = models_parameters.pop("naive")
-        if model_name in ["trivial_identity", "trivial_mean"]:
-            models_parameters[model_name]["kwargs"] = {"num_samples": 100}
-    return models_parameters
-
-
-def get_naive_model_name(config):
-    """ Only the customize_algorithms forecasting style allows selecting the naive model algorithm """
-    if config.get("forecasting_style") == "customize_algorithms":
-        return config.get("naive_model_method")
-    else:
-        return "trivial_identity"
 
 
 def is_activated(config, model):
@@ -306,5 +276,5 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
     if confidence_interval < 1 or confidence_interval > 99:
         raise PluginParamValidationError("Please choose a confidence interval between 1 and 99.")
     alpha = (100 - confidence_interval) / 2 / 100.0
-    quantiles = [alpha, 0.5, 1 - alpha]
+    quantiles = [round(alpha, 3), 0.5, round(1 - alpha, 3)]
     return quantiles
