@@ -52,6 +52,7 @@ def load_training_config(recipe_config):
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
     if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
+    params["target_columns_names"] = reorder_column_list(params["target_columns_names"], training_dataset_columns)
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
@@ -278,3 +279,12 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
     alpha = (100 - confidence_interval) / 2 / 100.0
     quantiles = [round(alpha, 3), 0.5, round(1 - alpha, 3)]
     return quantiles
+
+
+def reorder_column_list(column_list_to_reorder, reference_column_list):
+    """ Keep the target list in same order as the training dataset, for consistency of forecasted columns order"""
+    reordered_list = []
+    for column_name in reference_column_list:
+        if column_name in column_list_to_reorder:
+            reordered_list.append(column_name)
+    return reordered_list
