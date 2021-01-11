@@ -16,7 +16,7 @@ config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
 
-models_parameters = get_models_parameters(config)
+models_parameters = get_models_parameters(config, is_training_multivariate=params["is_training_multivariate"])
 start = perf_counter()
 logger.info("Starting training session {}...".format(session_name))
 
