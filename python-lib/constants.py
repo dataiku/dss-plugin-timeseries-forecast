@@ -27,7 +27,7 @@ class TIMESERIES_KEYS:
 class ROW_ORIGIN:
     """ Class of constants to label if the row is a forecast, historical data, ... """
 
-    COLUMN_NAME = "origin"
+    COLUMN_NAME = "row_origin"
     FORECAST = "forecast"
     HISTORY = "history"
     TRAIN = "train"
