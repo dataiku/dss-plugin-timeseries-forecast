@@ -3,6 +3,7 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
+from gluonts_forecasts.incremental_training import custom_train, custom_train_nn
 from time import perf_counter
 from safe_logger import SafeLogger
 import json
@@ -74,6 +75,9 @@ class Model(ModelHandler):
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
         self.evaluation_time = None
+        self.can_update = ModelHandler.can_update(self)
+        self.can_retrain_nn = ModelHandler.can_retrain_nn(self)
+        self.train_output = None
 
     def get_name(self):
         return self.model_name
@@ -196,7 +200,20 @@ class Model(ModelHandler):
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
             try:
-                predictor = self.estimator.train(train_list_dataset)
+                if self.can_update:
+                    if self.train_output is None:
+                        self.train_output = custom_train(self.estimator, train_list_dataset)
+                    else:
+                        self.train_output = custom_train(self.estimator, train_list_dataset, update=True)
+                    predictor = self.train_output.predictor
+                elif self.can_retrain_nn:
+                    if self.train_output is None:
+                        self.train_output = custom_train_nn(self.estimator, train_list_dataset)
+                    else:
+                        self.train_output = custom_train_nn(self.estimator, train_list_dataset, trained_net=self.train_output.trained_net)
+                    predictor = self.train_output.predictor
+                else:
+                    predictor = self.estimator.train(train_list_dataset)
             except Exception as err:
                 raise ModelTrainingError(f"GluonTS '{self.model_name}' model crashed during training. Full error: {err}")
         return predictor

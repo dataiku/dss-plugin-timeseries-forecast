@@ -21,6 +21,8 @@ PREDICTOR = "predictor"
 NEEDS_NUM_SAMPLES = "needs_num_samples"
 LABEL = "label"
 IS_NAIVE = "is_naive"
+CAN_UPDATE = "can_update"
+CAN_RETRAIN_NN = "can_retrain_nn"
 
 
 MODEL_DESCRIPTORS = {
@@ -50,6 +52,7 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: AutoARIMAEstimator,
         PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
+        CAN_UPDATE: True,
     },
     "npts": {
         LABEL: "NPTS",
@@ -70,6 +73,7 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
         TRAINER: Trainer,
+        CAN_RETRAIN_NN: True,
     },
     "transformer": {
         LABEL: "Transformer",
@@ -111,7 +115,7 @@ CLASS_PARAMETERS = {
         "GaussianOutput()": GaussianOutput(),
         "NegativeBinomialOutput()": NegativeBinomialOutput()
     }
-}  
+}
 
 
 class ModelParameterError(ValueError):
@@ -169,6 +173,12 @@ class ModelHandler:
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
+
+    def can_update(self):
+        return self.model_descriptor.get(CAN_UPDATE, False)
+
+    def can_retrain_nn(self):
+        return self.model_descriptor.get(CAN_RETRAIN_NN, False)
 
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)
