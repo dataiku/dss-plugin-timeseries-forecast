@@ -75,13 +75,13 @@ if not params["evaluation_only"]:
 
 logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 
-params["evaluation_dataset"].write_with_schema(training_session.get_evaluation_metrics_df())
+params["evaluation_dataset"].write_with_schema(training_session.get_evaluation_metrics_df(), dropAndCreate=True)
 evaluation_results_columns_descriptions = training_session.create_evaluation_results_columns_descriptions()
 set_column_description(params["evaluation_dataset"], evaluation_results_columns_descriptions)
 
 if params["make_forecasts"]:
     evaluation_forecasts_df = training_session.get_evaluation_forecasts_df()
-    params["evaluation_forecasts_dataset"].write_with_schema(evaluation_forecasts_df)
+    params["evaluation_forecasts_dataset"].write_with_schema(evaluation_forecasts_df, dropAndCreate=True)
 
     evaluation_forecasts_columns_descriptions = training_session.create_evaluation_forecasts_column_description()
     set_column_description(params["evaluation_forecasts_dataset"], evaluation_forecasts_columns_descriptions)

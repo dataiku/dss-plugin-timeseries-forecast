@@ -51,7 +51,7 @@ trained_model.predict()
 logger.info("Forecasting future values: Done in {:.2f} seconds".format(perf_counter() - start))
 
 forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name(), model_label=model_selection.get_model_label())
-params["output_dataset"].write_with_schema(forecasts_df)
+params["output_dataset"].write_with_schema(forecasts_df, dropAndCreate=True)
 
 column_descriptions = trained_model.create_forecasts_column_description()
 set_column_description(params["output_dataset"], column_descriptions)
