@@ -10,6 +10,7 @@ from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
+from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 
 
 ESTIMATOR = "estimator"
@@ -103,6 +104,16 @@ MODEL_DESCRIPTORS = {
 }
 
 
+# these parameter are classes but are set as strings in the UI
+CLASS_PARAMETERS = {
+    "distr_output": {
+        "StudentTOutput()": StudentTOutput(),
+        "GaussianOutput()": GaussianOutput(),
+        "NegativeBinomialOutput()": NegativeBinomialOutput()
+    }
+}  
+
+
 class ModelParameterError(ValueError):
     """Custom exception raised when the GluonTS model parameters chosen by the user are invalid"""
 
@@ -133,6 +144,7 @@ class ModelHandler:
         kwargs.update(default_kwargs)
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
+        kwargs = self._convert_parameters_to_class(kwargs)
         try:
             ret = None if estimator is None else estimator(**kwargs)
         except Exception as err:
@@ -163,6 +175,20 @@ class ModelHandler:
 
     def get_label(self):
         return self.model_descriptor.get(LABEL, "")
+
+    def _convert_parameters_to_class(self, parameters):
+        """Evaluate string parameters that are classes so that they become instances of their class """
+        parameters_converted = parameters.copy()
+        for class_parameter, class_parameter_values in CLASS_PARAMETERS.items():
+            if class_parameter in parameters_converted:
+                if parameters_converted[class_parameter] not in class_parameter_values:
+                    raise ModelParameterError(f"""
+                        '{parameters_converted[class_parameter]}' is not valid for parameter '{class_parameter}'.
+                        Supported values are {list(class_parameter_values.keys())}. 
+                    """)
+                else:
+                    parameters_converted[class_parameter] = class_parameter_values[parameters_converted[class_parameter]]
+        return parameters_converted
 
 
 def list_available_models():
