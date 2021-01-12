@@ -3,9 +3,10 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
+from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
 
 
@@ -171,11 +172,10 @@ class TrainingSession:
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
-        self.evaluation_forecasts_df = self.training_df.merge(
-            self.forecasts_df,
-            on=[self.time_column_name] + identifiers_columns,
-            how="left",
-        )
+        self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True)
+
+        self.evaluation_forecasts_df = add_row_origin(self.evaluation_forecasts_df, both=ROW_ORIGIN.EVALUATION, left_only=ROW_ORIGIN.TRAIN)
+
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
             by=identifiers_columns + [self.time_column_name], ascending=[True] * len(identifiers_columns) + [False]

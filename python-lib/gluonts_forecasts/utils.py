@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from functools import reduce
 import copy
-from constants import TIMESERIES_KEYS
+from constants import TIMESERIES_KEYS, ROW_ORIGIN
 from gluonts_forecasts.timeseries_preparation import prepare_timeseries_dataframe
 
 
@@ -98,3 +98,14 @@ def concat_all_timeseries(multiple_df):
         DataFrame of multivariate long format timeseries.
     """
     return pd.concat(multiple_df, axis=0).reset_index(drop=True)
+
+
+def add_row_origin(df, both, left_only):
+    """Add an extra column that tells if the row is a forecast or historical data and return the new dataframe"""
+    df_copy = df.copy()
+    if "_merge" in df_copy:
+        df_copy["_merge"] = df_copy["_merge"].replace({"both": both, "left_only": left_only})
+        df_copy = df_copy.rename(columns={"_merge": ROW_ORIGIN.COLUMN_NAME})
+    else:
+        df_copy[ROW_ORIGIN.COLUMN_NAME] = both
+    return df_copy

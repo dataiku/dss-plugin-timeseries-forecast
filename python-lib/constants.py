@@ -24,6 +24,16 @@ class TIMESERIES_KEYS:
     IDENTIFIERS = "identifiers"
 
 
+class ROW_ORIGIN:
+    """ Class of constants to label if the row is a forecast, historical data, ... """
+
+    COLUMN_NAME = "row_origin"
+    FORECAST = "forecast"
+    HISTORY = "history"
+    TRAIN = "train"
+    EVALUATION = "evaluation"
+
+
 EVALUATION_METRICS_DESCRIPTIONS = {
     "MSE": "Mean Squared Error",
     "MASE": "Mean Absolute Scaled Error",
@@ -42,6 +52,7 @@ METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",
     METRICS_DATASET.TRAINING_TIME: "Time elapsed during model training (in seconds)",
+    ROW_ORIGIN.COLUMN_NAME: "Row origin",
 }
 
 # regex pattern to match the timestamps used for training sessions
