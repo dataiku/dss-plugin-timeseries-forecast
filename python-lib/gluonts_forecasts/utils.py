@@ -3,7 +3,7 @@ import numpy as np
 from functools import reduce
 import copy
 from constants import TIMESERIES_KEYS, ROW_ORIGIN
-from gluonts_forecasts.timeseries_preparation import prepare_timeseries_dataframe
+from gluonts_forecasts.timeseries_preparation import TimeseriesPreparator
 
 
 def apply_filter_conditions(df, conditions):
@@ -55,7 +55,11 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
         feat_dynamic_real_columns_names = timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES]
         time_column_name = timeseries[TIMESERIES_KEYS.TIME_COLUMN_NAME]
 
-        timeseries_external_features_future_df = prepare_timeseries_dataframe(timeseries_external_features_future_df, time_column_name, frequency)
+        timeseries_preparator = TimeseriesPreparator(
+            time_column_name=time_column_name,
+            frequency=frequency,
+        )
+        timeseries_external_features_future_df = timeseries_preparator.prepare_timeseries_dataframe(timeseries_external_features_future_df)
 
         feat_dynamic_real_future = timeseries_external_features_future_df[feat_dynamic_real_columns_names].values.T
 

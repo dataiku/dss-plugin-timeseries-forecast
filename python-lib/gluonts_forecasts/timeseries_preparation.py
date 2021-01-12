@@ -4,72 +4,73 @@ from pandas.api.types import is_numeric_dtype, is_string_dtype
 from pandas.tseries.offsets import Tick, BusinessDay, Week, MonthEnd, YearEnd
 from pandas.tseries.frequencies import to_offset
 import re
+from safe_logger import SafeLogger
 
-
-def prepare_timeseries_dataframe(
-    dataframe,
-    time_column_name,
-    target_columns_names,
-    frequency,
-    timeseries_identifiers_names=[],
-    external_features_columns_names=[],
-    max_timeseries_length=None,
-):
-    """Convert time column to pandas.Datetime without timezones. Truncate timestamps to selected frequency.
-    Check that there are no duplicate timestamps and that there are no missing timestamps.
-    Sort timeseries. Keep only the most recent timestamps of each timeseries if specified.
-
-    Args:
-        dataframe (DataFrame)
-        time_column_name (str)
-        frequency (str)
-        timeseries_identifiers_names (list, optional): List of timeseries identifiers columns. Defaults to [].
-        max_timeseries_length (int, optional): Maximum number of timestamps to keep per timeseries. Defaults to None.
-
-    Raises:
-        ValueError: If the time column cannot be parsed as a date by pandas.
-
-    Returns:
-        Prepared timeseries
-    """
-    try:
-        dataframe[time_column_name] = pd.to_datetime(dataframe[time_column_name]).dt.tz_localize(tz=None)
-    except Exception:
-        raise ValueError(f"Please parse the date column '{time_column_name}' in a Prepare recipe")
-
-    preparator = TimeseriesPreparator(time_column_name, target_columns_names, frequency, timeseries_identifiers_names, external_features_columns_names)
-
-    dataframe_prepared = dataframe.copy()
-
-    preparator.check_data(dataframe_prepared)
-
-    dataframe_prepared = preparator.truncate_timestamps(dataframe_prepared)
-
-    dataframe_prepared = preparator.sort(dataframe_prepared)
-
-    preparator.check_regular_frequency(dataframe_prepared)
-
-    if max_timeseries_length:
-        dataframe_prepared = preparator.keep_last_timestamps(dataframe_prepared, max_timeseries_length)
-
-    return dataframe_prepared
+logger = SafeLogger("Forecast plugin")
 
 
 class TimeseriesPreparator:
-    def __init__(self, time_column_name, target_columns_names, frequency, timeseries_identifiers_names, external_features_columns_names):
+    """
+    Class to check the timeseries has the right data and prepare it to have regular date interval
+    """
+
+    def __init__(
+        self,
+        time_column_name,
+        frequency,
+        target_columns_names=[],
+        timeseries_identifiers_names=[],
+        external_features_columns_names=[],
+        max_timeseries_length=None,
+    ):
         self.time_column_name = time_column_name
-        self.target_columns_names = target_columns_names
         self.frequency = frequency
+        self.target_columns_names = target_columns_names
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.external_features_columns_names = external_features_columns_names
+        self.max_timeseries_length = max_timeseries_length
 
-    def check_data(self, df):
+    def prepare_timeseries_dataframe(self, dataframe):
+        """Convert time column to pandas.Datetime without timezones. Truncate dates to selected frequency.
+        Check that there are no duplicate dates and that there are no missing dates.
+        Sort timeseries. Keep only the most recent dates of each timeseries if specified.
+
+        Args:
+            dataframe (DataFrame)
+
+        Raises:
+            ValueError: If the time column cannot be parsed as a date by pandas.
+
+        Returns:
+            Prepared timeseries
+        """
+        try:
+            dataframe[self.time_column_name] = pd.to_datetime(dataframe[self.time_column_name]).dt.tz_localize(tz=None)
+        except Exception:
+            raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
+
+        dataframe_prepared = dataframe.copy()
+
+        self._check_data(dataframe_prepared)
+
+        dataframe_prepared = self._truncate_dates(dataframe_prepared)
+
+        dataframe_prepared = self._sort(dataframe_prepared)
+
+        self._check_regular_frequency(dataframe_prepared)
+
+        if self.max_timeseries_length:
+            dataframe_prepared = self._keep_last_dates(dataframe_prepared)
+
+        return dataframe_prepared
+
+    def _check_data(self, df):
         self._check_timeseries_identifiers_columns_types(df)
         self._check_no_missing_values(df)
 
-    def truncate_timestamps(self, df):
-        """Truncate timestamps to selected frequency. For Week/Month/Year, truncate to end of Week/Month/Year.
-        Check there are no duplicate timestamps.
+    def _truncate_dates(self, df):
+        """Truncate dates to selected frequency. For Week/Month/Year, truncate to end of Week/Month/Year.
+        Check there are no duplicate dates.
 
         Examples:
             '2020-12-15 12:45:30' becomes '2020-12-15 12:40:00' with frequency '20min'
@@ -82,18 +83,14 @@ class TimeseriesPreparator:
             df (DataFrame): Dataframe in wide or long format with a time column.
 
         Raises:
-            ValueError: If there are duplicates timestamps before or after truncation.
+            ValueError: If there are duplicates dates before or after truncation.
 
         Returns:
-            Sorted DataFrame with truncated timestamps.
+            Sorted DataFrame with truncated dates.
         """
         df_truncated = df.copy()
 
-        if self._has_duplicates_timestamps(df_truncated):
-            error_message = "Input dataset has duplicate timestamps."
-            if len(self.timeseries_identifiers_names) == 0:
-                error_message += " If the input dataset is in long format, make sure to specify it."
-            raise ValueError(error_message)
+        self._check_duplicate_dates(df_truncated)
 
         frequency_offset = to_offset(self.frequency)
         if isinstance(frequency_offset, Tick):
@@ -110,16 +107,17 @@ class TimeseriesPreparator:
 
             df_truncated[self.time_column_name] = df_truncated[self.time_column_name].dt.floor("D") + truncation_offset
 
-        if self._has_duplicates_timestamps(df_truncated):
-            raise ValueError("Input dataset has duplicate timestamps after truncation to selected frequency")
+        self._truncation_logging(df_truncated, df)
+
+        self._check_duplicate_dates(df_truncated, after_truncation=True)
 
         return df_truncated
 
-    def sort(self, df):
+    def _sort(self, df):
         """Return a DataFrame sorted by timeseries identifiers and time column (both ascending) """
         return df.sort_values(by=self.timeseries_identifiers_names + [self.time_column_name])
 
-    def check_regular_frequency(self, df):
+    def _check_regular_frequency(self, df):
         """Check that time column exactly equals the pandas.dat_range with selected frequency """
         if self.timeseries_identifiers_names:
             for identifiers_values, identifiers_df in df.groupby(self.timeseries_identifiers_names):
@@ -127,24 +125,50 @@ class TimeseriesPreparator:
         else:
             assert_time_column_valid(df, self.time_column_name, self.frequency)
 
-    def keep_last_timestamps(self, df, max_timeseries_length):
-        """Keep only at most the last max_timeseries_length timestamps of each timeseries.
+    def _keep_last_dates(self, df):
+        """Keep only at most the last max_timeseries_length dates of each timeseries.
 
         Args:
             df (DataFrame)
-            max_timeseries_length (int): Maximum number of timestamps to keep per timeseries.
 
         Returns:
             Filtered dataframe
         """
         if len(self.timeseries_identifiers_names) == 0:
-            return df.tail(max_timeseries_length)
+            return df.tail(self.max_timeseries_length)
         else:
-            return df.groupby(self.timeseries_identifiers_names).apply(lambda x: x.tail(max_timeseries_length)).reset_index(drop=True)
+            return df.groupby(self.timeseries_identifiers_names).apply(lambda x: x.tail(self.max_timeseries_length)).reset_index(drop=True)
 
-    def _has_duplicates_timestamps(self, df):
-        """Return True if there are no duplicate timestamps within each timeseries """
-        return any(df.duplicated(subset=self.timeseries_identifiers_names + [self.time_column_name], keep=False))
+    def _truncation_logging(self, df_truncated, df):
+        """Log how many dates were truncated for users to understand how their data were changed
+
+        Args:
+            df_truncated (DataFrame): Dataframe after truncation
+            df (DataFrame): Original dataframe
+
+        """
+        total_dates = len(df_truncated.index)
+        truncated_dates = (df_truncated[self.time_column_name] != df[self.time_column_name]).sum()
+        logger.warning(
+            f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
+        )
+
+    def _check_duplicate_dates(self, df, after_truncation=False):
+        """Check dataframe has no duplicate dates and raise an actionable error message """
+        duplicate_dates = self._count_duplicate_dates(df)
+        if duplicate_dates > 0:
+            error_message = f"Input dataset has {duplicate_dates} duplicate dates"
+            if after_truncation:
+                error_message += f" after truncation to '{self.frequency}' frequency. Please check the Frequency parameter."
+            else:
+                error_message += "."
+                if len(self.timeseries_identifiers_names) == 0:
+                    error_message += " Please check the Long format parameter."
+            raise ValueError(error_message)
+
+    def _count_duplicate_dates(self, df):
+        """Return total number of duplicates dates within all timeseries """
+        return df.duplicated(subset=self.timeseries_identifiers_names + [self.time_column_name], keep=False).sum()
 
     def _check_timeseries_identifiers_columns_types(self, df):
         """ Raises ValueError if a timeseries identifiers column is not numerical or string """
@@ -184,3 +208,30 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
         error_message = f"Time column '{time_column_name}' has missing values with frequency '{frequency}'."
         error_message += " You can use the Time Series Preparation plugin to resample your time column."
         raise ValueError(error_message)
+
+
+FREQUENCY_LABEL = {"T": "minute", "H": "hour", "D": "day", "B": "business day"}
+
+
+def frequency_custom_label(frequency):
+    frequency_offset = to_offset(frequency)
+    if isinstance(frequency_offset, MonthEnd):
+        if frequency_offset.n == 3:
+            return "quarter"
+        elif frequency_offset.n == 6:
+            return "semester"
+        elif frequency_offset.n == 1:
+            return "end of month"
+        else:
+            return f"{frequency_offset.n} months"
+    elif isinstance(frequency_offset, Week):
+        prefix = f"{frequency_offset.n} weeks" if frequency_offset.n > 1 else "week"
+        return f"{prefix} ending on {frequency_offset.name.split('-')[1]}"
+    elif isinstance(frequency_offset, YearEnd):
+        prefix = f"{frequency_offset.n} years" if frequency_offset.n > 1 else "year"
+        return f"{prefix} ending on {frequency_offset.name.split('-')[1]}"
+    else:
+        prefix = f"{frequency_offset.n} " if frequency_offset.n > 1 else ""
+        middle = f"{FREQUENCY_LABEL[frequency_offset.name]}"
+        suffix = "s" if frequency_offset.n > 1 else ""
+        return f"{prefix}{middle}{suffix}"
