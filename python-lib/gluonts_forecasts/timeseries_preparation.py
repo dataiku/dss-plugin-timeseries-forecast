@@ -6,7 +6,15 @@ from pandas.tseries.frequencies import to_offset
 import re
 
 
-def prepare_timeseries_dataframe(dataframe, time_column_name, frequency, timeseries_identifiers_names=[], max_timeseries_length=None):
+def prepare_timeseries_dataframe(
+    dataframe,
+    time_column_name,
+    target_columns_names,
+    frequency,
+    timeseries_identifiers_names=[],
+    external_features_columns_names=[],
+    max_timeseries_length=None,
+):
     """Convert time column to pandas.Datetime without timezones. Truncate timestamps to selected frequency.
     Check that there are no duplicate timestamps and that there are no missing timestamps.
     Sort timeseries. Keep only the most recent timestamps of each timeseries if specified.
@@ -29,11 +37,11 @@ def prepare_timeseries_dataframe(dataframe, time_column_name, frequency, timeser
     except Exception:
         raise ValueError(f"Please parse the date column '{time_column_name}' in a Prepare recipe")
 
-    preparator = TimeseriesPreparator(time_column_name, frequency, timeseries_identifiers_names)
+    preparator = TimeseriesPreparator(time_column_name, target_columns_names, frequency, timeseries_identifiers_names, external_features_columns_names)
 
     dataframe_prepared = dataframe.copy()
 
-    preparator.check_data_types(dataframe_prepared)
+    preparator.check_data(dataframe_prepared)
 
     dataframe_prepared = preparator.truncate_timestamps(dataframe_prepared)
 
@@ -48,13 +56,16 @@ def prepare_timeseries_dataframe(dataframe, time_column_name, frequency, timeser
 
 
 class TimeseriesPreparator:
-    def __init__(self, time_column_name, frequency, timeseries_identifiers_names):
+    def __init__(self, time_column_name, target_columns_names, frequency, timeseries_identifiers_names, external_features_columns_names):
         self.time_column_name = time_column_name
+        self.target_columns_names = target_columns_names
         self.frequency = frequency
         self.timeseries_identifiers_names = timeseries_identifiers_names
+        self.external_features_columns_names = external_features_columns_names
 
-    def check_data_types(self, df):
+    def check_data(self, df):
         self._check_timeseries_identifiers_columns_types(df)
+        self._check_no_missing_values(df)
 
     def truncate_timestamps(self, df):
         """Truncate timestamps to selected frequency. For Week/Month/Year, truncate to end of Week/Month/Year.
@@ -140,6 +151,11 @@ class TimeseriesPreparator:
         for column_name in self.timeseries_identifiers_names:
             if not is_numeric_dtype(df[column_name]) and not is_string_dtype(df[column_name]):
                 raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
+
+    def _check_no_missing_values(self, df):
+        for column_name in [self.time_column_name] + self.target_columns_names + self.timeseries_identifiers_names + self.external_features_columns_names:
+            if df[column_name].isnull().values.any():
+                raise ValueError(f"Column '{column_name}' must not have any missing values.")
 
 
 def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=None, periods=None):

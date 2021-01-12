@@ -26,7 +26,9 @@ training_df_prepared = prepare_timeseries_dataframe(
     training_df,
     time_column_name=params["time_column_name"],
     frequency=params["frequency"],
+    target_columns_names=params["target_columns_names"],
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
+    external_features_columns_names=params["external_features_columns_names"],
     max_timeseries_length=params["max_timeseries_length"],
 )
 
