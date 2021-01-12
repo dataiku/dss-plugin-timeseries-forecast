@@ -119,11 +119,15 @@ class TimeseriesPreparator:
 
     def _check_regular_frequency(self, df):
         """Check that time column exactly equals the pandas.dat_range with selected frequency """
+        timeseries_lengths = []
         if self.timeseries_identifiers_names:
             for identifiers_values, identifiers_df in df.groupby(self.timeseries_identifiers_names):
+                timeseries_lengths += [len(identifiers_df.index)]
                 assert_time_column_valid(identifiers_df, self.time_column_name, self.frequency)
         else:
+            timeseries_lengths += [len(df.index)]
             assert_time_column_valid(df, self.time_column_name, self.frequency)
+        logger.info(f"Found {self._log_timeseries_lengths(timeseries_lengths)}")
 
     def _keep_last_dates(self, df):
         """Keep only at most the last max_timeseries_length dates of each timeseries.
@@ -134,10 +138,16 @@ class TimeseriesPreparator:
         Returns:
             Filtered dataframe
         """
+        sampled_timeseries_lengths = []
         if len(self.timeseries_identifiers_names) == 0:
-            return df.tail(self.max_timeseries_length)
+            sampled_df = df.tail(self.max_timeseries_length)
+            sampled_timeseries_lengths += [len(sampled_df.index)]
         else:
-            return df.groupby(self.timeseries_identifiers_names).apply(lambda x: x.tail(self.max_timeseries_length)).reset_index(drop=True)
+            sampled_df = df.groupby(self.timeseries_identifiers_names).apply(lambda x: x.tail(self.max_timeseries_length)).reset_index(drop=True)
+            for values, sampled_df_grouped in sampled_df.groupby(self.timeseries_identifiers_names):
+                sampled_timeseries_lengths += [len(sampled_df_grouped.index)]
+        logger.info(f"Sampled last records: train set contains {self._log_timeseries_lengths(sampled_timeseries_lengths)}")
+        return sampled_df
 
     def _truncation_logging(self, df_truncated, df):
         """Log how many dates were truncated for users to understand how their data were changed
@@ -180,6 +190,14 @@ class TimeseriesPreparator:
         for column_name in [self.time_column_name] + self.target_columns_names + self.timeseries_identifiers_names + self.external_features_columns_names:
             if df[column_name].isnull().values.any():
                 raise ValueError(f"Column '{column_name}' must not have any missing values.")
+
+    def _log_timeseries_lengths(self, timeseries_lengths):
+        log_message = f"{len(timeseries_lengths)} time series"
+        if all(length == timeseries_lengths[0] for length in timeseries_lengths):
+            log_message += f" of {timeseries_lengths[0]} records"
+        else:
+            log_message += f" of {min(timeseries_lengths)} to {max(timeseries_lengths)} records"
+        return log_message
 
 
 def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=None, periods=None):
