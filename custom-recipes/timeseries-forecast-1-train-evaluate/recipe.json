@@ -564,7 +564,7 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Train / Evaluation Set",
+            "label": "Training and Evaluation",
             "type": "SEPARATOR"
         },
         {
