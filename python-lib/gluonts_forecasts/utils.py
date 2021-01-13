@@ -1,8 +1,9 @@
 import pandas as pd
+from pandas.tseries.frequencies import to_offset
 import numpy as np
 from functools import reduce
 import copy
-from constants import TIMESERIES_KEYS, ROW_ORIGIN
+from constants import TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts_forecasts.timeseries_preparation import TimeseriesPreparator
 
 
@@ -41,6 +42,9 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
         gluonts.dataset.common.ListDataset with future external features.
     """
     gluon_dataset = copy.deepcopy(gluon_train_dataset)
+    if isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS):
+        frequency = gluon_train_dataset.process.trans[0].freq
+
     start_date, periods = None, None
     for i, timeseries in enumerate(gluon_train_dataset):
         if TIMESERIES_KEYS.IDENTIFIERS in timeseries:
@@ -113,3 +117,9 @@ def add_row_origin(df, both, left_only):
     else:
         df_copy[ROW_ORIGIN.COLUMN_NAME] = both
     return df_copy
+
+
+def quantile_forecasts_series(sample_forecasts, quantile, frequency):
+    sample_forecasts_quantile = sample_forecasts.quantile(quantile)
+    index = pd.date_range(sample_forecasts.start_date, periods=len(sample_forecasts_quantile), freq=frequency)
+    return pd.Series(index=index, data=sample_forecasts_quantile)

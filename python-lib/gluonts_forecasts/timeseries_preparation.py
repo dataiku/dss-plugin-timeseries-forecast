@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pandas.api.types import is_numeric_dtype, is_string_dtype
-from pandas.tseries.offsets import Tick, BusinessDay, Week, MonthEnd, YearEnd
+from pandas.tseries.offsets import Tick, BusinessDay, Week, MonthEnd
 from pandas.tseries.frequencies import to_offset
 import re
 from safe_logger import SafeLogger
@@ -104,8 +104,6 @@ class TimeseriesPreparator:
                 truncation_offset = pd.offsets.Week(weekday=frequency_offset.weekday, n=0)
             elif isinstance(frequency_offset, MonthEnd):
                 truncation_offset = pd.offsets.MonthEnd(n=0)
-            elif isinstance(frequency_offset, YearEnd):
-                truncation_offset = pd.offsets.YearEnd(month=frequency_offset.month, n=0)
 
             df_truncated[self.time_column_name] = df_truncated[self.time_column_name].dt.floor("D") + truncation_offset
 
@@ -158,13 +156,11 @@ class TimeseriesPreparator:
             self._check_end_of_frequency(df_truncated, df)
 
     def _check_end_of_frequency(self, df_truncated, df):
+        """Check not all that truncated days are different days"""
         frequency_offset = to_offset(self.frequency)
         if isinstance(frequency_offset, Week):
             if all(df_truncated[self.time_column_name].dt.dayofweek != df[self.time_column_name].dt.dayofweek):
                 raise ValueError(f"No weekly dates on {WEEKDAYS[frequency_offset.weekday]}. Please check the 'End of week day' parameter.")
-        if isinstance(frequency_offset, YearEnd):
-            if all(df_truncated[self.time_column_name].dt.month != df[self.time_column_name].dt.month):
-                raise ValueError(f"No yearly dates on {MONTHS[frequency_offset.month]}. Please check the 'End of year month' parameter.")
 
     def _check_duplicate_dates(self, df, after_truncation=False):
         """Check dataframe has no duplicate dates and raise an actionable error message """
@@ -241,21 +237,6 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
 
 FREQUENCY_LABEL = {"T": "minute", "H": "hour", "D": "day", "B": "business day"}
 
-MONTHS = [
-    "",
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-]
 
 WEEKDAYS = [
     "Monday",
@@ -275,6 +256,8 @@ def frequency_custom_label(frequency):
             return "quarter"
         elif frequency_offset.n == 6:
             return "semester"
+        elif frequency_offset.n == 12:
+            return "year"
         elif frequency_offset.n == 1:
             return "end of month"
         else:
@@ -282,9 +265,6 @@ def frequency_custom_label(frequency):
     elif isinstance(frequency_offset, Week):
         prefix = f"{frequency_offset.n} weeks" if frequency_offset.n > 1 else "week"
         return f"{prefix} ending on {WEEKDAYS[frequency_offset.weekday]}"
-    elif isinstance(frequency_offset, YearEnd):
-        prefix = f"{frequency_offset.n} years" if frequency_offset.n > 1 else "year"
-        return f"{prefix} ending on {MONTHS[frequency_offset.month]}"
     else:
         prefix = f"{frequency_offset.n} " if frequency_offset.n > 1 else ""
         middle = f"{FREQUENCY_LABEL[frequency_offset.name]}"

@@ -147,7 +147,7 @@ def test_week_sunday_truncation():
     df = pd.DataFrame(
         {
             "date": [
-                "2021-01-01 12:12:00",
+                "2021-01-03 12:12:00",
                 "2021-01-05 17:35:00",
                 "2021-01-15 14:55:00",
             ],
@@ -201,18 +201,18 @@ def test_quarter_truncation():
     assert dataframe_prepared[time_column_name][2] == pd.Timestamp("2021-06-30")
 
 
-def test_year_february_truncation():
+def test_year_truncation():
     df = pd.DataFrame(
         {
             "date": [
                 "2020-12-31",
-                "2022-02-28",
-                "2022-11-11",
+                "2021-12-15",
+                "2022-12-01",
             ],
             "id": [1, 1, 1],
         }
     )
-    frequency = "A-FEB"
+    frequency = "12M"
     time_column_name = "date"
     timeseries_identifiers_names = ["id"]
     df[time_column_name] = pd.to_datetime(df[time_column_name]).dt.tz_localize(tz=None)
@@ -225,7 +225,6 @@ def test_year_february_truncation():
     dataframe_prepared = preparator._sort(dataframe_prepared)
     preparator._check_regular_frequency(dataframe_prepared)
 
-    print(dataframe_prepared)
-
-    assert dataframe_prepared[time_column_name][0] == pd.Timestamp("2021-02-28")
-    assert dataframe_prepared[time_column_name][1] == pd.Timestamp("2022-02-28")
+    assert dataframe_prepared[time_column_name][0] == pd.Timestamp("2020-12-31")
+    assert dataframe_prepared[time_column_name][1] == pd.Timestamp("2021-12-31")
+    assert dataframe_prepared[time_column_name][2] == pd.Timestamp("2022-12-31")
