@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
+from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, add_row_origin
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN
 from gluonts.model.forecast import QuantileForecast
 from safe_logger import SafeLogger
 
@@ -58,6 +58,8 @@ class TrainedModel:
             frequency = forecasts_list[0].freq
             self.forecasts_df = self._include_history(frequency)
 
+        self.forecasts_df = add_row_origin(self.forecasts_df, both=ROW_ORIGIN.FORECAST, left_only=ROW_ORIGIN.HISTORY)
+
         self.forecasts_df = self.forecasts_df.rename(columns={"index": self.time_column_name})
 
     def _include_history(self, frequency):
@@ -72,7 +74,7 @@ class TrainedModel:
         history_timeseries = self._retrieve_history_timeseries(frequency)
         multiple_df = concat_timeseries_per_identifiers(history_timeseries)
         history_df = concat_all_timeseries(multiple_df)
-        return history_df.merge(self.forecasts_df, on=["index"] + self.identifiers_columns, how="left")
+        return history_df.merge(self.forecasts_df, on=["index"] + self.identifiers_columns, how="left", indicator=True)
 
     def _generate_history_target_series(self, timeseries, frequency):
         """Creates a pandas time series from the past target values with Nan values for the prediction_length future dates.
@@ -227,9 +229,7 @@ class TrainedModel:
     def _check(self):
         """ Raises ValueError if the selected prediction_length is higher than the one used in training """
         if self.predictor.prediction_length < self.prediction_length:
-            raise ValueError(
-                f"Please choose a forecasting horizon lower or equal to the one chosen when training: {self.predictor.prediction_length}"
-            )
+            raise ValueError(f"Please choose a forecasting horizon lower or equal to the one chosen when training: {self.predictor.prediction_length}")
 
     def _round_to_existing_quantiles(self, sample_forecasts):
         """Find the quantiles that exists in sample_forecasts that are closest to the selected quantiles.

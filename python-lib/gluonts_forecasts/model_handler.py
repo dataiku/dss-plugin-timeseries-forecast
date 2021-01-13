@@ -1,20 +1,20 @@
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
-from gluonts.model.n_beats import NBEATSEstimator
+# from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.seq2seq import MQCNNEstimator
 from gluonts.model.transformer import TransformerEstimator
-from gluonts.model.tft import TemporalFusionTransformerEstimator
+# from gluonts.model.tft import TemporalFusionTransformerEstimator
 from gluonts.mx.trainer import Trainer
-from gluonts.model.trivial.mean import MeanPredictor
+# from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
+from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
-CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
 DEFAULT_KWARGS = "default_kwargs"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
@@ -30,21 +30,11 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: IdentityPredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
         NEEDS_NUM_SAMPLES: True,
         IS_NAIVE: True,
         DEFAULT_KWARGS: {
             "num_samples": 100
         },
-    },
-    "trivial_mean": {
-        LABEL: "TrivialMean",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: MeanPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: True,
-        IS_NAIVE: True,
     },
     "seasonal_naive": {
         LABEL: "SeasonalNaive",
@@ -52,7 +42,21 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: None,
         PREDICTOR: SeasonalNaivePredictor,
         TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
+        IS_NAIVE: True,
+    },
+    "autoarima": {
+        LABEL: "AutoARIMA",
+        CAN_USE_EXTERNAL_FEATURES: True,
+        ESTIMATOR: AutoARIMAEstimator,
+        PREDICTOR: AutoARIMAPredictor,
+        TRAINER: None,
+    },
+    "npts": {
+        LABEL: "NPTS",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: NPTSPredictor,
+        TRAINER: None,
         IS_NAIVE: True,
     },
     "simplefeedforward": {
@@ -73,39 +77,41 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
     },
-    "nbeats": {
-        LABEL: "NBEATS",
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-    },
     "mqcnn": {
         LABEL: "MQ-CNN",
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
     },
-    "tft": {
-        LABEL: "TemporalFusionTransformer",
-        ESTIMATOR: TemporalFusionTransformerEstimator,
-        TRAINER: Trainer
-    },
-    "npts": {
-        LABEL: "NPTS",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: NPTSPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
-    },
-    "autoarima": {
-        LABEL: "AutoARIMA",
-        CAN_USE_EXTERNAL_FEATURES: True,
-        ESTIMATOR: AutoARIMAEstimator,
-        PREDICTOR: AutoARIMAPredictor,
-        TRAINER: None,
-        CAN_USE_CONTEXT_LENGTH: False,
-    },
+    # "trivial_mean": {
+    #     LABEL: "TrivialMean",
+    #     CAN_USE_EXTERNAL_FEATURES: False,
+    #     ESTIMATOR: None,
+    #     PREDICTOR: MeanPredictor,
+    #     TRAINER: None,
+    #     IS_NAIVE: True,
+    # },
+    # "nbeats": {
+    #     LABEL: "NBEATS",
+    #     ESTIMATOR: NBEATSEstimator,
+    #     TRAINER: Trainer
+    # },
+    # "tft": {
+    #     LABEL: "TemporalFusionTransformer",
+    #     ESTIMATOR: TemporalFusionTransformerEstimator,
+    #     TRAINER: Trainer
+    # },
 }
+
+
+# these parameter are classes but are set as strings in the UI
+CLASS_PARAMETERS = {
+    "distr_output": {
+        "StudentTOutput()": StudentTOutput(),
+        "GaussianOutput()": GaussianOutput(),
+        "NegativeBinomialOutput()": NegativeBinomialOutput()
+    }
+}  
 
 
 class ModelParameterError(ValueError):
@@ -138,6 +144,7 @@ class ModelHandler:
         kwargs.update(default_kwargs)
         kwargs.update(model_parameters.get("kwargs", {}))
         estimator = self.model_descriptor.get(ESTIMATOR)
+        kwargs = self._convert_parameters_to_class(kwargs)
         try:
             ret = None if estimator is None else estimator(**kwargs)
         except Exception as err:
@@ -163,14 +170,25 @@ class ModelHandler:
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
 
-    def can_use_context_length(self):
-        return self.model_descriptor.get(CAN_USE_CONTEXT_LENGTH, True)
-
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)
 
     def get_label(self):
         return self.model_descriptor.get(LABEL, "")
+
+    def _convert_parameters_to_class(self, parameters):
+        """Evaluate string parameters that are classes so that they become instances of their class """
+        parameters_converted = parameters.copy()
+        for class_parameter, class_parameter_values in CLASS_PARAMETERS.items():
+            if class_parameter in parameters_converted:
+                if parameters_converted[class_parameter] not in class_parameter_values:
+                    raise ModelParameterError(f"""
+                        '{parameters_converted[class_parameter]}' is not valid for parameter '{class_parameter}'.
+                        Supported values are {list(class_parameter_values.keys())}. 
+                    """)
+                else:
+                    parameters_converted[class_parameter] = class_parameter_values[parameters_converted[class_parameter]]
+        return parameters_converted
 
 
 def list_available_models():

@@ -3,9 +3,10 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
+from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
 
 
@@ -30,7 +31,6 @@ class TrainingSession:
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
         gpu (str): Not implemented
-        context_length (int): Number of time steps used by model to make predictions
     """
 
     def __init__(
@@ -48,7 +48,6 @@ class TrainingSession:
         batch_size=None,
         user_num_batches_per_epoch=None,
         gpu=None,
-        context_length=None,
     ):
         self.models_parameters = models_parameters
         self.models = None
@@ -75,7 +74,6 @@ class TrainingSession:
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
         self.gpu = gpu
-        self.context_length = context_length
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -107,7 +105,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
-            min_length=self.prediction_length + self.context_length,
+            min_length=2 * self.prediction_length,  # Assuming that context_length = prediction_length
         )
 
         gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
@@ -135,7 +133,6 @@ class TrainingSession:
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
-                    context_length=self.context_length,
                 )
             )
 
@@ -175,11 +172,10 @@ class TrainingSession:
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
-        self.evaluation_forecasts_df = self.training_df.merge(
-            self.forecasts_df,
-            on=[self.time_column_name] + identifiers_columns,
-            how="left",
-        )
+        self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True)
+
+        self.evaluation_forecasts_df = add_row_origin(self.evaluation_forecasts_df, both=ROW_ORIGIN.EVALUATION, left_only=ROW_ORIGIN.TRAIN)
+
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
             by=identifiers_columns + [self.time_column_name], ascending=[True] * len(identifiers_columns) + [False]
@@ -261,7 +257,7 @@ class TrainingSession:
 
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        sample_length = self.prediction_length + self.context_length
+        sample_length = 2 * self.prediction_length  # Assuming that context_length = prediction_length
         sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
         num_samples_total = 0
         for timeseries in self.evaluation_train_list_dataset.list_data:

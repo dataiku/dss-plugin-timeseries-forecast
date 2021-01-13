@@ -16,7 +16,7 @@ config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
 
-models_parameters = get_models_parameters(config)
+models_parameters = get_models_parameters(config, is_training_multivariate=params["is_training_multivariate"])
 start = perf_counter()
 logger.info("Starting training session {}...".format(session_name))
 
@@ -44,7 +44,6 @@ training_session = TrainingSession(
     batch_size=params["batch_size"],
     user_num_batches_per_epoch=params["num_batches_per_epoch"],
     gpu=params["gpu"],
-    context_length=params["context_length"],
 )
 training_session.init(partition_root=params["partition_root"], session_name=session_name)
 
