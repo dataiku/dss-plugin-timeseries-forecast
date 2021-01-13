@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "1. Train and test forecasting models",
-        "description": "Train forecasting models and test their performance on historical data",
+        "label": "1. Train and evaluate forecasting models",
+        "description": "Train forecasting models and evaluate their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
     },
@@ -564,7 +564,7 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Train / Test Set",
+            "label": "Training and Evaluation",
             "type": "SEPARATOR"
         },
         {
@@ -597,10 +597,10 @@
         },
         {
             "name": "evaluation_strategy",
-            "label": "Splitting strategy",
+            "label": "Evaluation strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Test set will have \"Forecasting horizon\" values",
+            "description": "Only supported method - Evaluation set will have \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
