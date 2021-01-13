@@ -597,7 +597,7 @@
         },
         {
             "name": "evaluation_strategy",
-            "label": "Splitting strategy",
+            "label": "Evaluation strategy",
             "type": "SELECT",
             "mandatory": true,
             "description": "Only supported method - Evaluation set will have \"Forecasting horizon\" values",
