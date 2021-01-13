@@ -109,7 +109,7 @@ class TimeseriesPreparator:
 
             df_truncated[self.time_column_name] = df_truncated[self.time_column_name].dt.floor("D") + truncation_offset
 
-        self._truncation_logging(df_truncated, df)
+        self._log_truncation(df_truncated, df)
 
         self._check_duplicate_dates(df_truncated, after_truncation=True)
 
@@ -141,7 +141,7 @@ class TimeseriesPreparator:
         else:
             return df.groupby(self.timeseries_identifiers_names).apply(lambda x: x.tail(self.max_timeseries_length)).reset_index(drop=True)
 
-    def _truncation_logging(self, df_truncated, df):
+    def _log_truncation(self, df_truncated, df):
         """Log how many dates were truncated for users to understand how their data were changed
 
         Args:
@@ -154,6 +154,17 @@ class TimeseriesPreparator:
         logger.warning(
             f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
         )
+        if truncated_dates == total_dates:
+            self._check_end_of_frequency(df_truncated, df)
+
+    def _check_end_of_frequency(self, df_truncated, df):
+        frequency_offset = to_offset(self.frequency)
+        if isinstance(frequency_offset, Week):
+            if all(df_truncated[self.time_column_name].dt.dayofweek != df[self.time_column_name].dt.dayofweek):
+                raise ValueError(f"No weekly dates on {WEEKDAYS[frequency_offset.weekday]}. Please check the 'End of week day' parameter.")
+        if isinstance(frequency_offset, YearEnd):
+            if all(df_truncated[self.time_column_name].dt.month != df[self.time_column_name].dt.month):
+                raise ValueError(f"No yearly dates on {MONTHS[frequency_offset.month]}. Please check the 'End of year month' parameter.")
 
     def _check_duplicate_dates(self, df, after_truncation=False):
         """Check dataframe has no duplicate dates and raise an actionable error message """
@@ -230,6 +241,32 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
 
 FREQUENCY_LABEL = {"T": "minute", "H": "hour", "D": "day", "B": "business day"}
 
+MONTHS = [
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
+
+WEEKDAYS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+]
+
 
 def frequency_custom_label(frequency):
     frequency_offset = to_offset(frequency)
@@ -244,10 +281,10 @@ def frequency_custom_label(frequency):
             return f"{frequency_offset.n} months"
     elif isinstance(frequency_offset, Week):
         prefix = f"{frequency_offset.n} weeks" if frequency_offset.n > 1 else "week"
-        return f"{prefix} ending on {frequency_offset.name.split('-')[1]}"
+        return f"{prefix} ending on {WEEKDAYS[frequency_offset.weekday]}"
     elif isinstance(frequency_offset, YearEnd):
         prefix = f"{frequency_offset.n} years" if frequency_offset.n > 1 else "year"
-        return f"{prefix} ending on {frequency_offset.name.split('-')[1]}"
+        return f"{prefix} ending on {MONTHS[frequency_offset.month]}"
     else:
         prefix = f"{frequency_offset.n} " if frequency_offset.n > 1 else ""
         middle = f"{FREQUENCY_LABEL[frequency_offset.name]}"
