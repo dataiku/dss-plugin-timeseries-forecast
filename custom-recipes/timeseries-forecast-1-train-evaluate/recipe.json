@@ -598,7 +598,7 @@
         {
             "name": "separator_evaluation",
             "label": "Training and Evaluation",
-            "description": "Split to evaluate model performance, then retrain on the entire sample",
+            "description": "Split to evaluate performance metrics. The final model will be retrained on the entire sample.",
             "type": "SEPARATOR"
         },
         {
