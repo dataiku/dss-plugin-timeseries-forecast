@@ -264,6 +264,39 @@
             "visibilityCondition": "model.additional_columns"
         },
         {
+            "name": "separator_sampling",
+            "label": "Sampling",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Use only the most recent data",
+            "selectChoices": [
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                },
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                }
+            ],
+            "defaultValue": "last_records"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Maximum number of records to extract per time series",
+            "type": "INT",
+            "defaultValue": 10000,
+            "mandatory": false,
+            "minI": 4,
+            "visibilityCondition": "model.sampling_method=='last_records'"
+        },
+        {
             "name": "separator_modeling",
             "label": "Modeling",
             "type": "SEPARATOR"
@@ -564,36 +597,8 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Training and Evaluation",
+            "label": "Evaluation and Training",
             "type": "SEPARATOR"
-        },
-        {
-            "name": "sampling_method",
-            "label": "Sampling method",
-            "type": "SELECT",
-            "mandatory": true,
-            "description": "Train using only the most recent data to reduce runtime",
-            "selectChoices": [
-                {
-                    "value": "no_sampling",
-                    "label": "No sampling (whole data)"
-                },
-                {
-                    "value": "last_records",
-                    "label": "Last records (most recent)"
-                }
-            ],
-            "defaultValue": "last_records"
-        },
-        {
-            "name": "number_records",
-            "label": "Nb. records",
-            "description": "Maximum number of records to extract per time series",
-            "type": "INT",
-            "defaultValue": 10000,
-            "mandatory": false,
-            "minI": 4,
-            "visibilityCondition": "model.sampling_method=='last_records'"
         },
         {
             "name": "evaluation_strategy",
