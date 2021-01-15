@@ -149,11 +149,14 @@ class TimeseriesPreparator:
         """
         total_dates = len(df_truncated.index)
         truncated_dates = (df_truncated[self.time_column_name] != df[self.time_column_name]).sum()
-        logger.warning(
-            f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
-        )
-        if truncated_dates == total_dates:
-            self._check_end_of_frequency(df_truncated, df)
+        if truncated_dates > 0:
+            logger.warning(
+                f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
+            )
+            if truncated_dates == total_dates:
+                self._check_end_of_frequency(df_truncated, df)
+        else:
+            logger.info(f"No dates were changed after truncation to {frequency_custom_label(self.frequency)} frequency")
 
     def _check_end_of_frequency(self, df_truncated, df):
         """Check not all that truncated days are different days"""
