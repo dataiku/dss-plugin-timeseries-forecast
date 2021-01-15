@@ -598,14 +598,15 @@
         {
             "name": "separator_evaluation",
             "label": "Training and Evaluation",
+            "description": "Split into Train / Evaluation sets to evaluate model performance, then retrain on the entire sample",
             "type": "SEPARATOR"
         },
         {
             "name": "evaluation_strategy",
-            "label": "Evaluation strategy",
+            "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Evaluation set will have \"Forecasting horizon\" values",
+            "description": "Only supported method - Evaluate on the last \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
