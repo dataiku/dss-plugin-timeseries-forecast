@@ -9,8 +9,8 @@
         "icon": "icon-signal",
         "licenseInfo": "Apache Software License v2",
         "url": "https://www.dataiku.com/product/plugins/time-series-forecast-python/",
-        "supported": true,
-        "supportLevel": "SUPPORTED",
+        "supported": false,
+        "supportLevel": "NOT_SUPPORTED",
         "tags": [
             "Time Series",
             "Forecasting",
