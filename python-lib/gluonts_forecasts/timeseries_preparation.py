@@ -183,12 +183,12 @@ class TimeseriesPreparator:
         """ Raises ValueError if a timeseries identifiers column is not numerical or string """
         for column_name in self.timeseries_identifiers_names:
             if not is_numeric_dtype(df[column_name]) and not is_string_dtype(df[column_name]):
-                raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
+                raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type. Please change the type in a Prepare recipe.")
 
     def _check_no_missing_values(self, df):
         for column_name in [self.time_column_name] + self.target_columns_names + self.timeseries_identifiers_names + self.external_features_columns_names:
             if df[column_name].isnull().values.any():
-                raise ValueError(f"Column '{column_name}' must not have any missing values.")
+                raise ValueError(f"Column '{column_name}' has missing values. You can use the Time Series Preparation plugin to resample your time series.")
 
     def _log_timeseries_lengths(self, df, after_sampling=False):
         """Log the number and sizes of time series and whether it's after sampling or not"""
