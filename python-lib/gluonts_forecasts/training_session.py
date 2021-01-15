@@ -3,7 +3,7 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
 from gluonts_forecasts.utils import add_row_origin
@@ -229,13 +229,26 @@ class TrainingSession:
         Returns:
             Dataframe of metrics to display to users.
         """
+        evaluation_metrics_df = self.metrics_df.copy()	
+        evaluation_metrics_df.columns = [	
+            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns	
+        ]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
             evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
-            return evaluation_metrics_df
-        else:
-            return self.metrics_df
+        return evaluation_metrics_df
+
+    def create_evaluation_results_columns_descriptions(self):
+        """Explain the meaning of the metrics dataset columns.
+
+        Returns:	
+            Dictionary of description (value) by column (key).	
+        """      	
+        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()	
+        for column in EVALUATION_METRICS_DESCRIPTIONS:	
+            column_descriptions[column.lower()] = EVALUATION_METRICS_DESCRIPTIONS[column]	
+        return column_descriptions
 
     def _check_target_columns_types(self):
         """ Raises ValueError if a target column is not numerical """
