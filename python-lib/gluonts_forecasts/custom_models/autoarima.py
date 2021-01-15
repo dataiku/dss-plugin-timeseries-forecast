@@ -4,7 +4,7 @@ from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
 from gluonts.time_feature import get_seasonality
-from custom_gluon_models.utils import cast_kwargs, DEFAULT_SEASONALITIES
+from gluonts_forecasts.custom_models.utils import cast_kwargs, DEFAULT_SEASONALITIES
 from constants import TIMESERIES_KEYS
 import pmdarima as pm
 import numpy as np
@@ -126,7 +126,7 @@ class AutoARIMAEstimator(Estimator):
                 logger.info(f"Seasonality 'm' set to {season_length}")
         return kwargs_copy
 
-    def _set_external_features(self, kwargs, item):   
+    def _set_external_features(self, kwargs, item):
         external_features = None
         if self.use_feat_dynamic_real:
             external_features = item[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].T
