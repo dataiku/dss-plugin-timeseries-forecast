@@ -128,7 +128,6 @@ class AutoARIMAEstimator(Estimator):
         if m > 1:
             m = self._check_seasonality(m, target, kwargs_copy)
         logger.info(f"Seasonality 'm' set to {m}")
-        print(f"Seasonality 'm' set to {m}")
         kwargs_copy["m"] = m
 
         return kwargs_copy
