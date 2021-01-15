@@ -1,5 +1,5 @@
 from gluonts.dataset.common import ListDataset
-from gluonts_forecasts.timeseries_preparation import assert_time_column_valid
+from timeseries_preparation.preparation import assert_time_column_valid
 from gluonts_forecasts.utils import add_future_external_features
 from constants import TIMESERIES_KEYS
 import pandas as pd

@@ -1,4 +1,4 @@
-from gluonts_forecasts.timeseries_preparation import TimeseriesPreparator
+from timeseries_preparation.preparation import TimeseriesPreparator
 import pandas as pd
 import pytest
 

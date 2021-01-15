@@ -1,6 +1,6 @@
 from gluonts.dataset.common import ListDataset
 from gluonts_forecasts.model import Model
-from gluonts_forecasts.timeseries_preparation import TimeseriesPreparator
+from timeseries_preparation.preparation import TimeseriesPreparator
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL, list_available_models
 from constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, TIMESERIES_KEYS

@@ -4,7 +4,7 @@ import numpy as np
 from functools import reduce
 import copy
 from constants import TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
-from gluonts_forecasts.timeseries_preparation import TimeseriesPreparator
+from timeseries_preparation.preparation import TimeseriesPreparator
 
 
 def apply_filter_conditions(df, conditions):

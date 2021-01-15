@@ -51,8 +51,6 @@ class TimeseriesPreparator:
         except Exception:
             raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
 
-        # dataframe_prepared = dataframe.copy()
-
         self._check_data(dataframe_prepared)
 
         dataframe_prepared = self._truncate_dates(dataframe_prepared)
