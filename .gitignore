@@ -150,3 +150,6 @@ __pycache__
 .DS_Store
 setup.cfg
 .vscode
+
+*.ipynb
+forecasts-env/

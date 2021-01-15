@@ -44,12 +44,14 @@ class TimeseriesPreparator:
         Returns:
             Prepared timeseries
         """
+        dataframe_prepared = dataframe.copy()
+
         try:
-            dataframe[self.time_column_name] = pd.to_datetime(dataframe[self.time_column_name]).dt.tz_localize(tz=None)
+            dataframe_prepared[self.time_column_name] = pd.to_datetime(dataframe[self.time_column_name]).dt.tz_localize(tz=None)
         except Exception:
             raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
 
-        dataframe_prepared = dataframe.copy()
+        # dataframe_prepared = dataframe.copy()
 
         self._check_data(dataframe_prepared)
 
