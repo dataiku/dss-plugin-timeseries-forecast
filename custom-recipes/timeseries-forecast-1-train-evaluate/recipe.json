@@ -288,7 +288,7 @@
             "name": "forecasting_style",
             "label": "Forecasting mode",
             "type": "SELECT",
-            "description": "AutoML to let Dataiku choose your models or Expert to have full control.",
+            "description": "AutoML to let Dataiku choose your models or Expert to have full control",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -572,15 +572,15 @@
             "label": "Sampling method",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Train using only the most recent data and reduce runtime",
+            "description": "Train using only the most recent data to reduce runtime",
             "selectChoices": [
-                {
-                    "value": "last_records",
-                    "label": "Last records (most recent)"
-                },
                 {
                     "value": "no_sampling",
                     "label": "No sampling (whole data)"
+                },
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
                 }
             ],
             "defaultValue": "last_records"
@@ -617,14 +617,14 @@
         {
             "name": "external_feature_activated",
             "label": "Add external features",
-            "description": "Optional - e.g., holidays, special events",
+            "description": "Optional numeric features for exogenous time-dependent factors e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
-            "label": "External features",
-            "description": "⚠️  Futures values of external features will be required to forecast.",
+            "label": "External feature columns",
+            "description": "⚠️  Futures values of external features will be required to forecast",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",
