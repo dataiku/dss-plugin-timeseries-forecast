@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "1. Train and test forecasting models",
-        "description": "Train forecasting models and test their performance on historical data",
+        "label": "1. Train and evaluate forecasting models",
+        "description": "Train forecasting models and evaluate their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
     },
@@ -30,7 +30,7 @@
         {
             "name": "evaluation_dataset",
             "label": "Performance metrics dataset",
-            "description": "Performance metrics of forecasting models evaluated on the historical dataset (splitting strategy can be specified in the recipe settings) ",
+            "description": "Performance metrics of forecasting models evaluated on a split of the historical dataset",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -597,7 +597,7 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Evaluation and Training",
+            "label": "Train / Evaluation set",
             "type": "SEPARATOR"
         },
         {
@@ -605,7 +605,7 @@
             "label": "Evaluation strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Test set will have \"Forecasting horizon\" values",
+            "description": "Evaluation set will have \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
