@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, add_row_origin
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN
+from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, add_row_origin, quantile_forecasts_series
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts.model.forecast import QuantileForecast
 from safe_logger import SafeLogger
 
@@ -33,6 +33,7 @@ class TrainedModel:
         self.time_column_name = None
         self.identifiers_columns = None
         self.forecasts_df = None
+        self.frequency = gluon_dataset.process.trans[0].freq
         self._check()
 
     def predict(self):
@@ -55,8 +56,7 @@ class TrainedModel:
         )
 
         if self.include_history:
-            frequency = forecasts_list[0].freq
-            self.forecasts_df = self._include_history(frequency)
+            self.forecasts_df = self._include_history(self.frequency)
 
         self.forecasts_df = add_row_origin(self.forecasts_df, both=ROW_ORIGIN.FORECAST, left_only=ROW_ORIGIN.HISTORY)
 
@@ -175,7 +175,7 @@ class TrainedModel:
                     forecasts_label_prefix += "_upper"
 
                 forecasts_series = (
-                    sample_forecasts.quantile_ts(quantile)
+                    quantile_forecasts_series(sample_forecasts, quantile, self.frequency)
                     .rename(f"{forecasts_label_prefix}_{self.gluon_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}")
                     .iloc[: self.prediction_length]
                 )

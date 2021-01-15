@@ -103,69 +103,11 @@
                     "label": "Semester"
                 },
                 {
-                    "value": "A",
+                    "value": "12M",
                     "label": "Year"
                 }
             ],
             "defaultValue": "D"
-        },
-        {
-            "name": "frequency_end_of_year",
-            "label": "End of year month",
-            "type": "SELECT",
-            "mandatory": false,
-            "defaultValue": "DEC",
-            "visibilityCondition": "model.frequency_unit == 'A'",
-            "selectChoices": [
-                {
-                    "value": "JAN",
-                    "label": "January"
-                },
-                {
-                    "value": "FEB",
-                    "label": "February"
-                },
-                {
-                    "value": "MAR",
-                    "label": "March"
-                },
-                {
-                    "value": "APR",
-                    "label": "April"
-                },
-                {
-                    "value": "MAY",
-                    "label": "May"
-                },
-                {
-                    "value": "JUN",
-                    "label": "June"
-                },
-                {
-                    "value": "JUL",
-                    "label": "July"
-                },
-                {
-                    "value": "AUG",
-                    "label": "August"
-                },
-                {
-                    "value": "SEP",
-                    "label": "September"
-                },
-                {
-                    "value": "OCT",
-                    "label": "October"
-                },
-                {
-                    "value": "NOV",
-                    "label": "November"
-                },
-                {
-                    "value": "DEC",
-                    "label": "December"
-                }
-            ]
         },
         {
             "name": "frequency_end_of_week",
@@ -395,7 +337,9 @@
             "description": "",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
-            "defaultValue": {"maxiter": 50}
+            "defaultValue": {
+                "maxiter": 50
+            }
         },
         {
             "type": "SEPARATOR",
