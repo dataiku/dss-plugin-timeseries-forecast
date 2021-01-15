@@ -80,12 +80,10 @@ def load_training_config(recipe_config):
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    if params["frequency_unit"] not in ["A", "W", "H", "min"]:
+    if params["frequency_unit"] not in ["W", "H", "min"]:
         params["frequency"] = params["frequency_unit"]
     else:
-        if params["frequency_unit"] == "A":
-            params["frequency"] = f"A-{recipe_config.get('frequency_end_of_year', 1)}"
-        elif params["frequency_unit"] == "W":
+        if params["frequency_unit"] == "W":
             params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
         elif params["frequency_unit"] == "H":
             params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"

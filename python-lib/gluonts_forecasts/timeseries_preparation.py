@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from pandas.api.types import is_numeric_dtype, is_string_dtype
-from pandas.tseries.offsets import Tick, BusinessDay, Week, MonthEnd, YearEnd
+from pandas.tseries.offsets import Tick, BusinessDay, Week, MonthEnd
 from pandas.tseries.frequencies import to_offset
 import re
 from safe_logger import SafeLogger
@@ -104,12 +104,10 @@ class TimeseriesPreparator:
                 truncation_offset = pd.offsets.Week(weekday=frequency_offset.weekday, n=0)
             elif isinstance(frequency_offset, MonthEnd):
                 truncation_offset = pd.offsets.MonthEnd(n=0)
-            elif isinstance(frequency_offset, YearEnd):
-                truncation_offset = pd.offsets.YearEnd(month=frequency_offset.month, n=0)
 
             df_truncated[self.time_column_name] = df_truncated[self.time_column_name].dt.floor("D") + truncation_offset
 
-        self._truncation_logging(df_truncated, df)
+        self._log_truncation(df_truncated, df)
 
         self._check_duplicate_dates(df_truncated, after_truncation=True)
 
@@ -141,7 +139,7 @@ class TimeseriesPreparator:
         else:
             return df.groupby(self.timeseries_identifiers_names).apply(lambda x: x.tail(self.max_timeseries_length)).reset_index(drop=True)
 
-    def _truncation_logging(self, df_truncated, df):
+    def _log_truncation(self, df_truncated, df):
         """Log how many dates were truncated for users to understand how their data were changed
 
         Args:
@@ -151,9 +149,21 @@ class TimeseriesPreparator:
         """
         total_dates = len(df_truncated.index)
         truncated_dates = (df_truncated[self.time_column_name] != df[self.time_column_name]).sum()
-        logger.warning(
-            f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
-        )
+        if truncated_dates > 0:
+            logger.warning(
+                f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
+            )
+            if truncated_dates == total_dates:
+                self._check_end_of_frequency(df_truncated, df)
+        else:
+            logger.info(f"No dates were changed after truncation to {frequency_custom_label(self.frequency)} frequency")
+
+    def _check_end_of_frequency(self, df_truncated, df):
+        """Check not all that truncated days are different days"""
+        frequency_offset = to_offset(self.frequency)
+        if isinstance(frequency_offset, Week):
+            if all(df_truncated[self.time_column_name].dt.dayofweek != df[self.time_column_name].dt.dayofweek):
+                raise ValueError(f"No weekly dates on {WEEKDAYS[frequency_offset.weekday]}. Please check the 'End of week day' parameter.")
 
     def _check_duplicate_dates(self, df, after_truncation=False):
         """Check dataframe has no duplicate dates and raise an actionable error message """
@@ -176,12 +186,12 @@ class TimeseriesPreparator:
         """ Raises ValueError if a timeseries identifiers column is not numerical or string """
         for column_name in self.timeseries_identifiers_names:
             if not is_numeric_dtype(df[column_name]) and not is_string_dtype(df[column_name]):
-                raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
+                raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type. Please change the type in a Prepare recipe.")
 
     def _check_no_missing_values(self, df):
         for column_name in [self.time_column_name] + self.target_columns_names + self.timeseries_identifiers_names + self.external_features_columns_names:
             if df[column_name].isnull().values.any():
-                raise ValueError(f"Column '{column_name}' must not have any missing values.")
+                raise ValueError(f"Column '{column_name}' has missing values. You can use the Time Series Preparation plugin to resample your time series.")
 
     def _log_timeseries_lengths(self, df, after_sampling=False):
         """Log the number and sizes of time series and whether it's after sampling or not"""
@@ -231,6 +241,17 @@ def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=
 FREQUENCY_LABEL = {"T": "minute", "H": "hour", "D": "day", "B": "business day"}
 
 
+WEEKDAYS = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+]
+
+
 def frequency_custom_label(frequency):
     frequency_offset = to_offset(frequency)
     if isinstance(frequency_offset, MonthEnd):
@@ -238,16 +259,15 @@ def frequency_custom_label(frequency):
             return "quarter"
         elif frequency_offset.n == 6:
             return "semester"
+        elif frequency_offset.n == 12:
+            return "year"
         elif frequency_offset.n == 1:
             return "end of month"
         else:
             return f"{frequency_offset.n} months"
     elif isinstance(frequency_offset, Week):
         prefix = f"{frequency_offset.n} weeks" if frequency_offset.n > 1 else "week"
-        return f"{prefix} ending on {frequency_offset.name.split('-')[1]}"
-    elif isinstance(frequency_offset, YearEnd):
-        prefix = f"{frequency_offset.n} years" if frequency_offset.n > 1 else "year"
-        return f"{prefix} ending on {frequency_offset.name.split('-')[1]}"
+        return f"{prefix} ending on {WEEKDAYS[frequency_offset.weekday]}"
     else:
         prefix = f"{frequency_offset.n} " if frequency_offset.n > 1 else ""
         middle = f"{FREQUENCY_LABEL[frequency_offset.name]}"

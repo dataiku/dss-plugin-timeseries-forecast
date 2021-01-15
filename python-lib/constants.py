@@ -1,4 +1,5 @@
 from gluonts.dataset.field_names import FieldName
+from pandas.tseries.offsets import Week
 
 
 class METRICS_DATASET:
@@ -65,3 +66,5 @@ FORECASTING_STYLE_PRESELECTED_MODELS = {
         "auto_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
         "auto_performance_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"]
     }
+
+CUSTOMISABLE_FREQUENCIES_OFFSETS = (Week)
