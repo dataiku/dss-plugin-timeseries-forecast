@@ -17,16 +17,16 @@ class ModelSelection:
 
     Attributes:
         folder (dataiku.Folder): Input folder containing trained models and training data
-        root (str): Partition root path (empty if no partitioning)
+        partition_root (str): Partition root path (empty if no partitioning)
         manual_selection (bool): True if session and model are manually selected by user
         session_name (str): Timestamp of training session
         model_label (str): Label of trained model
         performance_metric (str): Name of evaluation metric used to select best model
     """
 
-    def __init__(self, folder, partition=None):
+    def __init__(self, folder, partition_root=None):
         self.folder = folder
-        self.root = "" if partition is None else partition
+        self.partition_root = "" if not partition_root else partition_root
         self.manual_selection = None
         self.session_name = None
         self.session_path = None
@@ -45,7 +45,7 @@ class ModelSelection:
             self.session_name = self._get_last_session()
         else:
             self.session_name = session_name
-        self.session_path = os.path.join(self.root, self.session_name)
+        self.session_path = os.path.join(self.partition_root, self.session_name)
         self.model_label = model_label
 
     def set_auto_selection_parameters(self, performance_metric):
@@ -67,7 +67,7 @@ class ModelSelection:
         """ Retrieve the GluonTS Predictor object obtained during training and saved into the model folder """
         if not self.manual_selection:
             self.session_name = self._get_last_session()
-            self.session_path = os.path.join(self.root, self.session_name)
+            self.session_path = os.path.join(self.partition_root, self.session_name)
             self.model_label = self._get_best_model()
 
         model_path = os.path.join(self.session_path, self.model_label, "model.pk.gz")
@@ -93,11 +93,11 @@ class ModelSelection:
             Timestamp of the last training session.
         """
         session_timestamps = []
-        for child in self.folder.get_path_details(path=self.root)["children"]:
+        for child in self.folder.get_path_details(path=self.partition_root)["children"]:
             if re.match(TIMESTAMP_REGEX_PATTERN, child["name"]):
                 session_timestamps += [child["name"]]
         if len(session_timestamps) == 0:
-            raise ModelSelectionError("Model not found for {}".format(self.root))
+            raise ModelSelectionError(f"Model not found in {self.partition_root}")
         last_session = max(session_timestamps, key=lambda timestamp: timestamp)
         return last_session
 

@@ -35,6 +35,7 @@ def load_training_config(recipe_config):
     params["model_folder"] = dataiku.Folder(model_folder_name)
     params["partition_root"] = get_folder_partition_root(params["model_folder"])
     check_equal_partition_dependencies(params["partition_root"], params["training_dataset"])
+    params["no_partitioning"] = bool(not params["partition_root"])
 
     evaluation_dataset_name = get_output_names_for_role("evaluation_dataset")[0]
     params["evaluation_dataset"] = dataiku.Dataset(evaluation_dataset_name)
@@ -157,6 +158,7 @@ def load_predict_config():
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
     check_equal_partition_dependencies(params["partition_root"], params["model_folder"])
     check_equal_partition_dependencies(params["partition_root"], params["external_features_future_dataset"])
+    params["no_partitioning"] = bool(not params["partition_root"])
 
     params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
