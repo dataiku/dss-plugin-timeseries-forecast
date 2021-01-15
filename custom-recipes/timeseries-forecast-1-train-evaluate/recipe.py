@@ -6,7 +6,7 @@ from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
 from gluonts_forecasts.model_handler import get_model_label
-from gluonts_forecasts.timeseries_preparation import prepare_timeseries_dataframe
+from timeseries_preparation.preparation import TimeseriesPreparator
 from safe_logger import SafeLogger
 from time import perf_counter
 
@@ -15,19 +15,22 @@ config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
 
-models_parameters = get_models_parameters(config)
+models_parameters = get_models_parameters(config, is_training_multivariate=params["is_training_multivariate"])
 start = perf_counter()
 logger.info("Starting training session {}...".format(session_name))
 
 training_df = params["training_dataset"].get_dataframe()
 
-training_df_prepared = prepare_timeseries_dataframe(
-    training_df,
+timeseries_preparator = TimeseriesPreparator(
     time_column_name=params["time_column_name"],
     frequency=params["frequency"],
+    target_columns_names=params["target_columns_names"],
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
+    external_features_columns_names=params["external_features_columns_names"],
     max_timeseries_length=params["max_timeseries_length"],
 )
+
+training_df_prepared = timeseries_preparator.prepare_timeseries_dataframe(training_df)
 
 training_session = TrainingSession(
     target_columns_names=params["target_columns_names"],

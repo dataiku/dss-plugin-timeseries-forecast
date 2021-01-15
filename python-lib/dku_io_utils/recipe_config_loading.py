@@ -53,6 +53,7 @@ def load_training_config(recipe_config):
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
     if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
+    params["target_columns_names"] = reorder_column_list(params["target_columns_names"], training_dataset_columns)
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
@@ -61,6 +62,9 @@ def load_training_config(recipe_config):
             raise PluginParamValidationError(f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}")
     else:
         params["timeseries_identifiers_names"] = []
+
+    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) \
+        or (len(params["timeseries_identifiers_names"]) > 0) else False
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
@@ -77,12 +81,10 @@ def load_training_config(recipe_config):
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    if params["frequency_unit"] not in ["A", "W", "H", "min"]:
+    if params["frequency_unit"] not in ["W", "H", "min"]:
         params["frequency"] = params["frequency_unit"]
     else:
-        if params["frequency_unit"] == "A":
-            params["frequency"] = f"A-{recipe_config.get('frequency_end_of_year', 1)}"
-        elif params["frequency_unit"] == "W":
+        if params["frequency_unit"] == "W":
             params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
         elif params["frequency_unit"] == "H":
             params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
@@ -112,7 +114,8 @@ def load_training_config(recipe_config):
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
-        params["epoch"] = 30
+        params["context_length"] = params["prediction_length"]
+        params["epoch"] = 30 if params["is_training_multivariate"] else 10
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1
 
@@ -176,7 +179,7 @@ def load_predict_config():
     return params
 
 
-def get_models_parameters(config):
+def get_models_parameters(config, is_training_multivariate=False):
     """Create a models parameters dictionary to store for each activated model its parameters (activated, kwargs, ...)
 
     Args:
@@ -190,7 +193,7 @@ def get_models_parameters(config):
     """
     models_parameters = {}
     for model in list_available_models():
-        if is_activated(config, model):
+        if is_activated(config, model, is_training_multivariate):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
                 raise ValueError("Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter")
@@ -201,7 +204,7 @@ def get_models_parameters(config):
     return models_parameters
 
 
-def is_activated(config, model):
+def is_activated(config, model, is_training_multivariate=False):
     """Returns the activation status for a model according to the selected forcasting style (auto / auto_performance) or UX config otherwise.
 
     Args:
@@ -211,7 +214,7 @@ def is_activated(config, model):
     Returns:
         True if model is activated, else False.
     """
-    forecasting_style = config.get("forecasting_style", "auto")
+    forecasting_style = config.get("forecasting_style", "auto") + ("_multivariate" if is_training_multivariate else "_univariate")
     if forecasting_style in FORECASTING_STYLE_PRESELECTED_MODELS:
         preselected_models = FORECASTING_STYLE_PRESELECTED_MODELS.get(forecasting_style)
         return model in preselected_models
@@ -280,3 +283,12 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
     alpha = (100 - confidence_interval) / 2 / 100.0
     quantiles = [round(alpha, 3), 0.5, round(1 - alpha, 3)]
     return quantiles
+
+
+def reorder_column_list(column_list_to_reorder, reference_column_list):
+    """ Keep the target list in same order as the training dataset, for consistency of forecasted columns order"""
+    reordered_list = []
+    for column_name in reference_column_list:
+        if column_name in column_list_to_reorder:
+            reordered_list.append(column_name)
+    return reordered_list

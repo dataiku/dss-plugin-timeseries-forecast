@@ -1,7 +1,7 @@
 {
     "meta": {
-        "label": "1. Train and test forecasting models",
-        "description": "Train forecasting models and test their performance on historical data",
+        "label": "1. Train and evaluate forecasting models",
+        "description": "Train forecasting models and evaluate their performance on historical data",
         "icon": "icon-calendar",
         "displayOrderRank": 1
     },
@@ -30,7 +30,7 @@
         {
             "name": "evaluation_dataset",
             "label": "Performance metrics dataset",
-            "description": "Performance metrics of forecasting models evaluated on the historical dataset (splitting strategy can be specified in the recipe settings) ",
+            "description": "Performance metrics of forecasting models evaluated on a split of the historical dataset",
             "arity": "UNARY",
             "required": true,
             "acceptsDataset": true,
@@ -103,69 +103,11 @@
                     "label": "Semester"
                 },
                 {
-                    "value": "A",
+                    "value": "12M",
                     "label": "Year"
                 }
             ],
             "defaultValue": "D"
-        },
-        {
-            "name": "frequency_end_of_year",
-            "label": "End of year month",
-            "type": "SELECT",
-            "mandatory": false,
-            "defaultValue": "DEC",
-            "visibilityCondition": "model.frequency_unit == 'A'",
-            "selectChoices": [
-                {
-                    "value": "JAN",
-                    "label": "January"
-                },
-                {
-                    "value": "FEB",
-                    "label": "February"
-                },
-                {
-                    "value": "MAR",
-                    "label": "March"
-                },
-                {
-                    "value": "APR",
-                    "label": "April"
-                },
-                {
-                    "value": "MAY",
-                    "label": "May"
-                },
-                {
-                    "value": "JUN",
-                    "label": "June"
-                },
-                {
-                    "value": "JUL",
-                    "label": "July"
-                },
-                {
-                    "value": "AUG",
-                    "label": "August"
-                },
-                {
-                    "value": "SEP",
-                    "label": "September"
-                },
-                {
-                    "value": "OCT",
-                    "label": "October"
-                },
-                {
-                    "value": "NOV",
-                    "label": "November"
-                },
-                {
-                    "value": "DEC",
-                    "label": "December"
-                }
-            ]
         },
         {
             "name": "frequency_end_of_week",
@@ -264,6 +206,39 @@
             "visibilityCondition": "model.additional_columns"
         },
         {
+            "name": "separator_sampling",
+            "label": "Sampling",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Use only the most recent data",
+            "selectChoices": [
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                },
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                }
+            ],
+            "defaultValue": "last_records"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Maximum number of records to extract per time series",
+            "type": "INT",
+            "defaultValue": 10000,
+            "mandatory": false,
+            "minI": 4,
+            "visibilityCondition": "model.sampling_method=='last_records'"
+        },
+        {
             "name": "separator_modeling",
             "label": "Modeling",
             "type": "SEPARATOR"
@@ -288,7 +263,7 @@
             "name": "forecasting_style",
             "label": "Forecasting mode",
             "type": "SELECT",
-            "description": "AutoML to let Dataiku choose your models or Expert to have full control.",
+            "description": "AutoML to let Dataiku choose your models or Expert to have full control",
             "mandatory": true,
             "selectChoices": [
                 {
@@ -362,7 +337,9 @@
             "description": "",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
-            "defaultValue": {"maxiter": 50}
+            "defaultValue": {
+                "maxiter": 50
+            }
         },
         {
             "type": "SEPARATOR",
@@ -564,43 +541,16 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Train / Test Set",
+            "label": "Training and Evaluation",
+            "description": "Split to evaluate performance metrics. The final model will be retrained on the entire sample.",
             "type": "SEPARATOR"
-        },
-        {
-            "name": "sampling_method",
-            "label": "Sampling method",
-            "type": "SELECT",
-            "mandatory": true,
-            "description": "Train using only the most recent data and reduce runtime",
-            "selectChoices": [
-                {
-                    "value": "last_records",
-                    "label": "Last records (most recent)"
-                },
-                {
-                    "value": "no_sampling",
-                    "label": "No sampling (whole data)"
-                }
-            ],
-            "defaultValue": "last_records"
-        },
-        {
-            "name": "number_records",
-            "label": "Nb. records",
-            "description": "Number of last records to extract per time series",
-            "type": "INT",
-            "defaultValue": 10000,
-            "mandatory": false,
-            "minI": 4,
-            "visibilityCondition": "model.sampling_method=='last_records'"
         },
         {
             "name": "evaluation_strategy",
             "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Test set will have \"Forecasting horizon\" values",
+            "description": "Only supported method - Evaluate on the last \"Forecasting horizon\" values",
             "selectChoices": [
                 {
                     "value": "split",
@@ -617,14 +567,14 @@
         {
             "name": "external_feature_activated",
             "label": "Add external features",
-            "description": "Optional - e.g., holidays, special events",
+            "description": "Optional numeric features for exogenous time-dependent factors e.g., holidays, special events",
             "type": "BOOLEAN",
             "defaultValue": false
         },
         {
             "name": "external_feature_columns",
-            "label": "External features",
-            "description": "⚠️  Futures values of external features will be required to forecast.",
+            "label": "External feature columns",
+            "description": "⚠️  Futures values of external features will be required to forecast",
             "type": "COLUMNS",
             "allowedColumnTypes": [
                 "tinyint",

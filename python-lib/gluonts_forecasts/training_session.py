@@ -3,9 +3,10 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS
+from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
+from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
 
 
@@ -82,7 +83,7 @@ class TrainingSession:
             partition_root (str, optional): Partition root path, concatenated to session_name to create the session_path. Defaults to None.
         """
         self.session_name = session_name
-        if not partition_root:
+        if partition_root is None:
             self.session_path = session_name
         else:
             self.session_path = os.path.join(partition_root, session_name)
@@ -171,11 +172,10 @@ class TrainingSession:
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
-        self.evaluation_forecasts_df = self.training_df.merge(
-            self.forecasts_df,
-            on=[self.time_column_name] + identifiers_columns,
-            how="left",
-        )
+        self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True)
+
+        self.evaluation_forecasts_df = add_row_origin(self.evaluation_forecasts_df, both=ROW_ORIGIN.EVALUATION, left_only=ROW_ORIGIN.TRAIN)
+
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
             by=identifiers_columns + [self.time_column_name], ascending=[True] * len(identifiers_columns) + [False]
@@ -213,10 +213,10 @@ class TrainingSession:
         column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()
         available_models = list_available_models()
         for column in self.evaluation_forecasts_df.columns:
-            prefix = column.split("_")[0]
-            if prefix in available_models:
-                target_name = column.split(f"{prefix}_")[1]
-                column_descriptions[column] = f"Median forecasts of {target_name} using {prefix} model"
+            model = next((model for model in available_models if model in column), None)
+            if model:
+                target_name = column.split(f"{model}_")[1]
+                column_descriptions[column] = f"Median forecasts of {target_name} using {model} model"
         return column_descriptions
 
     def get_metrics_df(self):
@@ -229,26 +229,13 @@ class TrainingSession:
         Returns:
             Dataframe of metrics to display to users.
         """
-        evaluation_metrics_df = self.metrics_df.copy()
-        evaluation_metrics_df.columns = [
-            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
-        ]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
             evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
-        return evaluation_metrics_df
-
-    def create_evaluation_results_columns_descriptions(self):
-        """Explain the meaning of the metrics dataset columns.
-
-        Returns:
-            Dictionary of description (value) by column (key).
-        """      
-        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()
-        for column in EVALUATION_METRICS_DESCRIPTIONS:
-            column_descriptions[column.lower()] = EVALUATION_METRICS_DESCRIPTIONS[column]
-        return column_descriptions
+            return evaluation_metrics_df
+        else:
+            return self.metrics_df
 
     def _check_target_columns_types(self):
         """ Raises ValueError if a target column is not numerical """

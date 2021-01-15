@@ -1,9 +1,10 @@
-from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS
+from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.model_handler import ModelHandler
-from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
+from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, quantile_forecasts_series
 from time import perf_counter
+from pandas.tseries.frequencies import to_offset
 from safe_logger import SafeLogger
 import json
 
@@ -24,7 +25,8 @@ class Model(ModelHandler):
     Attributes:
         model_name (str): Model name belonging to model_handler.MODEL_DESCRIPTORS
         model_parameters (dict): Kwargs of model parameters
-        frequency (str): Pandas timeseries frequency (e.g. '3M')
+        custom_frequency (str): Pandas timeseries frequency not necessarily supported by GluonTS Estimators (e.g. 'W-MON')
+        frequency (str): Pandas timeseries frequency (e.g. '3M') supported by GluonTS Estimators
         prediction_length (int): Number of time steps to predict
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool)
@@ -47,7 +49,8 @@ class Model(ModelHandler):
         super().__init__(model_name)
         self.model_name = model_name
         self.model_parameters = model_parameters
-        self.frequency = frequency
+        self.custom_frequency = frequency
+        self.frequency = frequency if not isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS) else to_offset(frequency).name.split("-")[0]
         self.prediction_length = prediction_length
         self.epoch = epoch
         self.use_external_features = use_external_features
@@ -232,7 +235,9 @@ class Model(ModelHandler):
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.quantile_ts(0.5).rename(f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}")
+            series = quantile_forecasts_series(sample_forecasts, 0.5, self.custom_frequency).rename(
+                f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}"
+            )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
             else:
