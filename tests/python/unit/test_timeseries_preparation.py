@@ -201,6 +201,35 @@ def test_quarter_truncation():
     assert dataframe_prepared[time_column_name][2] == pd.Timestamp("2021-06-30")
 
 
+def test_semester_truncation():
+    df = pd.DataFrame(
+        {
+            "date": [
+                "2020-12-15",
+                "2021-06-28",
+                "2021-12-01",
+            ],
+            "id": [1, 1, 1],
+        }
+    )
+    frequency = "6M"
+    time_column_name = "date"
+    timeseries_identifiers_names = ["id"]
+    df[time_column_name] = pd.to_datetime(df[time_column_name]).dt.tz_localize(tz=None)
+    preparator = TimeseriesPreparator(
+        time_column_name=time_column_name,
+        frequency=frequency,
+        timeseries_identifiers_names=timeseries_identifiers_names,
+    )
+    dataframe_prepared = preparator._truncate_dates(df)
+    dataframe_prepared = preparator._sort(dataframe_prepared)
+    preparator._check_regular_frequency(dataframe_prepared)
+
+    assert dataframe_prepared[time_column_name][0] == pd.Timestamp("2020-12-31")
+    assert dataframe_prepared[time_column_name][1] == pd.Timestamp("2021-06-30")
+    assert dataframe_prepared[time_column_name][2] == pd.Timestamp("2021-12-31")
+
+
 def test_year_truncation():
     df = pd.DataFrame(
         {

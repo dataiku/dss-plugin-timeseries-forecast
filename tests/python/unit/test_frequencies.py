@@ -217,6 +217,7 @@ def test_week_tuesday_frequency():
 
 
 def test_month_frequency():
+    """This test covers all month frequencies (quarter=3M, semester=6M, year=12M) """
     prediction_length = 1
     timeseries = {
         TIMESERIES_KEYS.START: "2021-01-31 00:00:00",
