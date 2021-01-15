@@ -86,6 +86,7 @@ class AutoARIMAEstimator(Estimator):
         self.freq = freq
         self.use_feat_dynamic_real = use_feat_dynamic_real
         self.kwargs = cast_kwargs(kwargs)
+        self.trained_models = []
 
     def train(self, training_data, validation_data=None):
         """Train the estimator on the given data.
@@ -97,16 +98,24 @@ class AutoARIMAEstimator(Estimator):
         Returns:
             Predictor containing the trained model.
         """
-        trained_models = []
         logger.info("Training one AutoARIMA model per time series ...")
         for item in tqdm(training_data):
             kwargs = self._set_seasonality(self.kwargs, len(item[TIMESERIES_KEYS.TARGET]))
-            external_features = self._set_external_features(kwargs, item)
+            external_features = self._set_external_features(item)
 
             model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, **kwargs)
-            trained_models += [model]
+            self.trained_models += [model]
 
-        return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
+        return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=self.trained_models)
+
+    def update(self, training_data):
+        logger.info("Re-Training one AutoARIMA model per time series ...")
+        for i, item in tqdm(enumerate(training_data)):
+            external_features = self._set_external_features(item)
+
+            self.trained_models[i].update(item[TIMESERIES_KEYS.TARGET], X=external_features)
+
+        return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=self.trained_models)
 
     def _set_seasonality(self, kwargs, target_length):
         """Find the seasonality parameter if it was not set by user and if the target is big enough.
@@ -126,7 +135,7 @@ class AutoARIMAEstimator(Estimator):
                 logger.info(f"Seasonality 'm' set to {season_length}")
         return kwargs_copy
 
-    def _set_external_features(self, kwargs, item):   
+    def _set_external_features(self, item):
         external_features = None
         if self.use_feat_dynamic_real:
             external_features = item[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].T
