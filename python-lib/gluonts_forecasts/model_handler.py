@@ -1,15 +1,18 @@
 from gluonts.model.deepar import DeepAREstimator
 from gluonts.model.simple_feedforward import SimpleFeedForwardEstimator
+
 # from gluonts.model.n_beats import NBEATSEstimator
 from gluonts.model.seq2seq import MQCNNEstimator
 from gluonts.model.transformer import TransformerEstimator
+
 # from gluonts.model.tft import TemporalFusionTransformerEstimator
 from gluonts.mx.trainer import Trainer
+
 # from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
-from custom_gluon_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
+from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 
 
@@ -32,9 +35,7 @@ MODEL_DESCRIPTORS = {
         TRAINER: None,
         NEEDS_NUM_SAMPLES: True,
         IS_NAIVE: True,
-        DEFAULT_KWARGS: {
-            "num_samples": 100
-        },
+        DEFAULT_KWARGS: {"num_samples": 100},
     },
     "seasonal_naive": {
         LABEL: "SeasonalNaive",
@@ -106,12 +107,8 @@ MODEL_DESCRIPTORS = {
 
 # these parameter are classes but are set as strings in the UI
 CLASS_PARAMETERS = {
-    "distr_output": {
-        "StudentTOutput()": StudentTOutput(),
-        "GaussianOutput()": GaussianOutput(),
-        "NegativeBinomialOutput()": NegativeBinomialOutput()
-    }
-}  
+    "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()}
+}
 
 
 class ModelParameterError(ValueError):
@@ -182,10 +179,12 @@ class ModelHandler:
         for class_parameter, class_parameter_values in CLASS_PARAMETERS.items():
             if class_parameter in parameters_converted:
                 if parameters_converted[class_parameter] not in class_parameter_values:
-                    raise ModelParameterError(f"""
+                    raise ModelParameterError(
+                        f"""
                         '{parameters_converted[class_parameter]}' is not valid for parameter '{class_parameter}'.
                         Supported values are {list(class_parameter_values.keys())}. 
-                    """)
+                    """
+                    )
                 else:
                     parameters_converted[class_parameter] = class_parameter_values[parameters_converted[class_parameter]]
         return parameters_converted
