@@ -83,7 +83,7 @@ class TrainingSession:
             partition_root (str, optional): Partition root path, concatenated to session_name to create the session_path. Defaults to None.
         """
         self.session_name = session_name
-        if partition_root is None:
+        if not partition_root:
             self.session_path = session_name
         else:
             self.session_path = os.path.join(partition_root, session_name)
