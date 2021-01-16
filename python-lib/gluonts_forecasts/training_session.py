@@ -229,9 +229,9 @@ class TrainingSession:
         Returns:
             Dataframe of metrics to display to users.
         """
-        evaluation_metrics_df = self.metrics_df.copy()	
-        evaluation_metrics_df.columns = [	
-            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns	
+        evaluation_metrics_df = self.metrics_df.copy()
+        evaluation_metrics_df.columns = [
+            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
         ]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
@@ -242,12 +242,12 @@ class TrainingSession:
     def create_evaluation_results_columns_descriptions(self):
         """Explain the meaning of the metrics dataset columns.
 
-        Returns:	
-            Dictionary of description (value) by column (key).	
-        """      	
-        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()	
-        for column in EVALUATION_METRICS_DESCRIPTIONS:	
-            column_descriptions[column.lower()] = EVALUATION_METRICS_DESCRIPTIONS[column]	
+        Returns:
+            Dictionary of description (value) by column (key).
+        """
+        column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()
+        for column in EVALUATION_METRICS_DESCRIPTIONS:
+            column_descriptions[column.lower()] = EVALUATION_METRICS_DESCRIPTIONS[column]
         return column_descriptions
 
     def _check_target_columns_types(self):
