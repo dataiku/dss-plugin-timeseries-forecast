@@ -4,8 +4,9 @@ from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
 from gluonts.time_feature import get_seasonality
-from custom_gluon_models.utils import cast_kwargs, DEFAULT_SEASONALITIES
+from gluonts_forecasts.custom_models.utils import cast_kwargs, DEFAULT_SEASONALITIES
 from constants import TIMESERIES_KEYS
+from pmdarima.arima.utils import nsdiffs
 import pmdarima as pm
 import numpy as np
 from safe_logger import SafeLogger
@@ -100,7 +101,7 @@ class AutoARIMAEstimator(Estimator):
         trained_models = []
         logger.info("Training one AutoARIMA model per time series ...")
         for item in tqdm(training_data):
-            kwargs = self._set_seasonality(self.kwargs, len(item[TIMESERIES_KEYS.TARGET]))
+            kwargs = self._set_seasonality(self.kwargs, item[TIMESERIES_KEYS.TARGET])
             external_features = self._set_external_features(kwargs, item)
 
             model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, **kwargs)
@@ -108,25 +109,53 @@ class AutoARIMAEstimator(Estimator):
 
         return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
 
-    def _set_seasonality(self, kwargs, target_length):
+    def _set_seasonality(self, kwargs, target):
         """Find the seasonality parameter if it was not set by user and if the target is big enough.
 
         Args:
             kwargs (dict): autoarima kwargs.
-            target_length (int): Length of target to train on.
+            target (numpy.array): Target to train on.
 
         Returns:
             Kwargs dictionary updated with seasonality if possible.
         """
         kwargs_copy = kwargs.copy()
-        if "m" not in kwargs_copy:
+        m = kwargs_copy.get("m")
+        if not m:
             season_length = get_seasonality(self.freq, DEFAULT_SEASONALITIES)
-            if target_length > 2 * season_length:
-                kwargs_copy["m"] = season_length
-                logger.info(f"Seasonality 'm' set to {season_length}")
+            m = season_length
+
+        if m > 1:
+            m = self._check_seasonality(m, target, kwargs_copy)
+        logger.info(f"Seasonality 'm' set to {m}")
+        kwargs_copy["m"] = m
+
         return kwargs_copy
 
-    def _set_external_features(self, kwargs, item):   
+    def _check_seasonality(self, m, target, kwargs):
+        """Check if 'm' is a working value for seasonality by performing the same test of seasonlity pm.auto_arima does.
+        The goal is for pm.auto_arima not to fail the training later.
+
+        Args:
+            m (int): Seasonality value
+            target (numpy.array): Target to train on.
+            kwargs (dict): Kwargs dictionary of pm.auto_arima
+
+        Returns:
+            A working seasonality value for 'm'
+        """
+        logger.info(f"Check if seasonality 'm' can be set to {m}")
+        try:
+            nsdiffs(x=target.copy(), m=m, test=kwargs.get("seasonal_test", "ocsb"), max_D=kwargs.get("max_D", 1), **kwargs.get("seasonal_test_args", dict()))
+        except Exception as e:
+            error_message = f"Seasonality 'm' can't be set to {m}. Error when testing seasonality with nsdiffs: {e}"
+            if "m" in kwargs:  # raising error because it was user input
+                raise ValueError(error_message)
+            logger.info(error_message)
+            m = 1
+        return m
+
+    def _set_external_features(self, kwargs, item):
         external_features = None
         if self.use_feat_dynamic_real:
             external_features = item[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].T
