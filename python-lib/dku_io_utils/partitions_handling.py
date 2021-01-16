@@ -59,19 +59,19 @@ def get_partitions(dku_flow_variables, dimensions, input_id=None):
         input_id (str): folder id if the folder is an input, None for output folder
 
     Raises:
-        ValueError: If a 'DKU_DST_$DIMENSION' is not in dku_flow_variables.
+        ValueError: If the dimension value is not found in the input or output
 
     Returns:
         List of partitions.
     """
     partitions = []
     for dimension in dimensions:
-        partition = get_dimension_value_from_flow_variables(dku_flow_variables, input_id, dimension)
-        if partition is None:
+        dimension_value = get_dimension_value_from_flow_variables(dku_flow_variables, input_id, dimension)
+        if not dimension_value:
             raise ValueError(
                 f"Partition dimension '{dimension}' not found in output. Please make sure your output has the same partition dimensions as your input."
             )
-        partitions.append(partition)
+        partitions.append(dimension_value)
     return partitions
 
 
@@ -128,5 +128,30 @@ def complete_file_path_time_pattern(dku_flow_variables, file_path_pattern, input
 
 
 def get_dimension_value_from_flow_variables(dku_flow_variables, input_id, dimension):
-    origin = "DST" if input_id is None else "SRC_{}".format(input_id)
-    return dku_flow_variables.get("DKU_{}_{}".format(origin, dimension))
+    if input_id:  # input folder, there can be multiple read partitions
+        dimension_value = dku_flow_variables.get(f"DKU_SRC_{input_id}_{dimension}")
+        dimension_values = dku_flow_variables.get(f"DKU_SRC_{input_id}_{dimension}_VALUES")
+        if not dimension_value and dimension_values:
+            check_only_one_read_partition(dimension_values, dataiku.Folder(input_id))
+    else:  # output folder, there can be only one write partition
+        dimension_value = dku_flow_variables.get(f"DKU_DST_{dimension}")
+    return dimension_value
+
+
+def check_only_one_read_partition(partition_root, dku_computable):
+    """Check that input only has one read partition
+
+    Args:
+        partition_root (str): Partition root path of output. None if no partitioning.
+        dku_computable (dataiku.Folder/dataiku.Dataset): Input dataset or folder.
+
+    Raises:
+        ValuError: If input is partitioned and has multiple read partitions
+    """
+    if partition_root and dku_computable:
+        if len(dku_computable.read_partitions) > 1:
+            if isinstance(dku_computable, dataiku.Dataset):
+                error_message_prefix = f"Input dataset '{dku_computable.short_name}' has multiple read partitions. "
+            if isinstance(dku_computable, dataiku.Folder):
+                error_message_prefix = f"Input folder '{dku_computable.get_name()}' has multiple read partitions. "
+            raise ValueError(error_message_prefix + "Please specify 'Equals' partition dependencies in the Input / Output tab of the recipe.")

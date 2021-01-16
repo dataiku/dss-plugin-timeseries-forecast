@@ -6,7 +6,7 @@ from dataiku.customrecipe import (
 )
 import re
 from gluonts_forecasts.model_handler import list_available_models
-from dku_io_utils.partitions_handling import get_folder_partition_root
+from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
 from constants import FORECASTING_STYLE_PRESELECTED_MODELS
 from safe_logger import SafeLogger
 
@@ -34,7 +34,7 @@ def load_training_config(recipe_config):
     model_folder_name = get_output_names_for_role("model_folder")[0]
     params["model_folder"] = dataiku.Folder(model_folder_name)
     params["partition_root"] = get_folder_partition_root(params["model_folder"])
-    check_equal_partition_dependencies(params["partition_root"], params["training_dataset"])
+    check_only_one_read_partition(params["partition_root"], params["training_dataset"])
 
     evaluation_dataset_name = get_output_names_for_role("evaluation_dataset")[0]
     params["evaluation_dataset"] = dataiku.Dataset(evaluation_dataset_name)
@@ -158,8 +158,8 @@ def load_predict_config():
     if len(output_dataset_names) == 0:
         raise PluginParamValidationError("Please specify Forecast dataset in the 'Input / Output' tab of the recipe")
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
-    check_equal_partition_dependencies(params["partition_root"], params["model_folder"])
-    check_equal_partition_dependencies(params["partition_root"], params["external_features_future_dataset"])
+    check_only_one_read_partition(params["partition_root"], params["model_folder"])
+    check_only_one_read_partition(params["partition_root"], params["external_features_future_dataset"])
 
     params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
@@ -243,25 +243,6 @@ def sanitize_column_list(input_column_list):
     """ Remove empty elements (Nones, '') from input columns list"""
     sanitized_column_list = [input for input in input_column_list if input]
     return sanitized_column_list
-
-
-def check_equal_partition_dependencies(partition_root, dku_computable):
-    """Check that input has equal partition dependencies.
-
-    Args:
-        partition_root (str): Partition root path of output. None if no partitioning.
-        dku_computable (dataiku.Folder/dataiku.Dataset): Input dataset or folder.
-
-    Raises:
-        PluginParamValidationError: If input does not have equal partition dependencies.
-    """
-    if partition_root and dku_computable:
-        if len(dku_computable.read_partitions) > 1:
-            if isinstance(dku_computable, dataiku.Dataset):
-                error_message_prefix = f"Input dataset '{dku_computable.short_name}'"
-            if isinstance(dku_computable, dataiku.Folder):
-                error_message_prefix = f"Input folder '{dku_computable.get_name()}'"
-            raise PluginParamValidationError(error_message_prefix + " must have equal partition dependencies.")
 
 
 def convert_confidence_interval_to_quantiles(confidence_interval):
