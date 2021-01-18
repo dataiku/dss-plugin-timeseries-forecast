@@ -208,7 +208,7 @@ class TimeseriesPreparator:
         else:
             log_message += f" of {min(timeseries_lengths)} to {max(timeseries_lengths)} records"
         if after_sampling:
-            logger.info(f"Sampled last records to obtain {log_message}")
+            logger.info(f"Sampled {self.max_timeseries_length} last records to obtain {log_message}")
         else:
             logger.info(f"Found {log_message}")
 
