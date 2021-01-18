@@ -24,7 +24,7 @@ plugin-cpu:
 	@echo "[SUCCESS] Saving ZIP archive of the plugin (CPU): Done!"
 
 plugin-gpu:
-ifndef MXNET_VERSION
+ifndef MXNETCU_VERSION
 	$(error Please set MXNET_VERSION variable e.g., 1.7.0)
 endif
 ifndef CUDA_VERSION
