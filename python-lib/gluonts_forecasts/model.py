@@ -7,6 +7,7 @@ from time import perf_counter
 from pandas.tseries.frequencies import to_offset
 from safe_logger import SafeLogger
 import json
+import mxnet as mx
 
 
 logger = SafeLogger("Forecast plugin")
@@ -44,7 +45,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
-        gpu=None,
+        gpu=False,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -67,6 +68,8 @@ class Model(ModelHandler):
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
+        if gpu and mx.context.num_gpus() > 0:
+            trainer_kwargs.update({"ctx": mx.context.gpu()})
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})

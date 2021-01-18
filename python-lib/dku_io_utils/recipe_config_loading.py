@@ -62,8 +62,7 @@ def load_training_config(recipe_config):
     else:
         params["timeseries_identifiers_names"] = []
 
-    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) \
-        or (len(params["timeseries_identifiers_names"]) > 0) else False
+    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) or (len(params["timeseries_identifiers_names"]) > 0) else False
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
@@ -74,9 +73,7 @@ def load_training_config(recipe_config):
     else:
         params["external_features_columns_names"] = []
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError(
-            f"Invalid external features selection: {params['external_features_columns_names']}"
-        )
+        raise PluginParamValidationError(f"Invalid external features selection: {params['external_features_columns_names']}")
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
@@ -125,7 +122,7 @@ def load_training_config(recipe_config):
         if params["max_timeseries_length"] < 4:
             raise PluginParamValidationError("Number of records must be higher than 4")
 
-    params["gpu"] = recipe_config.get("gpu", "no_gpu")
+    params["gpu"] = recipe_config.get("gpu", False)
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
