@@ -1,13 +1,19 @@
-# Makefile variables set automatically
+# Variables set automatically
 plugin_id=`cat plugin.json | python -c "import sys, json; print(str(json.load(sys.stdin)['id']).replace('/',''))"`
 plugin_version=`cat plugin.json | python -c "import sys, json; print(str(json.load(sys.stdin)['version']).replace('/',''))"`
 archive_file_name="dss-plugin-${plugin_id}-${plugin_version}.zip"
 remote_url=`git config --get remote.origin.url`
 last_commit_id=`git rev-parse HEAD`
 
-
 plugin:
-	@echo "[START] Archiving plugin to dist/ folder..."
+ifeq ($(GPU),TRUE)
+	@$(MAKE) plugin-gpu
+else
+	@$(MAKE) plugin-cpu
+endif
+
+plugin-cpu:
+	@echo "[START] Saving ZIP archive of the plugin (CPU)..."
 	@cat plugin.json | json_pp > /dev/null
 	@rm -rf dist
 	@mkdir dist
@@ -15,7 +21,18 @@ plugin:
 	@git archive -v -9 --format zip -o dist/${archive_file_name} HEAD
 	@zip -u dist/${archive_file_name} release_info.json
 	@rm release_info.json
-	@echo "[SUCCESS] Archiving plugin to dist/ folder: Done!"
+	@echo "[SUCCESS] Saving ZIP archive of the plugin (CPU): Done!"
+
+plugin-gpu:
+ifndef MXNETCU_VERSION
+	$(error Please set MXNET_VERSION variable e.g., 1.7.0)
+endif
+ifndef CUDA_VERSION
+	$(error Please set CUDA_VERSION variable e.g., 102 for cuda 10.2)
+endif
+	@echo "[START] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION})..."
+	# TODO
+	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION}): Done!"
 
 unit-tests:
 	@echo "[START] Running unit tests..."
