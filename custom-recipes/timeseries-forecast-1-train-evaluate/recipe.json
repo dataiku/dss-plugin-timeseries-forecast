@@ -442,7 +442,7 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
-            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
             "name": "mqcnn_model_kwargs",
@@ -601,7 +601,7 @@
             "label": "Use GPU",
             "type": "BOOLEAN",
             "defaultValue": false,
-            "visibilityCondition": "true"
+            "visibilityCondition": "'cpu' == 'gpu'"
         }
     ],
     "resourceKeys": []

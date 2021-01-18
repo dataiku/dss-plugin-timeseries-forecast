@@ -230,7 +230,9 @@ class TrainingSession:
             Dataframe of metrics to display to users.
         """
         evaluation_metrics_df = self.metrics_df.copy()
-        evaluation_metrics_df.columns = [column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns]
+        evaluation_metrics_df.columns = [
+            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
+        ]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
