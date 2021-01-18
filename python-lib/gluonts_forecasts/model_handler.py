@@ -11,21 +11,14 @@ from gluonts.mx.trainer import Trainer
 # from gluonts.model.trivial.mean import MeanPredictor
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
-<<<<<<< HEAD
-=======
 from gluonts.model.npts import NPTSPredictor
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
->>>>>>> release/1.0
 
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
-<<<<<<< HEAD
-CAN_USE_CONTEXT_LENGTH = "can_use_context_length"
-=======
 DEFAULT_KWARGS = "default_kwargs"
->>>>>>> release/1.0
 TRAINER = "trainer"
 PREDICTOR = "predictor"
 NEEDS_NUM_SAMPLES = "needs_num_samples"
@@ -84,14 +77,6 @@ MODEL_DESCRIPTORS = {
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
-<<<<<<< HEAD
-    },
-    "nbeats": {
-        LABEL: "NBEATS",
-        ESTIMATOR: NBEATSEstimator,
-        TRAINER: Trainer
-=======
->>>>>>> release/1.0
     },
     "mqcnn": {
         LABEL: "MQ-CNN",
@@ -99,13 +84,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
     },
-<<<<<<< HEAD
-    "tft": {
-        LABEL: "TemporalFusionTransformer",
-        ESTIMATOR: TemporalFusionTransformerEstimator,
-        TRAINER: Trainer
-    },
-=======
     # "trivial_mean": {
     #     LABEL: "TrivialMean",
     #     CAN_USE_EXTERNAL_FEATURES: False,
@@ -130,7 +108,6 @@ MODEL_DESCRIPTORS = {
 # these parameter are classes but are set as strings in the UI
 CLASS_PARAMETERS = {
     "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()}
->>>>>>> release/1.0
 }
 
 
@@ -190,12 +167,6 @@ class ModelHandler:
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
 
-<<<<<<< HEAD
-    def can_use_context_length(self):
-        return self.model_descriptor.get(CAN_USE_CONTEXT_LENGTH, True)
-
-=======
->>>>>>> release/1.0
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)
 

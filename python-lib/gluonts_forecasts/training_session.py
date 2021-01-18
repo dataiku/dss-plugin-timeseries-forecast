@@ -74,10 +74,6 @@ class TrainingSession:
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
         self.gpu = gpu
-<<<<<<< HEAD
-        self.context_length = context_length
-=======
->>>>>>> release/1.0
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -109,11 +105,7 @@ class TrainingSession:
             target_columns_names=self.target_columns_names,
             timeseries_identifiers_names=self.timeseries_identifiers_names,
             external_features_columns_names=self.external_features_columns_names,
-<<<<<<< HEAD
-            min_length=self.prediction_length + self.context_length,
-=======
             min_length=2 * self.prediction_length,  # Assuming that context_length = prediction_length
->>>>>>> release/1.0
         )
 
         gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
@@ -141,10 +133,6 @@ class TrainingSession:
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
                     gpu=self.gpu,
-<<<<<<< HEAD
-                    context_length=self.context_length,
-=======
->>>>>>> release/1.0
                 )
             )
 
@@ -242,9 +230,7 @@ class TrainingSession:
             Dataframe of metrics to display to users.
         """
         evaluation_metrics_df = self.metrics_df.copy()
-        evaluation_metrics_df.columns = [
-            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
-        ]
+        evaluation_metrics_df.columns = [column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]

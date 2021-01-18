@@ -346,8 +346,6 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
-<<<<<<< HEAD
-=======
             "name": "npts_model_activated",
             "label": "- NPTS",
             "description": "Based on the NPTSPredictor GluonTS model",
@@ -396,7 +394,6 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
->>>>>>> release/1.0
             "name": "deepar_model_activated",
             "label": "- DeepAR",
             "description": "Based on the DeepAREstimator GluonTS model",
@@ -451,13 +448,8 @@
             "name": "mqcnn_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-<<<<<<< HEAD
-            "description": "No documentation available yet",
-            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
-=======
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
->>>>>>> release/1.0
             "mandatory": false
         },
         {
@@ -597,16 +589,6 @@
             "visibilityCondition": "model.external_feature_activated"
         },
         {
-<<<<<<< HEAD
-            "name": "advanced_options",
-            "label": "Display advanced options",
-            "description": "",
-            "type": "BOOLEAN",
-            "defaultValue": false
-        },
-        {
-=======
->>>>>>> release/1.0
             "name": "evaluation_only",
             "label": "Evaluation only",
             "description": "Store evaluation results but do not save trained models",
@@ -619,7 +601,7 @@
             "label": "Use GPU",
             "type": "BOOLEAN",
             "defaultValue": false,
-            "visibilityCondition": "false"
+            "visibilityCondition": "true"
         }
     ],
     "resourceKeys": []

@@ -44,12 +44,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
-<<<<<<< HEAD
-        gpu=False,
-        context_length=None,
-=======
         gpu=None,
->>>>>>> release/1.0
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -78,11 +73,6 @@ class Model(ModelHandler):
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             self.using_external_features = True
             estimator_kwargs.update({"use_feat_dynamic_real": True})
-<<<<<<< HEAD
-        if self.context_length is not None and ModelHandler.can_use_context_length(self):
-            estimator_kwargs.update({"context_length": self.context_length})
-=======
->>>>>>> release/1.0
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
         self.evaluation_time = None
