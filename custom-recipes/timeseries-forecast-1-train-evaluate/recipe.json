@@ -496,7 +496,7 @@
         },
         {
             "name": "training_options_separator",
-            "label": "Training options",
+            "label": "Deep Learning training parameters",
             "type": "SEPARATOR",
             "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.trainer.html",
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
@@ -541,7 +541,7 @@
         },
         {
             "name": "separator_evaluation",
-            "label": "Training and Evaluation",
+            "label": "Evaluation",
             "description": "Split to evaluate performance metrics. The final model will be retrained on the entire sample.",
             "type": "SEPARATOR"
         },
