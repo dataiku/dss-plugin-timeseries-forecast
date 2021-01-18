@@ -135,7 +135,7 @@ class TimeseriesPreparator:
         Returns:
             Filtered dataframe
         """
-        if self.max_timeseries_length==42:
+        if self.max_timeseries_length == 42:
             print(H2G2)
         if len(self.timeseries_identifiers_names) == 0:
             return df.tail(self.max_timeseries_length)
