@@ -20,12 +20,15 @@ def test_run_timeseries_forecast_regular(user_clients):
 
 
 def test_run_timeseries_forecast_partition(user_clients):
+    test_kwargs["client"] = user_clients[test_kwargs["user"]]
     dss_scenario.run(scenario_id="Partitions", **test_kwargs)
 
 
 def test_run_timeseries_sql_forecast_regular(user_clients):
+    test_kwargs["client"] = user_clients[test_kwargs["user"]]
     dss_scenario.run(scenario_id="SQLRegular", **test_kwargs)
 
 
 def test_run_timeseries_sql_forecast_partition(user_clients):
+    test_kwargs["client"] = user_clients[test_kwargs["user"]]
     dss_scenario.run(scenario_id="SQLPartitions", **test_kwargs)
