@@ -30,7 +30,7 @@ class TrainingSession:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
-        gpu (str): Not implemented
+        gpu (list): List of gpu number. Default to None which means no gpu
     """
 
     def __init__(

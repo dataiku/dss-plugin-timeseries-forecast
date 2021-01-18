@@ -46,6 +46,7 @@
             "acceptsManagedFolder": false
         }
     ],
+    "paramsPythonSetup": "select_gpu_devices.py",
     "params": [
         {
             "type": "SEPARATOR",
@@ -597,11 +598,19 @@
             "visibilityCondition": "false"
         },
         {
-            "name": "gpu",
+            "name": "use_gpu",
             "label": "Use GPU",
             "type": "BOOLEAN",
             "defaultValue": false,
-            "visibilityCondition": "'cpu' == 'gpu'"
+            "visibilityCondition": "'gpu' == 'gpu'"
+        },
+        {
+            "name": "gpu_devices",
+            "type": "MULTISELECT",
+            "label": "GPU device number",
+            "description": "Select a GPU device",
+            "getChoicesFromPython": true,
+            "visibilityCondition": "'gpu' == 'gpu' && model.use_gpu"
         }
     ],
     "resourceKeys": []

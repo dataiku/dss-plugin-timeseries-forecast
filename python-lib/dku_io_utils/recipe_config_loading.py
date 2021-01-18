@@ -62,8 +62,7 @@ def load_training_config(recipe_config):
     else:
         params["timeseries_identifiers_names"] = []
 
-    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) \
-        or (len(params["timeseries_identifiers_names"]) > 0) else False
+    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) or (len(params["timeseries_identifiers_names"]) > 0) else False
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
@@ -74,9 +73,7 @@ def load_training_config(recipe_config):
     else:
         params["external_features_columns_names"] = []
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError(
-            f"Invalid external features selection: {params['external_features_columns_names']}"
-        )
+        raise PluginParamValidationError(f"Invalid external features selection: {params['external_features_columns_names']}")
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
@@ -125,7 +122,13 @@ def load_training_config(recipe_config):
         if params["max_timeseries_length"] < 4:
             raise PluginParamValidationError("Number of records must be higher than 4")
 
-    params["gpu"] = recipe_config.get("gpu", False)
+    params["use_gpu"] = recipe_config.get("use_gpu", False)
+    if params["use_gpu"]:
+        gpu_devices = recipe_config.get("gpu_devices", [])
+        params["gpu"] = parse_gpu_devices(gpu_devices)
+    else:
+        params["gpu"] = None
+
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
@@ -271,3 +274,29 @@ def reorder_column_list(column_list_to_reorder, reference_column_list):
         if column_name in column_list_to_reorder:
             reordered_list.append(column_name)
     return reordered_list
+
+
+def parse_gpu_devices(gpu_devices):
+    """Check the custom python MULTISELECT for GPU devices
+
+    Args:
+        gpu_devices (list): List of GPU number or ["no_gpu_available"]
+
+    Raises:
+        PluginParamValidationError:
+            If more than 1 GPU are selected (for now we support only one GPU)
+            If selected GPU is not an integer
+
+    Returns:
+        List of a single GPU (we may support multiple later) or None
+    """
+    if len(gpu_devices) == 0:  # nothing selected
+        return None
+    elif len(gpu_devices) > 1:
+        raise PluginParamValidationError("Only 1 GPU device can be selected")
+    elif gpu_devices[0] == "no_gpu_available":
+        return None
+    elif not isinstance(gpu_devices[0], int):
+        raise PluginParamValidationError("Selected GPU must be integer")
+    else:
+        return gpu_devices
