@@ -291,12 +291,12 @@ def parse_gpu_devices(gpu_devices):
         List of a single GPU (we may support multiple later) or None
     """
     if len(gpu_devices) == 0:  # nothing selected
-        return None
+        raise PluginParamValidationError("Please select one GPU device")
     elif len(gpu_devices) > 1:
-        raise PluginParamValidationError("Only 1 GPU device can be selected")
+        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training. Please select only one GPU device.")
     elif gpu_devices[0] == "no_gpu_available":
-        return None
+        raise PluginParamValidationError("No GPU available, please check your CUDA installation or deactivate the 'Use GPU' parameter")
     elif not isinstance(gpu_devices[0], int):
-        raise PluginParamValidationError("Selected GPU must be integer")
+        raise PluginParamValidationError("GPU device parameter must be integer")
     else:
         return gpu_devices

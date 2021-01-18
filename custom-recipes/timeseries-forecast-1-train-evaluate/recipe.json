@@ -602,15 +602,15 @@
             "label": "Use GPU",
             "type": "BOOLEAN",
             "defaultValue": false,
-            "visibilityCondition": "'gpu' == 'gpu'"
+            "visibilityCondition": "'cpu' == 'gpu'"
         },
         {
             "name": "gpu_devices",
             "type": "MULTISELECT",
-            "label": "GPU device number",
-            "description": "Select a GPU device",
+            "label": "GPU device",
+            "description": "Select one GPU device to train Deep Learning models on",
             "getChoicesFromPython": true,
-            "visibilityCondition": "'gpu' == 'gpu' && model.use_gpu"
+            "visibilityCondition": "model.use_gpu"
         }
     ],
     "resourceKeys": []

@@ -30,7 +30,7 @@ class TrainingSession:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
-        gpu (list): List of gpu number. Default to None which means no gpu
+        gpu (list[int]): List of gpu device numbers. Default to None which means no gpu.
     """
 
     def __init__(
@@ -230,9 +230,7 @@ class TrainingSession:
             Dataframe of metrics to display to users.
         """
         evaluation_metrics_df = self.metrics_df.copy()
-        evaluation_metrics_df.columns = [
-            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
-        ]
+        evaluation_metrics_df.columns = [column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]

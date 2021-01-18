@@ -32,7 +32,7 @@ class Model(ModelHandler):
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool): If the model will be fed external features (use_feat_dynamic_real in GluonTS)
         batch_size (int): Size of batch used by the GluonTS Trainer class
-        gpu (list): List of gpu number. Default to None which means no gpu
+        gpu (list[int]): List of gpu device numbers. Default to None which means no gpu.
     """
 
     def __init__(
