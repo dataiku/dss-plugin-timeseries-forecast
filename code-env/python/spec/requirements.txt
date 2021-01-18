@@ -1,3 +1,10 @@
+<<<<<<< HEAD
 mxnet-cu101==1.7.0
 gluonts==0.6.4
 dill==0.3.2
+=======
+mxnet==1.7.0.post1
+gluonts==0.6.4
+dill==0.3.3
+pmdarima==1.8.0
+>>>>>>> release/1.0

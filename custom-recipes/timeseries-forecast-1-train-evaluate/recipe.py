@@ -5,9 +5,8 @@ from dku_io_utils.utils import set_column_description
 from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
-from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_COLUMNS_DESCRIPTIONS
 from gluonts_forecasts.model_handler import get_model_label
-from gluonts_forecasts.timeseries_preparation import prepare_timeseries_dataframe
+from timeseries_preparation.preparation import TimeseriesPreparator
 from safe_logger import SafeLogger
 from time import perf_counter
 
@@ -16,19 +15,22 @@ config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
 
-models_parameters = get_models_parameters(config)
+models_parameters = get_models_parameters(config, is_training_multivariate=params["is_training_multivariate"])
 start = perf_counter()
 logger.info("Starting training session {}...".format(session_name))
 
 training_df = params["training_dataset"].get_dataframe()
 
-training_df_prepared = prepare_timeseries_dataframe(
-    training_df,
+timeseries_preparator = TimeseriesPreparator(
     time_column_name=params["time_column_name"],
     frequency=params["frequency"],
+    target_columns_names=params["target_columns_names"],
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
+    external_features_columns_names=params["external_features_columns_names"],
     max_timeseries_length=params["max_timeseries_length"],
 )
+
+training_df_prepared = timeseries_preparator.prepare_timeseries_dataframe(training_df)
 
 training_session = TrainingSession(
     target_columns_names=params["target_columns_names"],
@@ -44,7 +46,6 @@ training_session = TrainingSession(
     batch_size=params["batch_size"],
     user_num_batches_per_epoch=params["num_batches_per_epoch"],
     gpu=params["gpu"],
-    context_length=params["context_length"],
 )
 training_session.init(partition_root=params["partition_root"], session_name=session_name)
 
@@ -78,12 +79,12 @@ if not params["evaluation_only"]:
 logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 
 params["evaluation_dataset"].write_with_schema(training_session.get_evaluation_metrics_df())
-evaluation_results_columns_descriptions = {**METRICS_COLUMNS_DESCRIPTIONS, **EVALUATION_METRICS_DESCRIPTIONS}
-set_column_description(params["evaluation_dataset"], evaluation_results_columns_descriptions, to_lowercase=True)
+evaluation_results_columns_descriptions = training_session.create_evaluation_results_columns_descriptions()
+set_column_description(params["evaluation_dataset"], evaluation_results_columns_descriptions)
 
 if params["make_forecasts"]:
     evaluation_forecasts_df = training_session.get_evaluation_forecasts_df()
     params["evaluation_forecasts_dataset"].write_with_schema(evaluation_forecasts_df)
 
     evaluation_forecasts_columns_descriptions = training_session.create_evaluation_forecasts_column_description()
-    set_column_description(params["evaluation_forecasts_dataset"], evaluation_forecasts_columns_descriptions, to_lowercase=True)
+    set_column_description(params["evaluation_forecasts_dataset"], evaluation_forecasts_columns_descriptions)

@@ -1,12 +1,12 @@
-from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS
+from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.model_handler import ModelHandler
-from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries
+from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, quantile_forecasts_series
 from time import perf_counter
+from pandas.tseries.frequencies import to_offset
 from safe_logger import SafeLogger
 import json
-import mxnet as mx
 
 
 logger = SafeLogger("Forecast plugin")
@@ -25,13 +25,13 @@ class Model(ModelHandler):
     Attributes:
         model_name (str): Model name belonging to model_handler.MODEL_DESCRIPTORS
         model_parameters (dict): Kwargs of model parameters
-        frequency (str): Pandas timeseries frequency (e.g. '3M')
+        custom_frequency (str): Pandas timeseries frequency not necessarily supported by GluonTS Estimators (e.g. 'W-MON')
+        frequency (str): Pandas timeseries frequency (e.g. '3M') supported by GluonTS Estimators
         prediction_length (int): Number of time steps to predict
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool)
         batch_size (int): Size of batch used by the GluonTS Trainer class
         gpu (str): Not implemented
-        context_length (int): Number of time steps used by model to make predictions
     """
 
     def __init__(
@@ -44,15 +44,19 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
+<<<<<<< HEAD
         gpu=False,
         context_length=None,
+=======
+        gpu=None,
+>>>>>>> release/1.0
     ):
         super().__init__(model_name)
         self.model_name = model_name
         self.model_parameters = model_parameters
-        self.frequency = frequency
+        self.custom_frequency = frequency
+        self.frequency = frequency if not isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS) else to_offset(frequency).name.split("-")[0]
         self.prediction_length = prediction_length
-        self.context_length = context_length
         self.epoch = epoch
         self.use_external_features = use_external_features
         self.using_external_features = False
@@ -68,16 +72,17 @@ class Model(ModelHandler):
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
-        if gpu and mx.context.num_gpus() > 0:
-            trainer_kwargs.update({"ctx": mx.context.gpu()})
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
         if ModelHandler.can_use_external_feature(self) and self.use_external_features:
             self.using_external_features = True
             estimator_kwargs.update({"use_feat_dynamic_real": True})
+<<<<<<< HEAD
         if self.context_length is not None and ModelHandler.can_use_context_length(self):
             estimator_kwargs.update({"context_length": self.context_length})
+=======
+>>>>>>> release/1.0
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
         self.evaluation_time = None
@@ -200,8 +205,6 @@ class Model(ModelHandler):
         if self.estimator is None:
             if ModelHandler.needs_num_samples(self):
                 kwargs.update({"num_samples": 100})
-            if self.context_length is not None and ModelHandler.can_use_context_length(self):
-                kwargs.update({"context_length": self.context_length})
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
             try:
@@ -219,7 +222,6 @@ class Model(ModelHandler):
                 "model_name": ModelHandler.get_label(self),
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
-                "context_length": self.context_length,
                 "epoch": self.epoch,
                 "use_external_features": self.using_external_features,
                 "batch_size": self.batch_size,
@@ -242,7 +244,9 @@ class Model(ModelHandler):
         """
         mean_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
-            series = sample_forecasts.quantile_ts(0.5).rename(f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}")
+            series = quantile_forecasts_series(sample_forecasts, 0.5, self.custom_frequency).rename(
+                f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}"
+            )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
                 timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
             else:

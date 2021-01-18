@@ -6,7 +6,7 @@ from dataiku.customrecipe import (
 )
 import re
 from gluonts_forecasts.model_handler import list_available_models
-from dku_io_utils.partitions_handling import get_partition_root
+from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
 from constants import FORECASTING_STYLE_PRESELECTED_MODELS
 from safe_logger import SafeLogger
 
@@ -30,11 +30,11 @@ def load_training_config(recipe_config):
     input_dataset_name = get_input_names_for_role("input_dataset")[0]
     params["training_dataset"] = dataiku.Dataset(input_dataset_name)
     training_dataset_columns = [p["name"] for p in params["training_dataset"].read_schema()]
-    params["partition_root"] = get_partition_root(params["training_dataset"])
-    check_equal_partition_dependencies(params["partition_root"], params["training_dataset"])
 
     model_folder_name = get_output_names_for_role("model_folder")[0]
     params["model_folder"] = dataiku.Folder(model_folder_name)
+    params["partition_root"] = get_folder_partition_root(params["model_folder"])
+    check_only_one_read_partition(params["partition_root"], params["training_dataset"])
 
     evaluation_dataset_name = get_output_names_for_role("evaluation_dataset")[0]
     params["evaluation_dataset"] = dataiku.Dataset(evaluation_dataset_name)
@@ -52,6 +52,7 @@ def load_training_config(recipe_config):
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
     if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
+    params["target_columns_names"] = reorder_column_list(params["target_columns_names"], training_dataset_columns)
 
     long_format = recipe_config.get("additional_columns", False)
     if long_format:
@@ -60,6 +61,9 @@ def load_training_config(recipe_config):
             raise PluginParamValidationError(f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}")
     else:
         params["timeseries_identifiers_names"] = []
+
+    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) \
+        or (len(params["timeseries_identifiers_names"]) > 0) else False
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
@@ -76,12 +80,10 @@ def load_training_config(recipe_config):
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    if params["frequency_unit"] not in ["A", "W", "H", "min"]:
+    if params["frequency_unit"] not in ["W", "H", "min"]:
         params["frequency"] = params["frequency_unit"]
     else:
-        if params["frequency_unit"] == "A":
-            params["frequency"] = f"A-{recipe_config.get('frequency_end_of_year', 1)}"
-        elif params["frequency_unit"] == "W":
+        if params["frequency_unit"] == "W":
             params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
         elif params["frequency_unit"] == "H":
             params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
@@ -91,12 +93,6 @@ def load_training_config(recipe_config):
     params["prediction_length"] = recipe_config.get("prediction_length")
     if not params["prediction_length"]:
         raise PluginParamValidationError("Please specify forecasting horizon")
-
-    params["context_length"] = recipe_config.get("context_length", -1)
-    if params["context_length"] < 0:
-        params["context_length"] = params["prediction_length"]
-    if params["context_length"] == 0:
-        raise PluginParamValidationError("Context length cannot be 0")
 
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
     params["epoch"] = recipe_config.get("epoch", 10)
@@ -113,13 +109,12 @@ def load_training_config(recipe_config):
 
     # Overwrite values in case of autoML mode selected
     if params["forecasting_style"] == "auto":
-        params["context_length"] = params["prediction_length"]
         params["epoch"] = 10
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
         params["context_length"] = params["prediction_length"]
-        params["epoch"] = 30
+        params["epoch"] = 30 if params["is_training_multivariate"] else 10
         params["batch_size"] = 32
         params["num_batches_per_epoch"] = -1
 
@@ -127,10 +122,10 @@ def load_training_config(recipe_config):
     params["max_timeseries_length"] = None
     if params["sampling_method"] == "last_records":
         params["max_timeseries_length"] = recipe_config.get("number_records", 10000)
-        if params["max_timeseries_length"] < 1:
-            raise PluginParamValidationError("Number of records must be higher than 1")
+        if params["max_timeseries_length"] < 4:
+            raise PluginParamValidationError("Number of records must be higher than 4")
 
-    params["gpu"] = recipe_config.get("gpu", False)
+    params["gpu"] = recipe_config.get("gpu", "no_gpu")
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
@@ -151,6 +146,7 @@ def load_predict_config():
     # model folder
     model_folder = dataiku.Folder(get_input_names_for_role("model_folder")[0])
     params["model_folder"] = model_folder
+    params["partition_root"] = get_folder_partition_root(params["model_folder"], is_input=True)
 
     params["external_features_future_dataset"] = None
     external_features_future_dataset_names = get_input_names_for_role("external_features_future_dataset")
@@ -162,9 +158,8 @@ def load_predict_config():
     if len(output_dataset_names) == 0:
         raise PluginParamValidationError("Please specify Forecast dataset in the 'Input / Output' tab of the recipe")
     params["output_dataset"] = dataiku.Dataset(output_dataset_names[0])
-    params["partition_root"] = get_partition_root(params["output_dataset"])
-    check_equal_partition_dependencies(params["partition_root"], params["model_folder"])
-    check_equal_partition_dependencies(params["partition_root"], params["external_features_future_dataset"])
+    check_only_one_read_partition(params["partition_root"], params["model_folder"])
+    check_only_one_read_partition(params["partition_root"], params["external_features_future_dataset"])
 
     params["manual_selection"] = True if recipe_config.get("model_selection_mode") == "manual" else False
 
@@ -182,7 +177,7 @@ def load_predict_config():
     return params
 
 
-def get_models_parameters(config):
+def get_models_parameters(config, is_training_multivariate=False):
     """Create a models parameters dictionary to store for each activated model its parameters (activated, kwargs, ...)
 
     Args:
@@ -196,46 +191,18 @@ def get_models_parameters(config):
     """
     models_parameters = {}
     for model in list_available_models():
-        if is_activated(config, model):
+        if is_activated(config, model, is_training_multivariate):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
                 raise ValueError("Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter")
             models_parameters.update({model: model_presets})
-    models_parameters = set_naive_model_parameters(config, models_parameters)
     if not models_parameters:
         raise PluginParamValidationError("Please select at least one model")
     logger.info(f"Model parameters: {models_parameters}")
     return models_parameters
 
 
-def set_naive_model_parameters(config, models_parameters):
-    """Update models_parameters to add specific parameters that some baselines models have.
-
-    Args:
-        config (dict): Recipe config dictionary obtained with dataiku.customrecipe.get_recipe_config().
-        models_parameters (dict): Obtained with get_models_parameters.
-
-    Returns:
-        Dictionary of model parameter (value) by activated model name (key).
-    """
-    naive_model_parameters = models_parameters.get("naive")
-    if naive_model_parameters is not None:
-        model_name = get_naive_model_name(config)
-        models_parameters[model_name] = models_parameters.pop("naive")
-        if model_name in ["trivial_identity", "trivial_mean"]:
-            models_parameters[model_name]["kwargs"] = {"num_samples": 100}
-    return models_parameters
-
-
-def get_naive_model_name(config):
-    """ Only the customize_algorithms forecasting style allows selecting the naive model algorithm """
-    if config.get("forecasting_style") == "customize_algorithms":
-        return config.get("naive_model_method")
-    else:
-        return "trivial_identity"
-
-
-def is_activated(config, model):
+def is_activated(config, model, is_training_multivariate=False):
     """Returns the activation status for a model according to the selected forcasting style (auto / auto_performance) or UX config otherwise.
 
     Args:
@@ -245,7 +212,7 @@ def is_activated(config, model):
     Returns:
         True if model is activated, else False.
     """
-    forecasting_style = config.get("forecasting_style", "auto")
+    forecasting_style = config.get("forecasting_style", "auto") + ("_multivariate" if is_training_multivariate else "_univariate")
     if forecasting_style in FORECASTING_STYLE_PRESELECTED_MODELS:
         preselected_models = FORECASTING_STYLE_PRESELECTED_MODELS.get(forecasting_style)
         return model in preselected_models
@@ -278,25 +245,6 @@ def sanitize_column_list(input_column_list):
     return sanitized_column_list
 
 
-def check_equal_partition_dependencies(partition_root, dku_computable):
-    """Check that input has equal partition dependencies.
-
-    Args:
-        partition_root (str): Partition root path of output. None if no partitioning.
-        dku_computable (dataiku.Folder/dataiku.Dataset): Input dataset or folder.
-
-    Raises:
-        PluginParamValidationError: If input does not have equal partition dependencies.
-    """
-    if partition_root and dku_computable:
-        if len(dku_computable.read_partitions) > 1:
-            if isinstance(dku_computable, dataiku.Dataset):
-                error_message_prefix = f"Input dataset '{dku_computable.short_name}'"
-            if isinstance(dku_computable, dataiku.Folder):
-                error_message_prefix = f"Input folder '{dku_computable.get_name()}'"
-            raise PluginParamValidationError(error_message_prefix + " must have equal partition dependencies.")
-
-
 def convert_confidence_interval_to_quantiles(confidence_interval):
     """Convert a confidence interval value into a list of lower and upper quantiles with also the median.
 
@@ -314,3 +262,12 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
     alpha = (100 - confidence_interval) / 2 / 100.0
     quantiles = [round(alpha, 3), 0.5, round(1 - alpha, 3)]
     return quantiles
+
+
+def reorder_column_list(column_list_to_reorder, reference_column_list):
+    """ Keep the target list in same order as the training dataset, for consistency of forecasted columns order"""
+    reordered_list = []
+    for column_name in reference_column_list:
+        if column_name in column_list_to_reorder:
+            reordered_list.append(column_name)
+    return reordered_list

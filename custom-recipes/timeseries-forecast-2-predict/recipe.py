@@ -15,7 +15,7 @@ logger.info("Forecasting future values...")
 
 model_selection = ModelSelection(
     folder=params["model_folder"],
-    partition=params["partition_root"],
+    partition_root=params["partition_root"],
 )
 
 if params["manual_selection"]:
