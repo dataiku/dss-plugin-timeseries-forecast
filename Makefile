@@ -6,7 +6,10 @@ remote_url=`git config --get remote.origin.url`
 last_commit_id=`git rev-parse HEAD`
 
 plugin:
-ifeq ($(GPU),TRUE)
+ifndef GPU
+	$(error Please set GPU variable to TRUE/FALSE)
+endif
+ifeq ($(GPU), TRUE)
 	@$(MAKE) plugin-gpu
 else
 	@$(MAKE) plugin-cpu
@@ -24,13 +27,15 @@ plugin-cpu:
 	@echo "[SUCCESS] Saving ZIP archive of the plugin (CPU): Done!"
 
 plugin-gpu:
-ifndef MXNETCU_VERSION
+ifndef MXNET_VERSION
 	$(error Please set MXNET_VERSION variable e.g., 1.7.0)
 endif
 ifndef CUDA_VERSION
 	$(error Please set CUDA_VERSION variable e.g., 102 for cuda 10.2)
 endif
 	@echo "[START] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION})..."
+	@rm -rf dist
+	@mkdir dist
 	# TODO
 	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION}): Done!"
 
