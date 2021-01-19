@@ -39,12 +39,12 @@ endif
 		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \
 		mxnet_version="mxnet-cu${CUDA_VERSION}"; \
 		echo "Modifying a few files to make the plugin GPU-ready. Fasten your seatbelt."; \
-		git_stash=`git stash create`; \
 		sed -i "" "s/${plugin_id}/$${plugin_id_gpu}/g" plugin.json; \
+		git_stash=`git stash create`; \
 		echo "Stached modifications to $${git_stash:-HEAD}"; \
 		rm -rf dist && mkdir dist; \
 		git archive -v -9 --format zip -o dist/$${archive_file_name_gpu} $${git_stash:-HEAD}; \
-		git stash drop; \
+		git reset --hard HEAD; \
 	)
 	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION}): Done!"
 
