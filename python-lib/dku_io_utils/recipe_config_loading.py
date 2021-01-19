@@ -7,7 +7,7 @@ from dataiku.customrecipe import (
 import re
 from gluonts_forecasts.model_handler import list_available_models
 from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
-from constants import FORECASTING_STYLE_PRESELECTED_MODELS
+from constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION
 from safe_logger import SafeLogger
 
 logger = SafeLogger("Forecast plugin")
@@ -291,12 +291,14 @@ def parse_gpu_devices(gpu_devices):
         List of a single GPU (we may support multiple later) or None
     """
     if len(gpu_devices) == 0:  # nothing selected
-        raise PluginParamValidationError("Please select one GPU device")
+        raise PluginParamValidationError("Please select one GPU device configuration")
     elif len(gpu_devices) > 1:
-        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training. Please select only one GPU device.")
-    elif gpu_devices[0] == "no_gpu_available":
-        raise PluginParamValidationError("No GPU available, please check your CUDA installation or deactivate the 'Use GPU' parameter")
-    elif not isinstance(gpu_devices[0], int):
-        raise PluginParamValidationError("GPU device parameter must be integer")
-    else:
-        return gpu_devices
+        if all([isinstance(x, int) for x in gpu_devices]):
+            raise PluginParamValidationError("GluonTS does not currently support multi-GPU training. Please select only one GPU device.")
+        else:
+            raise PluginParamValidationError("Please select a valid GPU device configuration")
+    else:  # one element list
+        if gpu_devices[0] == GPU_CONFIGURATION.NO_GPU:
+            raise PluginParamValidationError("No GPU available, please check your CUDA installation or deactivate the 'Use GPU' parameter")
+        else:
+            return gpu_devices

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import dataiku
-import mxnet as mx
+from constants import GPU_CONFIGURATION
 from safe_logger import SafeLogger
 
 
@@ -14,14 +14,22 @@ def do(payload, config, plugin_config, inputs):
 
     if payload.get("parameterName") == "gpu_devices":
         try:
-            num_gpu = mx.context.num_gpus()
-        except mx.base.MXNetError as e:
-            logger.error(f"Error when querying number of GPU: {e}")
-            choices = [{"label": "Fail querying GPUs, please check your CUDA installation", "value": "no_gpu_available"}]
+            import mxnet as mx
+        except OSError as cuda_error:  # error when importing mxnet
+            logger.error(f"Error when importing mxnet: {cuda_error}")
+            choices += [{"label": "No GPU detected on DSS server, please check your server CUDA installation", "value": GPU_CONFIGURATION.NO_GPU}]
         else:
-            if num_gpu > 0:
-                choices = [{"label": f"GPU #{n}", "value": n} for n in range(num_gpu)]
+            try:
+                num_gpu = mx.context.num_gpus()
+            except mx.base.MXNetError as num_gpus_error:  # error on num_gpus()
+                logger.error(f"Error when querying number of GPU: {num_gpus_error}")
+                choices += [{"label": "No GPU detected on DSS server, please check your server CUDA installation", "value": GPU_CONFIGURATION.NO_GPU}]
             else:
-                choices = [{"label": "No GPU available, please check your CUDA installation", "value": "no_gpu_available"}]
+                if num_gpu > 0:
+                    choices += [{"label": f"GPU #{n}", "value": n} for n in range(num_gpu)]
+                else:
+                    choices += [{"label": "No GPU detected on DSS server, please check that your server has GPUs", "value": GPU_CONFIGURATION.NO_GPU}]
+        finally:
+            choices += [{"label": "Select a GPU from the container configuration", "value": GPU_CONFIGURATION.CONTAINER_GPU}]
 
     return {"choices": choices}

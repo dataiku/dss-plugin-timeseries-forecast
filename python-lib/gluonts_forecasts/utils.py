@@ -3,7 +3,7 @@ from pandas.tseries.frequencies import to_offset
 import numpy as np
 from functools import reduce
 import copy
-from constants import TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
+from constants import TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS, GPU_CONFIGURATION
 from timeseries_preparation.preparation import TimeseriesPreparator
 
 
@@ -123,3 +123,35 @@ def quantile_forecasts_series(sample_forecasts, quantile, frequency):
     sample_forecasts_quantile = sample_forecasts.quantile(quantile)
     index = pd.date_range(sample_forecasts.start_date, periods=len(sample_forecasts_quantile), freq=frequency)
     return pd.Series(index=index, data=sample_forecasts_quantile)
+
+
+class GPUError(Exception):
+    """Custom exception raised when the GPU selection failed"""
+
+    pass
+
+
+def set_mxnet_context(gpu_devices):
+    try:
+        import mxnet as mx
+    except OSError as cuda_error:  # error when importing mxnet
+        raise GPUError(f"Error when importing mxnet: {cuda_error}")
+
+    if gpu_devices is None:
+        return mx.context.cpu()
+    else:
+        try:
+            num_gpu = mx.context.num_gpus()
+        except mx.base.MXNetError as num_gpus_error:  # error on num_gpus()
+            raise GPUError(f"Error when querying number of GPU: {num_gpus_error}")
+
+        if num_gpu == 0:
+            if GPU_CONFIGURATION.CONTAINER_GPU in gpu_devices:
+                raise GPUError("No GPU detected, please check that the container has GPUs")
+            else:
+                raise GPUError("No GPU detected, please check your server has GPUs")
+        else:
+            if GPU_CONFIGURATION.CONTAINER_GPU in gpu_devices:
+                return mx.context.gpu(0)  # return first GPU of container
+            else:
+                return mx.context.gpu(gpu_devices[0])
