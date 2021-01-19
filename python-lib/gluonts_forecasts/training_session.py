@@ -30,7 +30,7 @@ class TrainingSession:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
-        gpu (list[int]): List of gpu device numbers. Default to None which means no gpu.
+        gpu_devices (list[int]): List of gpu device numbers. Default to None which means no gpu.
     """
 
     def __init__(
@@ -47,7 +47,7 @@ class TrainingSession:
         timeseries_identifiers_names=None,
         batch_size=None,
         user_num_batches_per_epoch=None,
-        gpu=None,
+        gpu_devices=None,
     ):
         self.models_parameters = models_parameters
         self.models = None
@@ -73,7 +73,7 @@ class TrainingSession:
         self.batch_size = batch_size
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
-        self.gpu = gpu
+        self.gpu_devices = gpu_devices
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -132,7 +132,7 @@ class TrainingSession:
                     use_external_features=self.use_external_features,
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
-                    gpu=self.gpu,
+                    gpu_devices=self.gpu_devices,
                 )
             )
 

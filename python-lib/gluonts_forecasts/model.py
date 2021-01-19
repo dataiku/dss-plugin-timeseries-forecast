@@ -32,7 +32,7 @@ class Model(ModelHandler):
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool): If the model will be fed external features (use_feat_dynamic_real in GluonTS)
         batch_size (int): Size of batch used by the GluonTS Trainer class
-        gpu (list[int]): List of gpu device numbers. Default to None which means no gpu.
+        gpu_devices (list[int]): List of gpu device numbers. Default to None which means no gpu.
     """
 
     def __init__(
@@ -45,7 +45,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
-        gpu=None,
+        gpu_devices=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -55,7 +55,7 @@ class Model(ModelHandler):
         self.prediction_length = prediction_length
         self.epoch = epoch
         self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
-        self.ctx = mx.context.cpu() if gpu is None else mx.context.gpu(gpu[0])
+        self.ctx = mx.context.cpu() if gpu_devices is None else mx.context.gpu(gpu_devices[0])
 
         estimator_kwargs = {
             "freq": self.frequency,

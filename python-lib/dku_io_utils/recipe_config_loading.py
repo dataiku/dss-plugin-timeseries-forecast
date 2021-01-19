@@ -125,9 +125,9 @@ def load_training_config(recipe_config):
     params["use_gpu"] = recipe_config.get("use_gpu", False)
     if params["use_gpu"]:
         gpu_devices = recipe_config.get("gpu_devices", [])
-        params["gpu"] = parse_gpu_devices(gpu_devices)
+        params["gpu_devices"] = parse_gpu_devices(gpu_devices)
     else:
-        params["gpu"] = None
+        params["gpu_devices"] = None
 
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
