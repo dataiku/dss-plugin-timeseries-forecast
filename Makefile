@@ -33,20 +33,24 @@ endif
 ifndef CUDA_VERSION
 	$(error Please set CUDA_VERSION variable e.g., 102 for cuda 10.2)
 endif
-	@echo "[START] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION})..."
+	@echo "[START] Saving ZIP archive of the plugin (GPU - CUDA ${CUDA_VERSION})..."
 	@( \
-		plugin_id_gpu="${plugin_id}-gpu-cu${CUDA_VERSION}"; \
-		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \
-		mxnet_version="mxnet-cu${CUDA_VERSION}"; \
+		plugin_id_gpu="${plugin_id}-gpu-cuda${CUDA_VERSION}"; \
 		echo "Modifying a few files to make the plugin GPU-ready. Fasten your seatbelt."; \
 		sed -i "" "s/${plugin_id}/$${plugin_id_gpu}/g" plugin.json; \
+		sed -i "" "s/]/,\"GPU\"]/g" plugin.json; \
+		sed -i "" "s/\"label\": \"Forecast\"/\"label\": \"Forecast (GPU - CUDA ${CUDA_VERSION})\"/g" plugin.json; \
+		cat plugin.json | json_pp > /dev/null; \
+		sed -i "" "s/mxnet.*/mxnet-cu${CUDA_VERSION}==${MXNET_VERSION}/g" code-env/python/spec/requirements.txt; \
 		git_stash=`git stash create`; \
 		echo "Stached modifications to $${git_stash:-HEAD}"; \
 		rm -rf dist && mkdir dist; \
+		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \
 		git archive -v -9 --format zip -o dist/$${archive_file_name_gpu} $${git_stash:-HEAD}; \
 		git reset --hard HEAD; \
+		git stash clear; \
 	)
-	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION}): Done!"
+	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - CUDA ${CUDA_VERSION}): Done!"
 
 unit-tests:
 	@echo "[START] Running unit tests..."
