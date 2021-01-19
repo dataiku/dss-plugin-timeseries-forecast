@@ -34,9 +34,18 @@ ifndef CUDA_VERSION
 	$(error Please set CUDA_VERSION variable e.g., 102 for cuda 10.2)
 endif
 	@echo "[START] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION})..."
-	@rm -rf dist
-	@mkdir dist
-	# TODO
+	@( \
+		plugin_id_gpu="${plugin_id}-gpu-cu${CUDA_VERSION}"; \
+		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \
+		mxnet_version="mxnet-cu${CUDA_VERSION}"; \
+		echo "Modifying a few files to make the plugin GPU-ready. Fasten your seatbelt."; \
+		git_stash=`git stash create`; \
+		sed -i "" "s/${plugin_id}/$${plugin_id_gpu}/g" plugin.json; \
+		echo "Stached modifications to $${git_stash:-HEAD}"; \
+		rm -rf dist && mkdir dist; \
+		git archive -v -9 --format zip -o dist/$${archive_file_name_gpu} $${git_stash:-HEAD}; \
+		git stash drop; \
+	)
 	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - mxnet-cu${CUDA_VERSION}): Done!"
 
 unit-tests:
