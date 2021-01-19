@@ -45,6 +45,7 @@ endif
 		sed -i "" "s/\"label\": \"Forecast\"/\"label\": \"Forecast (GPU - CUDA ${CUDA_VERSION})\"/g" plugin.json; \
 		cat plugin.json | json_pp > /dev/null; \
 		sed -i "" "s/mxnet.*/mxnet-cu${CUDA_VERSION}==${MXNET_VERSION}/g" code-env/python/spec/requirements.txt; \
+		sed -i "" "s/'cpu'/'gpu'/g" custom-recipes/${PLUGIN_ID}-1-train-evaluate/recipe.json; \
 		git mv custom-recipes/${PLUGIN_ID}-1-train-evaluate custom-recipes/$${plugin_id_gpu}-1-train-evaluate; \
 		git mv custom-recipes/${PLUGIN_ID}-2-predict custom-recipes/$${plugin_id_gpu}-2-predict; \
 		git_stash=`git stash create` && echo "Stached modifications to $${git_stash:-HEAD}"; \
