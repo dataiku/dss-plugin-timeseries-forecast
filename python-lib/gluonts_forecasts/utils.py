@@ -132,10 +132,19 @@ class GPUError(Exception):
 
 
 def set_mxnet_context(gpu_devices):
-    try:
-        import mxnet as mx
-    except OSError as cuda_error:  # error when importing mxnet
-        raise GPUError(f"Error when importing mxnet: {cuda_error}")
+    """Return the right MXNet context from the selected GPU configuration.
+
+    Args:
+        gpu_devices (list): List of gpu device numbers or 'container_gpu'. Default to None which means no gpu.
+
+    Raises:
+        GPUError:
+            If mx.context.num_gpus() fails on a Cuda error.
+            If no GPUs are detected on the DSS server or in the container.
+
+    Returns:
+        A mxnet.context.Context to use for DL models training.
+    """
 
     if gpu_devices is None:
         return mx.context.cpu()

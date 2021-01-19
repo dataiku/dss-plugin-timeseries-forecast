@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+try:
+    import mxnet as mx
+except OSError as cuda_error:  # error when importing mxnet
+    raise Exception(f"Error when importing mxnet: {cuda_error}")
+
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
 from dku_io_utils.utils import set_column_description
