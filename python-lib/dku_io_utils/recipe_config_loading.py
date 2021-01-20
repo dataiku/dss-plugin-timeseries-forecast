@@ -302,4 +302,4 @@ def parse_gpu_devices(gpu_devices):
         if gpu_devices[0] == GPU_CONFIGURATION.NO_GPU:
             raise PluginParamValidationError("No GPU available, please check your CUDA installation or deactivate the 'Use GPU' parameter")
         else:
-            return gpu_devices
+            return [int(gpu_device.split("_")[1]) for gpu_device in gpu_devices]

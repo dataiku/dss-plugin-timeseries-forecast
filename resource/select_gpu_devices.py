@@ -26,7 +26,7 @@ def do(payload, config, plugin_config, inputs):
                 choices += [{"label": "No GPU detected on DSS server, please check your server CUDA installation", "value": GPU_CONFIGURATION.NO_GPU}]
             else:
                 if num_gpu > 0:
-                    choices += [{"label": f"GPU #{n}", "value": n} for n in range(num_gpu)]
+                    choices += [{"label": f"GPU #{n}", "value": f"gpu_{n}"} for n in range(num_gpu)]
                 else:
                     choices += [{"label": "No GPU detected on DSS server, please check that your server has GPUs", "value": GPU_CONFIGURATION.NO_GPU}]
 
