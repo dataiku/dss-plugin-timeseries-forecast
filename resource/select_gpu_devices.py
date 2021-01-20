@@ -22,14 +22,12 @@ def do(payload, config, plugin_config, inputs):
             try:
                 num_gpu = mx.context.num_gpus()
             except mx.base.MXNetError as num_gpus_error:  # error on num_gpus()
-                logger.error(f"Error when querying number of GPU: {num_gpus_error}")
+                logger.error(f"Cuda error: {num_gpus_error}")
                 choices += [{"label": "No GPU detected on DSS server, please check your server CUDA installation", "value": GPU_CONFIGURATION.NO_GPU}]
             else:
                 if num_gpu > 0:
                     choices += [{"label": f"GPU #{n}", "value": n} for n in range(num_gpu)]
                 else:
                     choices += [{"label": "No GPU detected on DSS server, please check that your server has GPUs", "value": GPU_CONFIGURATION.NO_GPU}]
-        finally:
-            choices += [{"label": "Select a GPU from the container configuration", "value": GPU_CONFIGURATION.CONTAINER_GPU}]
 
     return {"choices": choices}

@@ -30,7 +30,7 @@ class TrainingSession:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
-        mxnet_context (mxnet.context.Context): MXNet context to use for DL models training.
+        mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
 
     def __init__(

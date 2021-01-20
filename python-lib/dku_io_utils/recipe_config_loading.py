@@ -124,8 +124,12 @@ def load_training_config(recipe_config):
 
     params["use_gpu"] = recipe_config.get("use_gpu", False)
     if params["use_gpu"]:
-        gpu_devices = recipe_config.get("gpu_devices", [])
-        params["gpu_devices"] = parse_gpu_devices(gpu_devices)
+        params["gpu_location"] = recipe_config.get("gpu_location", "local_gpu")
+        if params["gpu_location"] == "local_gpu":
+            gpu_devices = recipe_config.get("gpu_devices", [])
+            params["gpu_devices"] = parse_gpu_devices(gpu_devices)
+        else:
+            params["gpu_devices"] = [GPU_CONFIGURATION.CONTAINER_GPU]
     else:
         params["gpu_devices"] = None
 
@@ -280,23 +284,20 @@ def parse_gpu_devices(gpu_devices):
     """Check the custom python MULTISELECT for GPU devices
 
     Args:
-        gpu_devices (list): List of GPU number or ["no_gpu_available"]
+        gpu_devices (list): List of GPU number or ["no_gpu"]
 
     Raises:
         PluginParamValidationError:
             If more than 1 GPU are selected (for now we support only one GPU)
-            If selected GPU is not an integer
+            If selected value is "no_gpu"
 
     Returns:
         List of a single GPU (we may support multiple later) or None
     """
     if len(gpu_devices) == 0:  # nothing selected
-        raise PluginParamValidationError("Please select one GPU device configuration")
+        raise PluginParamValidationError("Please select one local GPU device")
     elif len(gpu_devices) > 1:
-        if all([isinstance(x, int) for x in gpu_devices]):
-            raise PluginParamValidationError("GluonTS does not currently support multi-GPU training. Please select only one GPU device.")
-        else:
-            raise PluginParamValidationError("Please select a valid GPU device configuration")
+        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training. Please select only one GPU device.")
     else:  # one element list
         if gpu_devices[0] == GPU_CONFIGURATION.NO_GPU:
             raise PluginParamValidationError("No GPU available, please check your CUDA installation or deactivate the 'Use GPU' parameter")

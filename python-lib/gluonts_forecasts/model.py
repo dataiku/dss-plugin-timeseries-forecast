@@ -31,7 +31,7 @@ class Model(ModelHandler):
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool): If the model will be fed external features (use_feat_dynamic_real in GluonTS)
         batch_size (int): Size of batch used by the GluonTS Trainer class
-        mxnet_context (mxnet.context.Context): MXNet context to use for DL models training.
+        mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
 
     def __init__(

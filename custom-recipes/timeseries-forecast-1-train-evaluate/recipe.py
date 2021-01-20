@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-try:
-    import mxnet as mx
-except OSError as cuda_error:  # error when importing mxnet
-    raise Exception(f"Error when importing mxnet: {cuda_error}")
+from gluonts_forecasts.mxnet_utils import set_mxnet_context
 
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
 from dku_io_utils.utils import set_column_description
 from gluonts_forecasts.training_session import TrainingSession
-from gluonts_forecasts.utils import set_mxnet_context
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
 from gluonts_forecasts.model_handler import get_model_label
