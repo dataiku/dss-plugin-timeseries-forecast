@@ -48,6 +48,7 @@ endif
 		sed -i "" "s/'cpu'/'gpu'/g" custom-recipes/${PLUGIN_ID}-1-train-evaluate/recipe.json; \
 		git mv custom-recipes/${PLUGIN_ID}-1-train-evaluate custom-recipes/$${plugin_id_gpu}-1-train-evaluate; \
 		git mv custom-recipes/${PLUGIN_ID}-2-predict custom-recipes/$${plugin_id_gpu}-2-predict; \
+		sed -i "" "s/cpu/gpu/g" resource/select_gpu_devices.py; \
 		git_stash=`git stash create` && echo "Stached modifications to $${git_stash:-HEAD}"; \
 		rm -rf dist && mkdir dist; \
 		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \

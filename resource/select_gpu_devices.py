@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import re
-import dataiku
 from constants import GPU_CONFIGURATION
 from safe_logger import SafeLogger
 
@@ -12,7 +10,7 @@ def do(payload, config, plugin_config, inputs):
     """ Retrieve a list of available GPU devices. """
     choices = []
 
-    if payload.get("parameterName") == "gpu_devices":
+    if payload.get("parameterName") == "cpu_devices":
         try:
             import mxnet as mx
         except OSError as mxnet_or_cuda_error:  # error when importing mxnet
