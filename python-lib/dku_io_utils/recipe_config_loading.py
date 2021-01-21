@@ -7,7 +7,7 @@ from dataiku.customrecipe import (
 import re
 from gluonts_forecasts.model_handler import list_available_models
 from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
-from constants import FORECASTING_STYLE_PRESELECTED_MODELS
+from constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION
 from safe_logger import SafeLogger
 
 logger = SafeLogger("Forecast plugin")
@@ -62,8 +62,7 @@ def load_training_config(recipe_config):
     else:
         params["timeseries_identifiers_names"] = []
 
-    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) \
-        or (len(params["timeseries_identifiers_names"]) > 0) else False
+    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) or (len(params["timeseries_identifiers_names"]) > 0) else False
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
@@ -74,9 +73,7 @@ def load_training_config(recipe_config):
     else:
         params["external_features_columns_names"] = []
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError(
-            f"Invalid external features selection: {params['external_features_columns_names']}"
-        )
+        raise PluginParamValidationError(f"Invalid external features selection: {params['external_features_columns_names']}")
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
@@ -125,7 +122,17 @@ def load_training_config(recipe_config):
         if params["max_timeseries_length"] < 4:
             raise PluginParamValidationError("Number of records must be higher than 4")
 
-    params["gpu"] = recipe_config.get("gpu", "no_gpu")
+    params["use_gpu"] = recipe_config.get("use_gpu", False)
+    if params["use_gpu"]:
+        params["gpu_location"] = recipe_config.get("gpu_location", "local_gpu")
+        if params["gpu_location"] == "local_gpu":
+            gpu_devices = recipe_config.get("gpu_devices", [])
+            params["gpu_devices"] = parse_gpu_devices(gpu_devices)
+        else:
+            params["gpu_devices"] = [GPU_CONFIGURATION.CONTAINER_GPU]
+    else:
+        params["gpu_devices"] = None
+
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
@@ -271,3 +278,28 @@ def reorder_column_list(column_list_to_reorder, reference_column_list):
         if column_name in column_list_to_reorder:
             reordered_list.append(column_name)
     return reordered_list
+
+
+def parse_gpu_devices(gpu_devices):
+    """Check the custom python MULTISELECT for GPU devices
+
+    Args:
+        gpu_devices (list): List of GPU number or ["no_gpu"]
+
+    Raises:
+        PluginParamValidationError:
+            If more than 1 GPU are selected (for now we support only one GPU)
+            If selected value is "no_gpu"
+
+    Returns:
+        List of a single GPU (we may support multiple later) or None
+    """
+    if len(gpu_devices) == 0:  # nothing selected
+        raise PluginParamValidationError("Please select one local GPU device")
+    elif len(gpu_devices) > 1:
+        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training, please select only one GPU device")
+    else:  # one element list
+        if gpu_devices[0] == GPU_CONFIGURATION.NO_GPU:
+            raise PluginParamValidationError("Local GPU device parameter is invalid, please check the CUDA/GPU installation on the DSS server")
+        else:
+            return [int(gpu_device.split("_")[1]) for gpu_device in gpu_devices]

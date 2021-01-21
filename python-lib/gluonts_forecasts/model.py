@@ -29,9 +29,9 @@ class Model(ModelHandler):
         frequency (str): Pandas timeseries frequency (e.g. '3M') supported by GluonTS Estimators
         prediction_length (int): Number of time steps to predict
         epoch (int): Number of epochs used by the GluonTS Trainer class
-        use_external_features (bool)
+        use_external_features (bool): If the model will be fed external features (use_feat_dynamic_real in GluonTS)
         batch_size (int): Size of batch used by the GluonTS Trainer class
-        gpu (str): Not implemented
+        mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
 
     def __init__(
@@ -44,7 +44,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
-        gpu=None,
+        mxnet_context=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -53,15 +53,14 @@ class Model(ModelHandler):
         self.frequency = frequency if not isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS) else to_offset(frequency).name.split("-")[0]
         self.prediction_length = prediction_length
         self.epoch = epoch
-        self.use_external_features = use_external_features
-
-        self.using_external_features = False
+        self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
+        self.mxnet_context = mxnet_context
 
         estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length,
         }
-        trainer_kwargs = {"epochs": self.epoch}
+        trainer_kwargs = {"ctx": self.mxnet_context, "epochs": self.epoch}
         self.batch_size = batch_size
         if self.batch_size is not None:
             trainer_kwargs.update({"batch_size": self.batch_size})
@@ -71,8 +70,7 @@ class Model(ModelHandler):
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
-        if ModelHandler.can_use_external_feature(self) and self.use_external_features:
-            self.using_external_features = True
+        if self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
         self.predictor = None
@@ -214,12 +212,13 @@ class Model(ModelHandler):
                 "frequency": self.frequency,
                 "prediction_length": self.prediction_length,
                 "epoch": self.epoch,
-                "use_external_features": self.using_external_features,
+                "use_external_features": self.use_external_features,
                 "batch_size": self.batch_size,
                 "num_batches_per_epoch": self.num_batches_per_epoch,
                 "timeseries_number": timeseries_number,
                 "timeseries_average_length": round(timeseries_total_length / timeseries_number),
                 "model_parameters": self.model_parameters,
+                "mxnet.context": str(self.mxnet_context),
             }
         )
 
