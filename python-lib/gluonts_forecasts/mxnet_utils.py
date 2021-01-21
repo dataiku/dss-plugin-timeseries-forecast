@@ -1,7 +1,7 @@
 try:
     import mxnet as mx
-except OSError as mxnet_error:  # error when importing mxnet
-    raise Exception(f"Error when importing mxnet: {mxnet_error}")
+except OSError as mxnet_or_cuda_error:  # error when importing mxnet
+    raise Exception(f"Error when importing mxnet: {mxnet_or_cuda_error}")
 
 from constants import GPU_CONFIGURATION
 

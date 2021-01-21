@@ -15,8 +15,8 @@ def do(payload, config, plugin_config, inputs):
     if payload.get("parameterName") == "gpu_devices":
         try:
             import mxnet as mx
-        except OSError as mxnet_error:  # error when importing mxnet
-            logger.error(f"Error when importing mxnet: {mxnet_error}")
+        except OSError as mxnet_or_cuda_error:  # error when importing mxnet
+            logger.error(f"Error when importing mxnet: {mxnet_or_cuda_error}")
             choices += [{"label": "No GPU detected on DSS server, please check your server CUDA installation", "value": GPU_CONFIGURATION.NO_GPU}]
         else:
             try:
