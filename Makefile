@@ -45,7 +45,7 @@ endif
 		sed -i "" "s/'cpu'/'gpu'/g" custom-recipes/${PLUGIN_ID}-1-train-evaluate/recipe.json; \
 		git mv custom-recipes/${PLUGIN_ID}-1-train-evaluate custom-recipes/$${plugin_id_gpu}-1-train-evaluate; \
 		git mv custom-recipes/${PLUGIN_ID}-2-predict custom-recipes/$${plugin_id_gpu}-2-predict; \
-		sed -i "" "s/cpu/gpu/g" resource/select_gpu_devices.py; \
+		sed -i "" "s/cpu_devices/gpu_devices/g" resource/select_gpu_devices.py; \
 		sed -i "" "s/{CUDA_VERSION}/${CUDA_VERSION}/g" python-lib/constants.py; \
 		git_stash=`git stash create` && echo "Stached modifications to $${git_stash:-HEAD}"; \
 		rm -rf dist && mkdir dist; \
