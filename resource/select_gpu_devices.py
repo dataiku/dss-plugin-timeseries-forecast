@@ -38,7 +38,7 @@ def do(payload, config, plugin_config, inputs):
                 else:
                     choices += [
                         {
-                            "label": "No GPU detected on DSS server, please check that CUDA can access the GPU(s) with the NVIDA driver",
+                            "label": f"No GPU detected on DSS server, please check that CUDA can access the GPU(s) with the NVIDA driver",
                             "value": GPU_CONFIGURATION.NO_GPU,
                         }
                     ]
