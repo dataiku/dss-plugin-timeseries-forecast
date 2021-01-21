@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+print(f"Beginning of recipe.py v15:30")
+
 from gluonts_forecasts.mxnet_utils import set_mxnet_context
 
 from dataiku.customrecipe import get_recipe_config
