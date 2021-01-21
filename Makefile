@@ -9,9 +9,6 @@ remote_url=`git config --get remote.origin.url`
 last_commit_id=`git rev-parse HEAD`
 
 plugin:
-ifndef GPU
-	$(error Please set GPU variable to TRUE/FALSE)
-endif
 ifeq ($(GPU), TRUE)
 	@$(MAKE) plugin-gpu
 else
