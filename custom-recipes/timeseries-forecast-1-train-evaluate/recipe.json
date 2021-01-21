@@ -381,7 +381,7 @@
             "label": "- FeedForward",
             "description": "Based on the SimpleFeedForwardEstimator GluonTS model",
             "type": "BOOLEAN",
-            "defaultValue": false,
+            "defaultValue": true,
             "mandatory": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
