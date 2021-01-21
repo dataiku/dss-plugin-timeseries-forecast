@@ -46,6 +46,7 @@
             "acceptsManagedFolder": false
         }
     ],
+    "paramsPythonSetup": "select_gpu_devices.py",
     "params": [
         {
             "type": "SEPARATOR",
@@ -597,11 +598,38 @@
             "visibilityCondition": "false"
         },
         {
-            "name": "gpu",
+            "name": "use_gpu",
             "label": "Use GPU",
+            "description": "Use GPU to train Deep Learning models",
             "type": "BOOLEAN",
             "defaultValue": false,
             "visibilityCondition": "'cpu' == 'gpu'"
+        },
+        {
+            "name": "gpu_location",
+            "label": "GPU location",
+            "type": "SELECT",
+            "mandatory": false,
+            "selectChoices": [
+                {
+                    "value": "local_gpu",
+                    "label": "Local GPU"
+                },
+                {
+                    "value": "container_gpu",
+                    "label": "Container GPU"
+                }
+            ],
+            "defaultValue": "local_gpu",
+            "visibilityCondition": "model.use_gpu"
+        },
+        {
+            "name": "gpu_devices",
+            "type": "MULTISELECT",
+            "label": "Local GPU device",
+            "description": "Select one GPU device to train Deep Learning models on",
+            "getChoicesFromPython": true,
+            "visibilityCondition": "model.use_gpu && model.gpu_location == 'local_gpu'"
         }
     ],
     "resourceKeys": []

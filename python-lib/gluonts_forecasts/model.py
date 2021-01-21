@@ -7,7 +7,6 @@ from time import perf_counter
 from pandas.tseries.frequencies import to_offset
 from safe_logger import SafeLogger
 import json
-import mxnet as mx
 
 
 logger = SafeLogger("Forecast plugin")
@@ -32,7 +31,7 @@ class Model(ModelHandler):
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool): If the model will be fed external features (use_feat_dynamic_real in GluonTS)
         batch_size (int): Size of batch used by the GluonTS Trainer class
-        gpu (str): Not implemented
+        mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
 
     def __init__(
@@ -45,7 +44,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
-        gpu=False,
+        mxnet_context=None,
     ):
         super().__init__(model_name)
         self.model_name = model_name
@@ -55,20 +54,19 @@ class Model(ModelHandler):
         self.prediction_length = prediction_length
         self.epoch = epoch
         self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
+        self.mxnet_context = mxnet_context
 
         estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length,
         }
-        trainer_kwargs = {"epochs": self.epoch}
+        trainer_kwargs = {"ctx": self.mxnet_context, "epochs": self.epoch}
         self.batch_size = batch_size
         if self.batch_size is not None:
             trainer_kwargs.update({"batch_size": self.batch_size})
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
-        if gpu and mx.context.num_gpus() > 0:
-            trainer_kwargs.update({"ctx": mx.context.gpu()})
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
@@ -220,6 +218,7 @@ class Model(ModelHandler):
                 "timeseries_number": timeseries_number,
                 "timeseries_average_length": round(timeseries_total_length / timeseries_number),
                 "model_parameters": self.model_parameters,
+                "mxnet.context": str(self.mxnet_context),
             }
         )
 

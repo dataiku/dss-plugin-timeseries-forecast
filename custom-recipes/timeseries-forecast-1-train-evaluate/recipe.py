@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from gluonts_forecasts.mxnet_utils import set_mxnet_context
+
 from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
 from dku_io_utils.utils import set_column_description
@@ -14,6 +16,8 @@ logger = SafeLogger("Forecast plugin")
 config = get_recipe_config()
 params = load_training_config(config)
 session_name = datetime.utcnow().isoformat() + "Z"
+
+mxnet_context = set_mxnet_context(params["gpu_devices"])
 
 models_parameters = get_models_parameters(config, is_training_multivariate=params["is_training_multivariate"])
 start = perf_counter()
@@ -45,7 +49,7 @@ training_session = TrainingSession(
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
     batch_size=params["batch_size"],
     user_num_batches_per_epoch=params["num_batches_per_epoch"],
-    gpu=params["gpu"],
+    mxnet_context=mxnet_context,
 )
 training_session.init(partition_root=params["partition_root"], session_name=session_name)
 

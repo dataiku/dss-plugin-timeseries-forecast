@@ -30,7 +30,7 @@ class TrainingSession:
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
         num_batches_per_epoch (int): Number of batches per epoch
-        gpu (str): Not implemented
+        mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
 
     def __init__(
@@ -47,7 +47,7 @@ class TrainingSession:
         timeseries_identifiers_names=None,
         batch_size=None,
         user_num_batches_per_epoch=None,
-        gpu=None,
+        mxnet_context=None,
     ):
         self.models_parameters = models_parameters
         self.models = None
@@ -73,7 +73,7 @@ class TrainingSession:
         self.batch_size = batch_size
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
-        self.gpu = gpu
+        self.mxnet_context = mxnet_context
 
     def init(self, session_name, partition_root=None):
         """Create the session_path. Check types of target, external features and timeseries identifiers columns.
@@ -132,7 +132,7 @@ class TrainingSession:
                     use_external_features=self.use_external_features,
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
-                    gpu=self.gpu,
+                    mxnet_context=self.mxnet_context,
                 )
             )
 
@@ -230,9 +230,7 @@ class TrainingSession:
             Dataframe of metrics to display to users.
         """
         evaluation_metrics_df = self.metrics_df.copy()
-        evaluation_metrics_df.columns = [
-            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns
-        ]
+        evaluation_metrics_df.columns = [column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]

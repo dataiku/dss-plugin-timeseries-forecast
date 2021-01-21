@@ -61,10 +61,15 @@ TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
-        "auto_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "autoarima"],
-        "auto_performance_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "autoarima"],
-        "auto_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
-        "auto_performance_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"]
-    }
+    "auto_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "autoarima"],
+    "auto_performance_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "autoarima"],
+    "auto_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
+    "auto_performance_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"],
+}
 
-CUSTOMISABLE_FREQUENCIES_OFFSETS = (Week)
+CUSTOMISABLE_FREQUENCIES_OFFSETS = Week
+
+
+class GPU_CONFIGURATION:
+    NO_GPU = "no_gpu"
+    CONTAINER_GPU = "container_gpu"

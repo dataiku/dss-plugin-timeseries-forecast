@@ -3,7 +3,7 @@ from pandas.tseries.frequencies import to_offset
 import numpy as np
 from functools import reduce
 import copy
-from constants import TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
+from constants import TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS, GPU_CONFIGURATION
 from timeseries_preparation.preparation import TimeseriesPreparator
 
 
