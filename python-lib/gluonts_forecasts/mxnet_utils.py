@@ -12,8 +12,7 @@ try:
 except OSError as mxnet_or_cuda_error:  # error when importing mxnet
     raise GPUError(
         "Error when importing mxnet, please check that "
-        + f"you have CUDA {GPU_CONFIGURATION.CUDA_VERSION} installed and "
-        + f"that it is the same version as the plugin's CUDA version. "
+        + f"you have CUDA {GPU_CONFIGURATION.CUDA_VERSION} installed. "
         + f"Detailed error: {mxnet_or_cuda_error}"
     )
 
@@ -41,8 +40,7 @@ def set_mxnet_context(gpu_devices):
         except mx.base.MXNetError as num_gpus_error:  # error on num_gpus()
             raise GPUError(
                 "Error when detecting GPUs, please check that "
-                + f"you have CUDA {GPU_CONFIGURATION.CUDA_VERSION} installed and "
-                + f"that it is the same version as the plugin's CUDA version. "
+                + f"you have CUDA {GPU_CONFIGURATION.CUDA_VERSION} installed. "
                 + f"Detailed error: {num_gpus_error}"
             )
 
