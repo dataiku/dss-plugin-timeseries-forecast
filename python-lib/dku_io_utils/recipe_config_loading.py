@@ -297,9 +297,9 @@ def parse_gpu_devices(gpu_devices):
     if len(gpu_devices) == 0:  # nothing selected
         raise PluginParamValidationError("Please select one local GPU device")
     elif len(gpu_devices) > 1:
-        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training, please select only one GPU device.")
+        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training, please select only one GPU device")
     else:  # one element list
         if gpu_devices[0] == GPU_CONFIGURATION.NO_GPU:
-            raise PluginParamValidationError("No GPU available, please check your CUDA installation or deactivate the 'Use GPU' parameter")
+            raise PluginParamValidationError("Local GPU device parameter is invalid, please check the CUDA/GPU installation on the DSS server")
         else:
             return [int(gpu_device.split("_")[1]) for gpu_device in gpu_devices]
