@@ -14,6 +14,7 @@ from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
+from gluonts_forecasts.utils import sanitize_model_parameters
 
 
 ESTIMATOR = "estimator"
@@ -139,7 +140,8 @@ class ModelHandler:
     def estimator(self, model_parameters, **kwargs):
         default_kwargs = self.model_descriptor.get(DEFAULT_KWARGS, {})
         kwargs.update(default_kwargs)
-        kwargs.update(model_parameters.get("kwargs", {}))
+        model_parameters_sanitized = sanitize_model_parameters(model_parameters.get("kwargs", {}), self.model_name)
+        kwargs.update(model_parameters_sanitized)
         estimator = self.model_descriptor.get(ESTIMATOR)
         kwargs = self._convert_parameters_to_class(kwargs)
         try:

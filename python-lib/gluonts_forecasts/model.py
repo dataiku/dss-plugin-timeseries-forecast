@@ -70,6 +70,8 @@ class Model(ModelHandler):
         trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if trainer is not None:
             estimator_kwargs.update({"trainer": trainer})
+        else:
+            self.mxnet_context = None
         if self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
@@ -206,21 +208,21 @@ class Model(ModelHandler):
         """ Returns a JSON string containing model parameters and results """
         timeseries_number = len(train_list_dataset.list_data)
         timeseries_total_length = sum([len(ts[TIMESERIES_KEYS.TARGET]) for ts in train_list_dataset.list_data])
-        return json.dumps(
-            {
-                "model_name": ModelHandler.get_label(self),
-                "frequency": self.frequency,
-                "prediction_length": self.prediction_length,
-                "epoch": self.epoch,
-                "use_external_features": self.use_external_features,
-                "batch_size": self.batch_size,
-                "num_batches_per_epoch": self.num_batches_per_epoch,
-                "timeseries_number": timeseries_number,
-                "timeseries_average_length": round(timeseries_total_length / timeseries_number),
-                "model_parameters": self.model_parameters,
-                "mxnet.context": str(self.mxnet_context),
-            }
-        )
+        model_params = {
+            "model_name": ModelHandler.get_label(self),
+            "frequency": self.frequency,
+            "prediction_length": self.prediction_length,
+            "epoch": self.epoch,
+            "use_external_features": self.use_external_features,
+            "batch_size": self.batch_size,
+            "num_batches_per_epoch": self.num_batches_per_epoch,
+            "timeseries_number": timeseries_number,
+            "timeseries_average_length": round(timeseries_total_length / timeseries_number),
+            "model_parameters": self.model_parameters,
+        }
+        if self.mxnet_context:
+            model_params["mxnet.context"] = str(self.mxnet_context)
+        return json.dumps(model_params)
 
     def _compute_mean_forecasts_timeseries(self, forecasts_list, train_list_dataset):
         """Compute mean forecasts timeseries for each Forecast of forecasts_list.
