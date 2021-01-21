@@ -1,7 +1,7 @@
 try:
     import mxnet as mx
-except OSError as cuda_error:  # error when importing mxnet
-    raise Exception(f"Error when importing mxnet: {cuda_error}")
+except OSError as mxnet_error:  # error when importing mxnet
+    raise Exception(f"Error when importing mxnet: {mxnet_error}")
 
 from constants import GPU_CONFIGURATION
 
@@ -33,7 +33,7 @@ def set_mxnet_context(gpu_devices):
         try:
             num_gpu = mx.context.num_gpus()
         except mx.base.MXNetError as num_gpus_error:  # error on num_gpus()
-            raise GPUError(f"Cuda error: {num_gpus_error}")
+            raise GPUError(f"MXNet CUDA-related error: {num_gpus_error}")
 
         if num_gpu == 0:
             if GPU_CONFIGURATION.CONTAINER_GPU in gpu_devices:
