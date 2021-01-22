@@ -359,7 +359,7 @@
             "name": "npts_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
             "mandatory": false,
             "defaultValue": {
