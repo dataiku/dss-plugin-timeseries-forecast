@@ -299,7 +299,7 @@
         {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
-            "description": "Based on the trivial.identity GluonTS model",
+            "description": "Based on the trivial.identity GluonTS model. Predicted values will be the same as the last values.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -312,7 +312,7 @@
         {
             "name": "seasonal_naive_model_activated",
             "label": "- Seasonal Naive",
-            "description": "Based on the seasonal_naive GluonTS models, compute seasonality based on the frequency",
+            "description": "Based on the seasonal_naive GluonTS model. Seasonality is chosen based on the frequency.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -335,7 +335,7 @@
             "name": "autoarima_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "",
+            "description": "Optional keyword arguments from https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -359,9 +359,12 @@
             "name": "npts_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
-            "mandatory": false
+            "mandatory": false,
+            "defaultValue": {
+                "use_seasonal_model": "True"
+            }
         },
         {
             "type": "SEPARATOR",
@@ -378,7 +381,7 @@
             "label": "- FeedForward",
             "description": "Based on the SimpleFeedForwardEstimator GluonTS model",
             "type": "BOOLEAN",
-            "defaultValue": false,
+            "defaultValue": true,
             "mandatory": true,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
@@ -388,7 +391,10 @@
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
-            "mandatory": false
+            "mandatory": false,
+            "defaultValue": {
+                "num_hidden_dimensions": "[40, 40]"
+            }
         },
         {
             "type": "SEPARATOR",
@@ -409,7 +415,10 @@
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.deepar_model_activated",
-            "mandatory": false
+            "mandatory": false,
+            "defaultValue": {
+                "num_layers": 2
+            }
         },
         {
             "type": "SEPARATOR",
@@ -430,7 +439,10 @@
             "label": "  ↳ Parameters",
             "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.transformer_model_activated",
-            "mandatory": false
+            "mandatory": false,
+            "defaultValue": {
+                "model_dim": 32
+            }
         },
         {
             "type": "SEPARATOR",

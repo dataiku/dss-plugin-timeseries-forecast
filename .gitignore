@@ -152,4 +152,4 @@ setup.cfg
 .vscode
 
 *.ipynb
-forecasts-env/ 
+forecast-env/ 
