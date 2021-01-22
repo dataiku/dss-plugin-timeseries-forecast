@@ -299,7 +299,7 @@
         {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
-            "description": "Based on the trivial.identity GluonTS model",
+            "description": "Based on the trivial.identity GluonTS model. Predicted values will be the same as the last values.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -312,7 +312,7 @@
         {
             "name": "seasonal_naive_model_activated",
             "label": "- Seasonal Naive",
-            "description": "Based on the seasonal_naive GluonTS models, compute seasonality based on the frequency",
+            "description": "Based on the seasonal_naive GluonTS model. Seasonality is chosen based on the frequency.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -335,7 +335,7 @@
             "name": "autoarima_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Parameters",
-            "description": "",
+            "description": "Optional keyword arguments from https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
             "defaultValue": {
