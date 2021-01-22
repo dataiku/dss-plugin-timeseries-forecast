@@ -34,6 +34,7 @@ class TrainedModel:
         self.identifiers_columns = None
         self.forecasts_df = None
         self.frequency = gluon_dataset.process.trans[0].freq
+        self.limit_history = 15
         self._check()
 
     def predict(self):
@@ -56,13 +57,13 @@ class TrainedModel:
         )
 
         if self.include_history:
-            self.forecasts_df = self._include_history(self.frequency)
+            self.forecasts_df = self._include_history(self.frequency, limit_history=self.limit_history)
 
         self.forecasts_df = add_row_origin(self.forecasts_df, both=ROW_ORIGIN.FORECAST, left_only=ROW_ORIGIN.HISTORY)
 
         self.forecasts_df = self.forecasts_df.rename(columns={"index": self.time_column_name})
 
-    def _include_history(self, frequency):
+    def _include_history(self, frequency, limit_history=None):
         """Include the historical data on which the model was trained to the forecasts dataframe.
 
         Args:
@@ -71,12 +72,12 @@ class TrainedModel:
         Returns:
             DataFrame containing both the historical data and the forecasted values.
         """
-        history_timeseries = self._retrieve_history_timeseries(frequency)
+        history_timeseries = self._retrieve_history_timeseries(frequency, limit_history)
         multiple_df = concat_timeseries_per_identifiers(history_timeseries)
         history_df = concat_all_timeseries(multiple_df)
         return history_df.merge(self.forecasts_df, on=["index"] + self.identifiers_columns, how="left", indicator=True)
 
-    def _generate_history_target_series(self, timeseries, frequency):
+    def _generate_history_target_series(self, timeseries, frequency, limit_history=None):
         """Creates a pandas time series from the past target values with Nan values for the prediction_length future dates.
 
         Args:
@@ -95,9 +96,11 @@ class TrainedModel:
                 freq=frequency,
             ),
         )
+        if limit_history:
+            target_series = target_series.iloc[-limit_history:]
         return target_series
 
-    def _generate_history_external_features_dataframe(self, timeseries, frequency):
+    def _generate_history_external_features_dataframe(self, timeseries, frequency, limit_history=None):
         """Creates a pandas time series from the past and future external features values.
 
         Args:
@@ -116,9 +119,11 @@ class TrainedModel:
                 freq=frequency,
             ),
         )
+        if limit_history:
+            external_features_df = external_features_df.iloc[-limit_history:]
         return external_features_df
 
-    def _retrieve_history_timeseries(self, frequency):
+    def _retrieve_history_timeseries(self, frequency, limit_history=None):
         """Reconstruct the history timeseries from the gluon_dataset object and fill the dates to predict with Nan values.
 
         Args:
@@ -134,12 +139,12 @@ class TrainedModel:
             else:
                 timeseries_identifier_key = None
 
-            target_series = self._generate_history_target_series(timeseries, frequency)
+            target_series = self._generate_history_target_series(timeseries, frequency, limit_history)
 
             if TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES in timeseries:
                 assert timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL].shape[1] >= len(timeseries[TIMESERIES_KEYS.TARGET]) + self.prediction_length
                 if timeseries_identifier_key not in history_timeseries:
-                    external_features_df = self._generate_history_external_features_dataframe(timeseries, frequency)
+                    external_features_df = self._generate_history_external_features_dataframe(timeseries, frequency, limit_history)
                     history_timeseries[timeseries_identifier_key] = [external_features_df]
 
             if timeseries_identifier_key in history_timeseries:
