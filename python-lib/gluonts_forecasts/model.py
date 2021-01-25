@@ -131,10 +131,9 @@ class Model(ModelHandler):
             List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
         """
         forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
-        timeseries = list(ts_it)
         forecasts = list(forecast_it)
-        evaluator = Evaluator()
-        agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(test_list_dataset))
+        evaluator = Evaluator(num_workers=0)
+        agg_metrics, item_metrics = evaluator(ts_it, forecasts, num_series=len(test_list_dataset))
         return agg_metrics, item_metrics, forecasts
 
     def _format_metrics(self, agg_metrics, item_metrics, train_list_dataset):
