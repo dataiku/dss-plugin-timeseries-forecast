@@ -91,6 +91,17 @@ def load_training_config(recipe_config):
     if not params["prediction_length"]:
         raise PluginParamValidationError("Please specify forecasting horizon")
 
+    params["use_gpu"] = recipe_config.get("use_gpu", False)
+    if params["use_gpu"]:
+        params["gpu_location"] = recipe_config.get("gpu_location", "local_gpu")
+        if params["gpu_location"] == "local_gpu":
+            gpu_devices = recipe_config.get("gpu_devices", [])
+            params["gpu_devices"] = parse_gpu_devices(gpu_devices)
+        else:
+            params["gpu_devices"] = [GPU_CONFIGURATION.CONTAINER_GPU]
+    else:
+        params["gpu_devices"] = None
+
     params["forecasting_style"] = recipe_config.get("forecasting_style", "auto")
     params["epoch"] = recipe_config.get("epoch", 10)
     params["batch_size"] = recipe_config.get("batch_size", 32)
@@ -107,12 +118,12 @@ def load_training_config(recipe_config):
     # Overwrite values in case of autoML mode selected
     if params["forecasting_style"] == "auto":
         params["epoch"] = 10
-        params["batch_size"] = 32
+        params["batch_size"] = 128 if params["use_gpu"] else 32
         params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
         params["context_length"] = params["prediction_length"]
         params["epoch"] = 30 if params["is_training_multivariate"] else 10
-        params["batch_size"] = 32
+        params["batch_size"] = 128 if params["use_gpu"] else 32
         params["num_batches_per_epoch"] = -1
 
     params["sampling_method"] = recipe_config.get("sampling_method", "last_records")
@@ -121,17 +132,6 @@ def load_training_config(recipe_config):
         params["max_timeseries_length"] = recipe_config.get("number_records", 10000)
         if params["max_timeseries_length"] < 4:
             raise PluginParamValidationError("Number of records must be higher than 4")
-
-    params["use_gpu"] = recipe_config.get("use_gpu", False)
-    if params["use_gpu"]:
-        params["gpu_location"] = recipe_config.get("gpu_location", "local_gpu")
-        if params["gpu_location"] == "local_gpu":
-            gpu_devices = recipe_config.get("gpu_devices", [])
-            params["gpu_devices"] = parse_gpu_devices(gpu_devices)
-        else:
-            params["gpu_devices"] = [GPU_CONFIGURATION.CONTAINER_GPU]
-    else:
-        params["gpu_devices"] = None
 
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
