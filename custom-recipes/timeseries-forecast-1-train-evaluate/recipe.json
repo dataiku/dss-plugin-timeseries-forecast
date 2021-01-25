@@ -41,7 +41,7 @@
             "label": "Evaluation dataset",
             "description": "Dataset with evaluation forecasts used to compute the performance metrics",
             "arity": "UNARY",
-            "required": true,
+            "required": false,
             "acceptsDataset": true,
             "acceptsManagedFolder": false
         }
