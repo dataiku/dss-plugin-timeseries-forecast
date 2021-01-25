@@ -269,11 +269,10 @@ class TrainingSession:
     def _compute_optimal_num_batches_per_epoch(self):
         """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
         sample_length = 2 * self.prediction_length  # Assuming that context_length = prediction_length
-        sample_offset = max(sample_length // 10, 1)  # offset of 1 means that 2 samples can overlap on all but 1 timestep
         num_samples_total = 0
         for timeseries in self.evaluation_train_list_dataset.list_data:
             timeseries_length = len(timeseries[TIMESERIES_KEYS.TARGET])
-            num_samples = (timeseries_length - sample_length) // sample_offset + 1
+            num_samples = math.ceil(timeseries_length / sample_length)
             num_samples_total += num_samples
         optimal_num_batches_per_epoch = math.ceil(num_samples_total / self.batch_size)
         return max(optimal_num_batches_per_epoch, 50)

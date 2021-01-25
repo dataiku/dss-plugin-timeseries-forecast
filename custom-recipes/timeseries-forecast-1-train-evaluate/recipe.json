@@ -539,7 +539,7 @@
             "label": "Sample all data",
             "description": "Automatically choose the number of batches per epoch to sample all data in one epoch",
             "type": "BOOLEAN",
-            "defaultValue": true,
+            "defaultValue": false,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
