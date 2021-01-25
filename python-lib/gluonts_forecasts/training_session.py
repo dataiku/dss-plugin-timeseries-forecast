@@ -274,5 +274,6 @@ class TrainingSession:
             timeseries_length = len(timeseries[TIMESERIES_KEYS.TARGET])
             num_samples = math.ceil(timeseries_length / sample_length)
             num_samples_total += num_samples
-        optimal_num_batches_per_epoch = math.ceil(num_samples_total / self.batch_size)
-        return max(optimal_num_batches_per_epoch, 50)
+        optimal_num_batches_per_epoch = max(math.ceil(num_samples_total / self.batch_size), 50)
+        logger.info(f"Number of batches per epoch automatically scaled to training data size: {optimal_num_batches_per_epoch}")
+        return optimal_num_batches_per_epoch
