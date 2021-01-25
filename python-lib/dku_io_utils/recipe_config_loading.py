@@ -118,12 +118,12 @@ def load_training_config(recipe_config):
     # Overwrite values in case of autoML mode selected
     if params["forecasting_style"] == "auto":
         params["epoch"] = 10
-        params["batch_size"] = 256 if params["use_gpu"] else 32
+        params["batch_size"] = 128 if params["use_gpu"] else 32
         params["num_batches_per_epoch"] = 50
     elif params["forecasting_style"] == "auto_performance":
         params["context_length"] = params["prediction_length"]
         params["epoch"] = 30 if params["is_training_multivariate"] else 10
-        params["batch_size"] = 256 if params["use_gpu"] else 32
+        params["batch_size"] = 128 if params["use_gpu"] else 32
         params["num_batches_per_epoch"] = -1
 
     params["sampling_method"] = recipe_config.get("sampling_method", "last_records")
