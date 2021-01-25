@@ -536,8 +536,8 @@
         },
         {
             "name": "auto_num_batches_per_epoch",
-            "label": "Sample all data",
-            "description": "Automatically choose the number of batches per epoch to sample all data in one epoch",
+            "label": "Scale number of batches",
+            "description": "Automatically adjust the number of batches per epoch to the training data size",
             "type": "BOOLEAN",
             "defaultValue": false,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
