@@ -25,7 +25,7 @@ class TrainedModel:
         forecasts_df (DataFrame): Dataframe with the different quantiles forecasts and the training data if include_history is True
     """
 
-    def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history, history_length_limit):
+    def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history, history_length_limit=None):
         self.predictor = predictor
         self.gluon_dataset = gluon_dataset
         self.prediction_length = predictor.prediction_length if prediction_length == -1 else prediction_length
