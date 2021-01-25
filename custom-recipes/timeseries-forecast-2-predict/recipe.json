@@ -143,6 +143,35 @@
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true
+        },
+        {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Include only the most recent historical data",
+            "selectChoices": [
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                },
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                }
+            ],
+            "defaultValue": "last_records",
+            "visibilityCondition": "model.include_history"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Maximum number of historical records to include per time series",
+            "type": "INT",
+            "defaultValue": 1000,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.include_history && model.sampling_method=='last_records'"
         }
     ],
     "resourceKeys": []
