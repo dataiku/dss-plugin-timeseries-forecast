@@ -111,8 +111,8 @@ class Model(ModelHandler):
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
         if make_forecasts:
-            mean_forecasts_timeseries = self._compute_mean_forecasts_timeseries(forecasts, train_list_dataset)
-            multiple_df = concat_timeseries_per_identifiers(mean_forecasts_timeseries)
+            median_forecasts_timeseries = self._compute_median_forecasts_timeseries(forecasts, train_list_dataset)
+            multiple_df = concat_timeseries_per_identifiers(median_forecasts_timeseries)
             forecasts_df = concat_all_timeseries(multiple_df)
             return metrics, identifiers_columns, forecasts_df
 
@@ -223,8 +223,8 @@ class Model(ModelHandler):
             model_params["mxnet.context"] = str(self.mxnet_context)
         return json.dumps(model_params)
 
-    def _compute_mean_forecasts_timeseries(self, forecasts_list, train_list_dataset):
-        """Compute mean forecasts timeseries for each Forecast of forecasts_list.
+    def _compute_median_forecasts_timeseries(self, forecasts_list, train_list_dataset):
+        """Compute median forecasts timeseries for each Forecast of forecasts_list.
 
         Args:
             forecasts_list (list): List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
@@ -233,7 +233,7 @@ class Model(ModelHandler):
         Returns:
             Dictionary of list of forecasts timeseries (value) by identifiers (key). Key is None if no identifiers.
         """
-        mean_forecasts_timeseries = {}
+        median_forecasts_timeseries = {}
         for i, sample_forecasts in enumerate(forecasts_list):
             series = quantile_forecasts_series(sample_forecasts, 0.5, self.custom_frequency).rename(
                 f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}"
@@ -243,8 +243,8 @@ class Model(ModelHandler):
             else:
                 timeseries_identifier_key = None
 
-            if timeseries_identifier_key in mean_forecasts_timeseries:
-                mean_forecasts_timeseries[timeseries_identifier_key] += [series]
+            if timeseries_identifier_key in median_forecasts_timeseries:
+                median_forecasts_timeseries[timeseries_identifier_key] += [series]
             else:
-                mean_forecasts_timeseries[timeseries_identifier_key] = [series]
-        return mean_forecasts_timeseries
+                median_forecasts_timeseries[timeseries_identifier_key] = [series]
+        return median_forecasts_timeseries
