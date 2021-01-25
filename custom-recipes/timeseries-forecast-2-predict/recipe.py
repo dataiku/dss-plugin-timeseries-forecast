@@ -44,6 +44,7 @@ trained_model = TrainedModel(
     prediction_length=params["prediction_length"],
     quantiles=params["quantiles"],
     include_history=params["include_history"],
+    history_length_limit=params["history_length_limit"],
 )
 
 trained_model.predict()
