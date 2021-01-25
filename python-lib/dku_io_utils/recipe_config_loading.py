@@ -183,6 +183,8 @@ def load_predict_config():
     params["history_length_limit"] = None
     if params["sampling_method"] == "last_records":
         params["history_length_limit"] = recipe_config.get("number_records", 1000)
+        if params["history_length_limit"] < 1:
+            raise PluginParamValidationError("Number of historical records must be higher than 1")
 
     printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
     logger.info(f"Recipe parameters: {printable_params}")
