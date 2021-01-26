@@ -267,12 +267,13 @@ class TrainingSession:
                 raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
-        """ Compute the optimal value of num batches which garanties (statistically) full coverage of the dataset """
-        sample_length = 2 * self.prediction_length  # Assuming that context_length = prediction_length
+        """Compute the optimal value of num batches per epoch to scale to the training data size.
+        With this formula, each timestep will on average be in 2 samples, once in the context part and once in the prediction part.
+        """
         num_samples_total = 0
         for timeseries in self.evaluation_train_list_dataset.list_data:
             timeseries_length = len(timeseries[TIMESERIES_KEYS.TARGET])
-            num_samples = math.ceil(timeseries_length / sample_length)
+            num_samples = math.ceil(timeseries_length / self.prediction_length)
             num_samples_total += num_samples
         optimal_num_batches_per_epoch = max(math.ceil(num_samples_total / self.batch_size), 50)
         logger.info(f"Number of batches per epoch automatically scaled to training data size: {optimal_num_batches_per_epoch}")
