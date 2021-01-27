@@ -86,7 +86,7 @@ integration-tests:
 		source tests/python/integration/env/bin/activate; \
 		pip3 install --upgrade pip;\
 		pip3 install --no-cache-dir -r tests/python/integration/requirements.txt; \
-		pytest tests/python/integration --alluredir=tests/allure_report; \
+		pytest tests/python/integration --alluredir=tests/allure_report --exclude-dss-targets="DSS7"; \
 		deactivate; \
 	)
 	@echo "[SUCCESS] Running integration tests: Done!"
