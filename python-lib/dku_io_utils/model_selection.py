@@ -1,7 +1,7 @@
 import re
 import os
 from dku_io_utils.utils import read_from_folder
-from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN
+from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
 from gluonts_forecasts.model_handler import list_available_models_labels
 
 
@@ -72,7 +72,7 @@ class ModelSelection:
 
         model_path = os.path.join(self.session_path, self.model_label, "model.pk.gz")
         try:
-            model = read_from_folder(self.folder, model_path, "pickle.gz")
+            model = read_from_folder(self.folder, model_path, ObjectType.PICKLE_GZ)
         except ValueError as e:
             raise ModelSelectionError(
                 f"Unable to retrieve model '{self.model_label}' from session '{self.session_name}'. "
@@ -83,7 +83,7 @@ class ModelSelection:
     def get_gluon_train_dataset(self):
         """ Retrieve the GluonDataset object with training data that was saved in the model folder during training """
         gluon_train_dataset_path = f"{self.session_path}/gluon_train_dataset.pk.gz"
-        gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, "pickle.gz")
+        gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
         return gluon_train_dataset
 
     def _get_last_session(self):
@@ -108,7 +108,7 @@ class ModelSelection:
             Label of the best model.
         """
         available_models_labels = list_available_models_labels()
-        df = read_from_folder(self.folder, f"{self.session_path}/metrics.csv", "csv")
+        df = read_from_folder(self.folder, f"{self.session_path}/metrics.csv", ObjectType.CSV)
         try:
             if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
                 df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]

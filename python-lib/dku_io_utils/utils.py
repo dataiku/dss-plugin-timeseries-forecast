@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import gzip
 from safe_logger import SafeLogger
+from constants import ObjectType
 
 logger = SafeLogger("Forecast plugin")
 
@@ -14,7 +15,7 @@ def read_from_folder(folder, path, object_type):
     Args:
         folder (dataiku.Folder)
         path (str): Path within the folder.
-        object_type (str): Type of object to read. Must be one of ('pickle', 'pickle.gz', 'csv', 'csv.gz').
+        object_type (ObjectType): Type of object to read. Must be one of ('pickle', 'pickle.gz', 'csv', 'csv.gz').
 
     Raises:
         ValueError: No file were found at the requested path.
@@ -27,15 +28,15 @@ def read_from_folder(folder, path, object_type):
     if not folder.get_path_details(path=path)["exists"]:
         raise ValueError(f"File at path '{path}' does not exist in folder {folder.get_name()}")
     with folder.get_download_stream(path) as stream:
-        if object_type == "pickle":
+        if object_type == ObjectType.PICKLE:
             return pickle.loads(stream.read())
-        if object_type == "pickle.gz":
+        if object_type == ObjectType.PICKLE_GZ:
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pickle.loads(fgzip.read())
-        elif object_type == "csv":
+        elif object_type == ObjectType.CSV:
             data = io.StringIO(stream.read().decode())
             return pd.read_csv(data)
-        elif object_type == "csv.gz":
+        elif object_type == ObjectType.CSV_GZ:
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pd.read_csv(fgzip)
         else:
@@ -51,27 +52,27 @@ def write_to_folder(object_to_save, folder, path, object_type):
         object_to_save (any type supported by the object type): Object that will be saved in the folder.
         folder (dataiku.Folder)
         path (str): Path within the folder.
-        object_type (str): Type of object to save. Must be one of ('pickle', 'pickle.gz', 'csv', 'csv.gz').
+        object_type (ObjectType): Type of object to save. Must be one of ('pickle', 'pickle.gz', 'csv', 'csv.gz').
 
     Raises:
         ValueError: Object type is not supported.
     """
     logger.info(f"Saving path '{path}' to folder")
     with folder.get_writer(path) as writer:
-        if object_type == "pickle":
+        if object_type == ObjectType.PICKLE:
             writeable = pickle.dumps(object_to_save)
             writer.write(writeable)
-        elif object_type == "pickle.gz":
+        elif object_type == ObjectType.PICKLE_GZ:
             writeable = pickle.dumps(object_to_save)
             with gzip.GzipFile(fileobj=writer, mode="wb", compresslevel=9) as fgzip:
                 fgzip.write(writeable)
-        elif object_type == "json":
+        elif object_type == ObjectType.JSON:
             writeable = json.dumps(object_to_save).encode()
             writer.write(writeable)
-        elif object_type == "csv":
+        elif object_type == ObjectType.CSV:
             writeable = object_to_save.to_csv(sep=",", na_rep="", header=True, index=False).encode()
             writer.write(writeable)
-        elif object_type == "csv.gz":
+        elif object_type == ObjectType.CSV_GZ:
             with gzip.GzipFile(fileobj=writer, mode="wb") as fgzip:
                 fgzip.write(object_to_save.to_csv(index=False).encode())
         else:

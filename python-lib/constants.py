@@ -1,5 +1,14 @@
 from gluonts.dataset.field_names import FieldName
 from pandas.tseries.offsets import Week
+from enum import Enum
+
+
+class ObjectType(Enum):
+    CSV = "csv"
+    CSV_GZ = "csv.gz"
+    PICKLE = "pickle"
+    PICKLE_GZ = "pickle.gz"
+    JSON = "json"
 
 
 class METRICS_DATASET:
