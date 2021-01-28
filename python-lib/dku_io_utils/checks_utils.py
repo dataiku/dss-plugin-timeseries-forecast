@@ -27,7 +27,7 @@ def external_features_future_dataset_schema_check(train_data_sample, external_fe
 
 
 def external_features_check(gluon_train_dataset, external_features_future_dataset):
-    """Check that an external features dataset with the right schema was provided if and only external features were used during training
+    """Check that an external features dataset with the right schema was provided if and only if external features were used during training
 
     Args:
         gluon_train_dataset ([type]): [description]

@@ -85,24 +85,6 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
     },
-    # "trivial_mean": {
-    #     LABEL: "TrivialMean",
-    #     CAN_USE_EXTERNAL_FEATURES: False,
-    #     ESTIMATOR: None,
-    #     PREDICTOR: MeanPredictor,
-    #     TRAINER: None,
-    #     IS_NAIVE: True,
-    # },
-    # "nbeats": {
-    #     LABEL: "NBEATS",
-    #     ESTIMATOR: NBEATSEstimator,
-    #     TRAINER: Trainer
-    # },
-    # "tft": {
-    #     LABEL: "TemporalFusionTransformer",
-    #     ESTIMATOR: TemporalFusionTransformerEstimator,
-    #     TRAINER: Trainer
-    # },
 }
 
 

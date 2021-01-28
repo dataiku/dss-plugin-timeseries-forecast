@@ -37,7 +37,6 @@ class GluonDataset:
 
     def create_list_datasets(self, cut_lengths=[]):
         """Create timeseries for each identifier tuple and each target.
-        Check that the time column is valid (regular time steps of the chosen frequency and they all have the same start date).
 
         Args:
             cut_length (int, optional): Remove the last cut_length time steps of each timeseries. Defaults to empty list.
