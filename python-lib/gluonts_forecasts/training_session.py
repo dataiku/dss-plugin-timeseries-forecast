@@ -213,8 +213,10 @@ class TrainingSession:
         for column in self.evaluation_forecasts_df.columns:
             model = next((model for model in available_models if model in column), None)
             if model:
-                target_name = column.split(f"{model}_")[1]
-                column_descriptions[column] = f"Median forecasts of {target_name} using {model} model"
+                column_split = column.split(f"{model}_")
+                if len(column_split) > 1:
+                    target_name = [1]
+                    column_descriptions[column] = f"Median forecasts of {target_name} using {model} model"
         return column_descriptions
 
     def get_metrics_df(self):
