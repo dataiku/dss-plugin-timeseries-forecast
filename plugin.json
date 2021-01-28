@@ -8,7 +8,7 @@
         "author": "Dataiku",
         "icon": "icon-signal",
         "licenseInfo": "Apache Software License v2",
-        "url": "https://www.dataiku.com/product/plugins/time-series-forecast-python/",
+        "url": "https://www.dataiku.com/product/plugins/timeseries-forecast/",
         "supported": false,
         "supportLevel": "NOT_SUPPORTED",
         "tags": [
