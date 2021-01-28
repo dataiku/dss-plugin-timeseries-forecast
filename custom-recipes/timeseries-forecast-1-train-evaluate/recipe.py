@@ -13,15 +13,16 @@ from safe_logger import SafeLogger
 from time import perf_counter
 
 logger = SafeLogger("Forecast plugin")
+logger.info("Starting training session {}...".format(session_name))
+session_name = datetime.utcnow().isoformat() + "Z"
+
 config = get_recipe_config()
 params = load_training_config(config)
-session_name = datetime.utcnow().isoformat() + "Z"
 
 mxnet_context = set_mxnet_context(params["gpu_devices"])
 
 models_parameters = get_models_parameters(config, is_training_multivariate=params["is_training_multivariate"])
 start = perf_counter()
-logger.info("Starting training session {}...".format(session_name))
 
 training_df = params["training_dataset"].get_dataframe()
 
