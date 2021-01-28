@@ -117,15 +117,7 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError("Number of batches per epoch cannot be 0")
 
     # Overwrite values in case of autoML mode selected
-    if params["forecasting_style"] == "auto":
-        params["epoch"] = 10
-        params["batch_size"] = 128 if params["use_gpu"] else 32
-        params["num_batches_per_epoch"] = 50
-    elif params["forecasting_style"] == "auto_performance":
-        params["context_length"] = params["prediction_length"]
-        params["epoch"] = 30 if params["is_training_multivariate"] else 10
-        params["batch_size"] = 128 if params["use_gpu"] else 32
-        params["num_batches_per_epoch"] = -1
+    params = automl_params_overwrite(params)
 
     params["sampling_method"] = recipe_config.get("sampling_method", "last_records")
     params["max_timeseries_length"] = None
@@ -252,6 +244,21 @@ def get_model_presets(config, model):
             key_type = key_search.group(1)
             model_presets.update({key_type: config[key]})
     return model_presets
+
+
+def automl_params_overwrite(params):
+    """Overwrite some training options based on the selected automl mode """
+    params_copy = params.copy()
+    if params_copy["forecasting_style"] == "auto":
+        params_copy["epoch"] = 10
+        params_copy["batch_size"] = 128 if params_copy["use_gpu"] else 32
+        params_copy["num_batches_per_epoch"] = 50
+    elif params_copy["forecasting_style"] == "auto_performance":
+        params_copy["context_length"] = params_copy["prediction_length"]
+        params_copy["epoch"] = 30 if params_copy["is_training_multivariate"] else 10
+        params_copy["batch_size"] = 128 if params_copy["use_gpu"] else 32
+        params_copy["num_batches_per_epoch"] = -1
+    return params_copy
 
 
 def sanitize_column_list(input_column_list):
