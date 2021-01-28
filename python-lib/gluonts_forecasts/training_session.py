@@ -51,7 +51,7 @@ class TrainingSession:
         mxnet_context=None,
     ):
         self.models_parameters = models_parameters
-        self.models = None
+        self.models = []
         self.glutonts_dataset = None
         self.training_df = training_df
         self.prediction_length = prediction_length
@@ -119,7 +119,6 @@ class TrainingSession:
 
     def instantiate_models(self):
         """Instantiate all the selected models. """
-        self.models = []
         for model_name, model_parameters in self.models_parameters.items():
             self.models.append(
                 Model(
