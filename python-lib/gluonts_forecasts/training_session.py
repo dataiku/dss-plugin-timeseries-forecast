@@ -90,7 +90,6 @@ class TrainingSession:
 
         self._check_target_columns_types()
         self._check_external_features_columns_types()
-        self._check_timeseries_identifiers_columns_types()
 
     def create_gluon_datasets(self):
         """Create train and test gluon list datasets.
@@ -120,8 +119,7 @@ class TrainingSession:
     def instantiate_models(self):
         """Instantiate all the selected models. """
         self.models = []
-        for model_name in self.models_parameters:
-            model_parameters = self.models_parameters.get(model_name)
+        for model_name, model_parameters in self.models_parameters.items():
             self.models.append(
                 Model(
                     model_name,
@@ -259,12 +257,6 @@ class TrainingSession:
         for column_name in self.external_features_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
                 raise ValueError(f"External feature '{column_name}' must be of numeric type")
-
-    def _check_timeseries_identifiers_columns_types(self):
-        """ Raises ValueError if a timeseries identifiers column is not numerical or string """
-        for column_name in self.timeseries_identifiers_names:
-            if not is_numeric_dtype(self.training_df[column_name]) and not is_string_dtype(self.training_df[column_name]):
-                raise ValueError(f"Time series identifier '{column_name}' must be of string or numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
         """Compute the optimal value of num batches per epoch to scale to the training data size.

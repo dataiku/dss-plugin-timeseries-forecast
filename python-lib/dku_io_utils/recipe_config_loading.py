@@ -46,7 +46,9 @@ def load_training_config(recipe_config):
         params["make_forecasts"] = True
 
     params["time_column_name"] = recipe_config.get("time_column")
-    if params["time_column_name"] not in training_dataset_columns:
+    if params["time_column_name"] is None:
+        raise PluginParamValidationError("Time column is mandatory:, please select one")
+    elif params["time_column_name"] not in training_dataset_columns:
         raise PluginParamValidationError(f"Invalid time column selection: {params['time_column_name']}")
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
@@ -77,15 +79,14 @@ def load_training_config(recipe_config):
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
-    if params["frequency_unit"] not in ["W", "H", "min"]:
-        params["frequency"] = params["frequency_unit"]
+    if params["frequency_unit"] == "W":
+        params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
+    elif params["frequency_unit"] == "H":
+        params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
+    elif params["frequency_unit"] == "min":
+        params["frequency"] = f"{recipe_config.get('frequency_step_minutes', 1)}min"
     else:
-        if params["frequency_unit"] == "W":
-            params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
-        elif params["frequency_unit"] == "H":
-            params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
-        elif params["frequency_unit"] == "min":
-            params["frequency"] = f"{recipe_config.get('frequency_step_minutes', 1)}min"
+        params["frequency"] = params["frequency_unit"]
 
     params["prediction_length"] = recipe_config.get("prediction_length")
     if not params["prediction_length"]:
