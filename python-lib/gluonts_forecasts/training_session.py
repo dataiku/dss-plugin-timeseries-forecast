@@ -151,7 +151,7 @@ class TrainingSession:
         """Evaluate all the selected models and get the metrics dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)
+            item_metrics = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)[0]
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)

@@ -13,8 +13,8 @@ from safe_logger import SafeLogger
 from time import perf_counter
 
 logger = SafeLogger("Forecast plugin")
-logger.info("Starting training session {}...".format(session_name))
 session_name = datetime.utcnow().isoformat() + "Z"
+logger.info("Starting training session {}...".format(session_name))
 
 config = get_recipe_config()
 params = load_training_config(config)
