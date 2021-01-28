@@ -29,6 +29,7 @@ class TrainingSession:
         external_features_columns_names (list): List of columns with dynamic real features over time
         timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
         batch_size (int): Size of batch used by the GluonTS Trainer class
+        user_num_batches_per_epoch (int): Number of batches per epoch selected by user. -1 means to compute scaled number
         num_batches_per_epoch (int): Number of batches per epoch
         mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
