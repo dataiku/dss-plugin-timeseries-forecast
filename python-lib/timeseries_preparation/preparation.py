@@ -191,7 +191,7 @@ class TimeseriesPreparator:
         for column_name in self.timeseries_identifiers_names:
             if not is_numeric_dtype(df[column_name]) and not is_string_dtype(df[column_name]):
                 invalid_columns += [column_name]
-        if len(invalid_columns) > 1:
+        if len(invalid_columns) > 0:
             raise ValueError(f"Time series identifiers columns '{invalid_columns}' must be of string or numeric type. Please change the type in a Prepare recipe.")
 
     def _check_no_missing_values(self, df):
@@ -199,7 +199,7 @@ class TimeseriesPreparator:
         for column_name in [self.time_column_name] + self.target_columns_names + self.timeseries_identifiers_names + self.external_features_columns_names:
             if df[column_name].isnull().values.any():
                 invalid_columns += [column_name]
-        if len(invalid_columns) > 1:
+        if len(invalid_columns) > 0:
             raise ValueError(f"Column(s) '{invalid_columns}' have missing values. You can use the Time Series Preparation plugin to resample your time series.")
 
     def _log_timeseries_lengths(self, df, log_message_prefix=None):
