@@ -45,6 +45,8 @@ class TimeseriesPreparator:
         Returns:
             Prepared timeseries
         """
+        self._check_data(dataframe)
+
         dataframe_prepared = dataframe.copy()
 
         try:
@@ -52,18 +54,18 @@ class TimeseriesPreparator:
         except Exception:
             raise ValueError(f"Please parse the date column '{self.time_column_name}' in a Prepare recipe")
 
-        self._check_data(dataframe_prepared)
-
         dataframe_prepared = self._truncate_dates(dataframe_prepared)
 
         dataframe_prepared = self._sort(dataframe_prepared)
 
         self._check_regular_frequency(dataframe_prepared)
-        self._log_timeseries_lengths(dataframe_prepared)
+        log_message_prefix = "Found "
+        self._log_timeseries_lengths(dataframe_prepared, log_message_prefix=log_message_prefix)
 
         if self.max_timeseries_length:
             dataframe_prepared = self._keep_last_dates(dataframe_prepared)
-            self._log_timeseries_lengths(dataframe_prepared, after_sampling=True)
+            log_message_prefix = f"Sampled {self.max_timeseries_length}"
+            self._log_timeseries_lengths(dataframe_prepared, log_message_prefix=log_message_prefix)
 
         return dataframe_prepared
 
@@ -80,7 +82,7 @@ class TimeseriesPreparator:
             '2020-12-15 12:00:00' becomes '2020-12-15 00:00:00' with frequency '24H'
             '2020-12-15 12:30:00' becomes '2020-12-15 00:00:00' with frequency 'D'
             '2020-12-15 12:30:00' becomes '2020-12-31 00:00:00' with frequency 'M'
-            '2020-12-15 12:30:00' becomes '2021-01-30 00:00:00' with frequency 'A-JAN'
+            '2020-12-15 12:30:00' becomes '2021-12-31 00:00:00' with frequency '6M'
 
         Args:
             df (DataFrame): Dataframe in wide or long format with a time column.
@@ -93,7 +95,8 @@ class TimeseriesPreparator:
         """
         df_truncated = df.copy()
 
-        self._check_duplicate_dates(df_truncated)
+        error_message_suffix = ". Please check the Long format parameter." if len(self.timeseries_identifiers_names) == 0 else "."
+        self._check_duplicate_dates(df_truncated, error_message_suffix=error_message_suffix)
 
         frequency_offset = to_offset(self.frequency)
         if isinstance(frequency_offset, Tick):
@@ -110,7 +113,8 @@ class TimeseriesPreparator:
 
         self._log_truncation(df_truncated, df)
 
-        self._check_duplicate_dates(df_truncated, after_truncation=True)
+        error_message_suffix = f" after truncation to '{self.frequency}' frequency. Please check the Frequency parameter."
+        self._check_duplicate_dates(df_truncated, error_message_suffix=error_message_suffix)
 
         return df_truncated
 
@@ -157,28 +161,24 @@ class TimeseriesPreparator:
                 f"Dates truncated to {frequency_custom_label(self.frequency)} frequency: {total_dates - truncated_dates} dates kept, {truncated_dates} dates truncated"
             )
             if truncated_dates == total_dates:
-                self._check_end_of_frequency(df_truncated, df)
+                self._check_end_of_week_frequency(df_truncated, df)
         else:
             logger.info(f"No dates were changed after truncation to {frequency_custom_label(self.frequency)} frequency")
 
-    def _check_end_of_frequency(self, df_truncated, df):
+    def _check_end_of_week_frequency(self, df_truncated, df):
         """Check not all that truncated days are different days"""
         frequency_offset = to_offset(self.frequency)
         if isinstance(frequency_offset, Week):
             if all(df_truncated[self.time_column_name].dt.dayofweek != df[self.time_column_name].dt.dayofweek):
                 raise ValueError(f"No weekly dates on {WEEKDAYS[frequency_offset.weekday]}. Please check the 'End of week day' parameter.")
 
-    def _check_duplicate_dates(self, df, after_truncation=False):
+    def _check_duplicate_dates(self, df, error_message_suffix=None):
         """Check dataframe has no duplicate dates and raise an actionable error message """
         duplicate_dates = self._count_duplicate_dates(df)
         if duplicate_dates > 0:
             error_message = f"Input dataset has {duplicate_dates} duplicate dates"
-            if after_truncation:
-                error_message += f" after truncation to '{self.frequency}' frequency. Please check the Frequency parameter."
-            else:
-                error_message += "."
-                if len(self.timeseries_identifiers_names) == 0:
-                    error_message += " Please check the Long format parameter."
+            if error_message_suffix:
+                error_message += error_message_suffix
             raise ValueError(error_message)
 
     def _count_duplicate_dates(self, df):
@@ -196,7 +196,7 @@ class TimeseriesPreparator:
             if df[column_name].isnull().values.any():
                 raise ValueError(f"Column '{column_name}' has missing values. You can use the Time Series Preparation plugin to resample your time series.")
 
-    def _log_timeseries_lengths(self, df, after_sampling=False):
+    def _log_timeseries_lengths(self, df, log_message_prefix=None):
         """Log the number and sizes of time series and whether it's after sampling or not"""
         if len(self.timeseries_identifiers_names) == 0:
             timeseries_lengths = [len(df.index)]
@@ -207,10 +207,8 @@ class TimeseriesPreparator:
             log_message += f" of {timeseries_lengths[0]} records"
         else:
             log_message += f" of {min(timeseries_lengths)} to {max(timeseries_lengths)} records"
-        if after_sampling:
-            logger.info(f"Sampled {self.max_timeseries_length} last records to obtain {log_message}")
-        else:
-            logger.info(f"Found {log_message}")
+        if log_message_prefix:
+            logger.info(f"{log_message_prefix} {log_message}")
 
 
 def assert_time_column_valid(dataframe, time_column_name, frequency, start_date=None, periods=None):
