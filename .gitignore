@@ -51,11 +51,15 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+unit.xml
 *.cover
 *.py,cover
 .hypothesis/
 .pytest_cache/
 cover/
+
+# Integration tests reports
+tests/allure_report/
 
 # Translations
 *.mo
@@ -144,3 +148,8 @@ __pycache__
 .pyc
 
 .DS_Store
+setup.cfg
+.vscode
+
+*.ipynb
+forecast-env/ 

@@ -1,0 +1,648 @@
+{
+    "meta": {
+        "label": "1. Train and evaluate forecasting models",
+        "description": "Train forecasting models and evaluate their performance on historical data",
+        "icon": "icon-calendar",
+        "displayOrderRank": 1
+    },
+    "kind": "PYTHON",
+    "selectableFromDataset": "input_dataset",
+    "inputRoles": [
+        {
+            "name": "input_dataset",
+            "label": "Historical dataset",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsManagedFolder": false
+        }
+    ],
+    "outputRoles": [
+        {
+            "name": "model_folder",
+            "label": "Trained model folder",
+            "description": "Folder to save trained forecasting models",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": false,
+            "acceptsManagedFolder": true
+        },
+        {
+            "name": "evaluation_dataset",
+            "label": "Performance metrics dataset",
+            "description": "Performance metrics of forecasting models evaluated on a split of the historical dataset",
+            "arity": "UNARY",
+            "required": true,
+            "acceptsDataset": true,
+            "acceptsManagedFolder": false
+        },
+        {
+            "name": "evaluation_forecasts_dataset",
+            "label": "Evaluation dataset",
+            "description": "Dataset with evaluation forecasts used to compute the performance metrics",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsManagedFolder": false
+        }
+    ],
+    "paramsPythonSetup": "select_gpu_devices.py",
+    "params": [
+        {
+            "type": "SEPARATOR",
+            "name": "separator_input",
+            "label": "Input parameters"
+        },
+        {
+            "name": "time_column",
+            "label": "Time column",
+            "allowedColumnTypes": [
+                "date"
+            ],
+            "type": "COLUMN",
+            "description": "Must be a parsed date",
+            "columnRole": "input_dataset",
+            "mandatory": true
+        },
+        {
+            "name": "frequency_unit",
+            "label": "Frequency",
+            "type": "SELECT",
+            "description": "Frequency of your historical data",
+            "mandatory": true,
+            "selectChoices": [
+                {
+                    "value": "min",
+                    "label": "Minute"
+                },
+                {
+                    "value": "H",
+                    "label": "Hour"
+                },
+                {
+                    "value": "D",
+                    "label": "Day"
+                },
+                {
+                    "value": "B",
+                    "label": "Business Day (Mon-Fri)"
+                },
+                {
+                    "value": "W",
+                    "label": "Week"
+                },
+                {
+                    "value": "M",
+                    "label": "Month"
+                },
+                {
+                    "value": "3M",
+                    "label": "Quarter"
+                },
+                {
+                    "value": "6M",
+                    "label": "Semester"
+                },
+                {
+                    "value": "12M",
+                    "label": "Year"
+                }
+            ],
+            "defaultValue": "D"
+        },
+        {
+            "name": "frequency_end_of_week",
+            "label": "End of week day",
+            "type": "SELECT",
+            "mandatory": false,
+            "defaultValue": "SUN",
+            "visibilityCondition": "model.frequency_unit == 'W'",
+            "selectChoices": [
+                {
+                    "value": "SUN",
+                    "label": "Sunday"
+                },
+                {
+                    "value": "MON",
+                    "label": "Monday"
+                },
+                {
+                    "value": "TUE",
+                    "label": "Tuesday"
+                },
+                {
+                    "value": "WED",
+                    "label": "Wednesday"
+                },
+                {
+                    "value": "THU",
+                    "label": "Thursday"
+                },
+                {
+                    "value": "FRI",
+                    "label": "Friday"
+                },
+                {
+                    "value": "SAT",
+                    "label": "Saturday"
+                }
+            ]
+        },
+        {
+            "name": "frequency_step_hours",
+            "label": "Number of hours",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.frequency_unit == 'H'"
+        },
+        {
+            "name": "frequency_step_minutes",
+            "label": "Number of minutes",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "model.frequency_unit == 'min'"
+        },
+        {
+            "name": "target_columns",
+            "label": "Target column(s)",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": true
+        },
+        {
+            "name": "additional_columns",
+            "label": "Long format",
+            "description": "If multiple time series are stored in the same column",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true
+        },
+        {
+            "name": "timeseries_identifiers",
+            "label": "Time series identifiers",
+            "description": "Columns that identify the multiple time series - mandatory for long format",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "string",
+                "boolean"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false,
+            "visibilityCondition": "model.additional_columns"
+        },
+        {
+            "name": "separator_sampling",
+            "label": "Sampling",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "sampling_method",
+            "label": "Sampling method",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Use only the most recent data",
+            "selectChoices": [
+                {
+                    "value": "no_sampling",
+                    "label": "No sampling (whole data)"
+                },
+                {
+                    "value": "last_records",
+                    "label": "Last records (most recent)"
+                }
+            ],
+            "defaultValue": "last_records"
+        },
+        {
+            "name": "number_records",
+            "label": "Nb. records",
+            "description": "Maximum number of records to extract per time series",
+            "type": "INT",
+            "defaultValue": 10000,
+            "mandatory": false,
+            "minI": 4,
+            "visibilityCondition": "model.sampling_method=='last_records'"
+        },
+        {
+            "name": "separator_modeling",
+            "label": "Modeling",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "separator_modeling_customize_algorithms",
+            "label": "",
+            "type": "SEPARATOR",
+            "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.model.html",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "prediction_length",
+            "label": "Forecasting horizon",
+            "type": "INT",
+            "description": "Number of future values to predict. Higher values increase runtime.",
+            "defaultValue": 1,
+            "mandatory": true,
+            "minI": 1
+        },
+        {
+            "name": "forecasting_style",
+            "label": "Forecasting mode",
+            "type": "SELECT",
+            "description": "AutoML to let Dataiku choose your models or Expert to have full control",
+            "mandatory": true,
+            "selectChoices": [
+                {
+                    "value": "auto",
+                    "label": "AutoML - Quick Prototypes"
+                },
+                {
+                    "value": "auto_performance",
+                    "label": "AutoML - High Performance"
+                },
+                {
+                    "value": "choose_algorithms",
+                    "label": "Expert - Choose Algorithms"
+                },
+                {
+                    "value": "customize_algorithms",
+                    "label": "Expert - Customize Algorithms"
+                }
+            ],
+            "defaultValue": "auto"
+        },
+        {
+            "type": "SEPARATOR",
+            "label": " ",
+            "description": "Statistical models",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "trivial_identity_model_activated",
+            "label": "- Trivial Identity",
+            "description": "Based on the trivial.identity GluonTS model. Predicted values will be the same as the last values.",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "seasonal_naive_model_activated",
+            "label": "- Seasonal Naive",
+            "description": "Based on the seasonal_naive GluonTS model. Seasonality is chosen based on the frequency.",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "autoarima_model_activated",
+            "label": "- AutoARIMA",
+            "description": "Based on the pyramid-arima package. Slow for multiple time series.",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "autoarima_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "maxiter": 50
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "npts_model_activated",
+            "label": "- NPTS",
+            "description": "Based on the NPTSPredictor GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "npts_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "use_seasonal_model": "True"
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "label": " ",
+            "description": "Deep Learning models",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "simplefeedforward_model_activated",
+            "label": "- FeedForward",
+            "description": "Based on the SimpleFeedForwardEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "simplefeedforward_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "num_hidden_dimensions": "[40, 40]"
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "deepar_model_activated",
+            "label": "- DeepAR",
+            "description": "Based on the DeepAREstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": true,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "deepar_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.deepar_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "num_layers": 2
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "transformer_model_activated",
+            "label": "- Transformer",
+            "description": "Based on the TransformerEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "transformer_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.transformer_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "model_dim": 32
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "mqcnn_model_activated",
+            "label": "- MQ-CNN",
+            "description": "Based on the MQCNNEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "mqcnn_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "tft_model_activated",
+            "label": "- TFT",
+            "description": "Based on the TemporalFusionTransformer GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "tft_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "No documentation available yet",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
+            "mandatory": false
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "nbeats_model_activated",
+            "label": "- NBEATS",
+            "description": "Based on the NBEATSEnsembleEstimator GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "false && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "nbeats_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
+            "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
+            "mandatory": false
+        },
+        {
+            "name": "training_options_separator",
+            "label": "Deep Learning training parameters",
+            "type": "SEPARATOR",
+            "description": "Detailed documentation: https://ts.gluon.ai/api/gluonts/gluonts.trainer.html",
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "epoch",
+            "label": "Number of epochs",
+            "description": "Higher values increase performance but increase runtime linearly",
+            "type": "INT",
+            "defaultValue": 10,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "batch_size",
+            "label": "Batch size",
+            "description": "Higher values may reduce runtime but decrease performance",
+            "type": "INT",
+            "defaultValue": 32,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "auto_num_batches_per_epoch",
+            "label": "Scale number of batches",
+            "description": "Automatically adjust the number of batches per epoch to the training data size",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "num_batches_per_epoch",
+            "label": "Number of batches per epoch",
+            "description": "Number of training batches used in one epoch. Higher values increase runtime",
+            "type": "INT",
+            "defaultValue": 50,
+            "mandatory": false,
+            "minI": 1,
+            "visibilityCondition": "(model.auto_num_batches_per_epoch==false) && ['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "separator_evaluation",
+            "label": "Evaluation",
+            "description": "Split to evaluate performance metrics. The final model will be retrained on the entire sample.",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "evaluation_strategy",
+            "label": "Splitting strategy",
+            "type": "SELECT",
+            "mandatory": true,
+            "description": "Only supported method - Evaluate on the last \"Forecasting horizon\" values",
+            "selectChoices": [
+                {
+                    "value": "split",
+                    "label": "Time-based Split"
+                }
+            ],
+            "defaultValue": "split"
+        },
+        {
+            "name": "advanced_options_separator",
+            "label": "Advanced",
+            "type": "SEPARATOR"
+        },
+        {
+            "name": "external_feature_activated",
+            "label": "Add external features",
+            "description": "Optional numeric features for exogenous time-dependent factors e.g., holidays, special events",
+            "type": "BOOLEAN",
+            "defaultValue": false
+        },
+        {
+            "name": "external_feature_columns",
+            "label": "External feature columns",
+            "description": "⚠️  Futures values of external features will be required to forecast",
+            "type": "COLUMNS",
+            "allowedColumnTypes": [
+                "tinyint",
+                "smallint",
+                "int",
+                "bigint",
+                "float",
+                "double"
+            ],
+            "columnRole": "input_dataset",
+            "mandatory": false,
+            "visibilityCondition": "model.external_feature_activated"
+        },
+        {
+            "name": "evaluation_only",
+            "label": "Evaluation only",
+            "description": "Store evaluation results but do not save trained models",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "visibilityCondition": "false"
+        },
+        {
+            "name": "use_gpu",
+            "label": "Use GPU",
+            "description": "Use GPU to train Deep Learning models",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "visibilityCondition": "'cpu' == 'gpu'"
+        },
+        {
+            "name": "gpu_location",
+            "label": "GPU location",
+            "type": "SELECT",
+            "mandatory": false,
+            "selectChoices": [
+                {
+                    "value": "local_gpu",
+                    "label": "Local GPU"
+                },
+                {
+                    "value": "container_gpu",
+                    "label": "Container GPU"
+                }
+            ],
+            "defaultValue": "local_gpu",
+            "visibilityCondition": "model.use_gpu"
+        },
+        {
+            "name": "gpu_devices",
+            "type": "MULTISELECT",
+            "label": "Local GPU device",
+            "description": "Select one GPU device to train Deep Learning models on",
+            "getChoicesFromPython": true,
+            "visibilityCondition": "model.use_gpu && model.gpu_location == 'local_gpu'"
+        }
+    ],
+    "resourceKeys": []
+}
