@@ -31,8 +31,6 @@ class AutoARIMAPredictor(RepresentablePredictor):
         Frequency of the predicted data.
     """
 
-    # TODO implement custom serializer
-
     @validated()
     def __init__(self, prediction_length, freq, trained_models, lead_time=0):
         super().__init__(freq=freq, lead_time=lead_time, prediction_length=prediction_length)
