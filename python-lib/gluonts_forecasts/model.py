@@ -7,6 +7,7 @@ from time import perf_counter
 from pandas.tseries.frequencies import to_offset
 from safe_logger import SafeLogger
 import json
+import multiprocessing
 
 
 logger = SafeLogger("Forecast plugin")
@@ -132,7 +133,7 @@ class Model(ModelHandler):
         """
         forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
         forecasts = list(forecast_it)
-        evaluator = Evaluator(num_workers=0)
+        evaluator = Evaluator(num_workers=min(2, multiprocessing.cpu_count()))
         agg_metrics, item_metrics = evaluator(ts_it, forecasts, num_series=len(test_list_dataset))
         return agg_metrics, item_metrics, forecasts
 
