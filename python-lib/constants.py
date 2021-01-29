@@ -52,7 +52,7 @@ EVALUATION_METRICS_DESCRIPTIONS = {
     "MSIS": "Mean Scaled Interval Score",
     "RMSE": "Root Mean Square Error",
     "ND": "Normalized Deviation",
-    "mean_wQuantileLoss": "Mean Weight Quantile Loss",
+    "mean_wQuantileLoss": "Mean Weighted Quantile Loss",
 }
 
 
