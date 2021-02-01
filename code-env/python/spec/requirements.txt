@@ -2,3 +2,4 @@ mxnet==1.7.0.post1
 gluonts==0.6.4
 dill==0.3.3
 pmdarima==1.8.0
+threadpoolctl==2.1.0

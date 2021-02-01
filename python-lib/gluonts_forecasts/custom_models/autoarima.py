@@ -11,6 +11,7 @@ import pmdarima as pm
 import numpy as np
 from safe_logger import SafeLogger
 from tqdm import tqdm
+from threadpoolctl import threadpool_limits
 
 
 logger = SafeLogger("Forecast plugin - AutoARIMA")
@@ -102,7 +103,10 @@ class AutoARIMAEstimator(Estimator):
             kwargs = self._set_seasonality(self.kwargs, item[TIMESERIES_KEYS.TARGET])
             external_features = self._set_external_features(kwargs, item)
 
-            model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, **kwargs)
+            with threadpool_limits(limits=1, user_api='blas'):
+                # calls to blas implementation will be limited to use only one thread
+                model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, **kwargs)
+
             trained_models += [model]
 
         return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
