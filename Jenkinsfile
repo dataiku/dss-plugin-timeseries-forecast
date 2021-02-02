@@ -2,8 +2,7 @@ pipeline {
    options { disableConcurrentBuilds() }
    agent { label 'dss-plugin-tests'}
    environment {
-        PLUGIN_INTEGRATION_TEST_INSTANCE="/home/jenkins-agent/instance_config.json"
-        SLACK_HOOK=credentials("slack_hook")
+        PLUGIN_INTEGRATION_TEST_INSTANCE="$HOME/instance_config.json"
     }
    stages {
       stage('Run Unit Tests') {
@@ -32,20 +31,17 @@ pipeline {
    post {
      always {
         script {
-            allure([
-                     includeProperties: false,
-                     jdk: '',
-                     properties: [],
-                     reportBuildPolicy: 'ALWAYS',
-                     results: [[path: 'tests/allure_report']]
+           allure([
+                    includeProperties: false,
+                    jdk: '',
+                    properties: [],
+                    reportBuildPolicy: 'ALWAYS',
+                    results: [[path: 'tests/allure_report']]
             ])
-            def colorCode = '#FF0000'
+
             def status = currentBuild.currentResult
-            
-            sh "file_name=\$(echo ${env.JOB_NAME} | tr '/' '-').status; touch \$file_name; echo \"${env.BUILD_URL};${env.CHANGE_TITLE};${env.CHANGE_AUTHOR};${env.CHANGE_URL};${status}\" >> /home/jenkins-agent/daily-statuses/\$file_name"
-            
+            sh "file_name=\$(echo ${env.JOB_NAME} | tr '/' '-').status; touch \$file_name; echo \"${env.BUILD_URL};${env.CHANGE_TITLE};${env.CHANGE_AUTHOR};${env.CHANGE_URL};${env.BRANCH_NAME};${status};\" >> $HOME/daily-statuses/\$file_name"
         }
-         
      }
    }
 }
