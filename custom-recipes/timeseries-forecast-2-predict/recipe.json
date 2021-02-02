@@ -141,7 +141,7 @@
             "label": "Include history",
             "description": "Keep historical data in addition to future values",
             "type": "BOOLEAN",
-            "defaultValue": false,
+            "defaultValue": true,
             "mandatory": true
         },
         {
