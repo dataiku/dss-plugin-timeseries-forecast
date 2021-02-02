@@ -51,6 +51,7 @@ training_session = TrainingSession(
     timeseries_identifiers_names=params["timeseries_identifiers_names"],
     batch_size=params["batch_size"],
     user_num_batches_per_epoch=params["num_batches_per_epoch"],
+    season_length=params["season_length"],
     mxnet_context=mxnet_context,
 )
 training_session.init(partition_root=params["partition_root"], session_name=session_name)

@@ -31,6 +31,7 @@ class TrainingSession:
         batch_size (int): Size of batch used by the GluonTS Trainer class
         user_num_batches_per_epoch (int): Number of batches per epoch selected by user. -1 means to compute scaled number
         num_batches_per_epoch (int): Number of batches per epoch
+        season_length (int): Length of the seasonality parameter.
         mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
 
@@ -48,6 +49,7 @@ class TrainingSession:
         timeseries_identifiers_names=None,
         batch_size=None,
         user_num_batches_per_epoch=None,
+        season_length=None,
         mxnet_context=None,
     ):
         self.models_parameters = models_parameters
@@ -74,6 +76,7 @@ class TrainingSession:
         self.batch_size = batch_size
         self.user_num_batches_per_epoch = user_num_batches_per_epoch
         self.num_batches_per_epoch = None
+        self.season_length = season_length
         self.mxnet_context = mxnet_context
 
     def init(self, session_name, partition_root=None):
@@ -130,6 +133,7 @@ class TrainingSession:
                     use_external_features=self.use_external_features,
                     batch_size=self.batch_size,
                     num_batches_per_epoch=self.num_batches_per_epoch,
+                    season_length=self.season_length,
                     mxnet_context=self.mxnet_context,
                 )
             )

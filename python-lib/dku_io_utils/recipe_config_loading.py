@@ -5,9 +5,10 @@ from dataiku.customrecipe import (
     get_output_names_for_role,
 )
 import re
+from gluonts.time_feature import get_seasonality
 from gluonts_forecasts.model_handler import list_available_models
 from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
-from constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION
+from constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION, DEFAULT_SEASONALITIES
 from safe_logger import SafeLogger
 
 logger = SafeLogger("Forecast plugin")
@@ -91,6 +92,10 @@ def load_training_config(recipe_config):
     params["prediction_length"] = recipe_config.get("prediction_length")
     if not params["prediction_length"]:
         raise PluginParamValidationError("Please specify forecasting horizon")
+
+    params["season_length"] = recipe_config.get(f"season_length_{params['frequency_unit']}", 1)
+    if params["season_length"] < 1:
+        raise PluginParamValidationError("Seasonality must be higher than 1")
 
     params["use_gpu"] = recipe_config.get("use_gpu", False)
     if params["use_gpu"]:
@@ -249,14 +254,16 @@ def get_model_presets(config, model):
 def automl_params_overwrite(params):
     """Overwrite some training options based on the selected automl mode """
     params_copy = params.copy()
+    if params_copy["forecasting_style"].startswith("auto"):
+        params_copy["season_length"] = get_seasonality(params_copy["frequency"], DEFAULT_SEASONALITIES)
+        params_copy["batch_size"] = 128 if params_copy["use_gpu"] else 32
+
     if params_copy["forecasting_style"] == "auto":
         params_copy["epoch"] = 10
-        params_copy["batch_size"] = 128 if params_copy["use_gpu"] else 32
         params_copy["num_batches_per_epoch"] = 50
     elif params_copy["forecasting_style"] == "auto_performance":
         params_copy["context_length"] = params_copy["prediction_length"]
         params_copy["epoch"] = 30 if params_copy["is_training_multivariate"] else 10
-        params_copy["batch_size"] = 128 if params_copy["use_gpu"] else 32
         params_copy["num_batches_per_epoch"] = -1
     return params_copy
 

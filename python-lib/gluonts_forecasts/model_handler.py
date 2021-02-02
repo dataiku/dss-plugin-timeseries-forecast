@@ -13,12 +13,14 @@ from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
+from gluonts_forecasts.custom_models.stl import STLEstimator, STLPredictor
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 from gluonts_forecasts.utils import sanitize_model_parameters
 
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
+CAN_USE_SEASONALITY = "can_use_seasonality"
 DEFAULT_KWARGS = "default_kwargs"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
@@ -45,6 +47,7 @@ MODEL_DESCRIPTORS = {
         PREDICTOR: SeasonalNaivePredictor,
         TRAINER: None,
         IS_NAIVE: True,
+        CAN_USE_SEASONALITY: True,
     },
     "autoarima": {
         LABEL: "AutoARIMA",
@@ -52,6 +55,7 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: AutoARIMAEstimator,
         PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
+        CAN_USE_SEASONALITY: True,
     },
     "npts": {
         LABEL: "NPTS",
@@ -60,6 +64,14 @@ MODEL_DESCRIPTORS = {
         PREDICTOR: NPTSPredictor,
         TRAINER: None,
         IS_NAIVE: True,
+    },
+    "stl": {
+        LABEL: "STL",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: STLEstimator,
+        PREDICTOR: STLPredictor,
+        TRAINER: None,
+        CAN_USE_SEASONALITY: True,
     },
     "simplefeedforward": {
         LABEL: "FeedForward",
@@ -150,6 +162,9 @@ class ModelHandler:
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
+
+    def can_use_seasonality(self):
+        return self.model_descriptor.get(CAN_USE_SEASONALITY, False)
 
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)

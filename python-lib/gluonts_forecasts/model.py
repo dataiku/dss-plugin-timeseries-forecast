@@ -31,6 +31,7 @@ class Model(ModelHandler):
         prediction_length (int): Number of time steps to predict
         epoch (int): Number of epochs used by the GluonTS Trainer class
         use_external_features (bool): If the model will be fed external features (use_feat_dynamic_real in GluonTS)
+        use_seasonality (bool): If the model will be fed a seasonality parameter
         batch_size (int): Size of batch used by the GluonTS Trainer class
         mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
     """
@@ -45,6 +46,7 @@ class Model(ModelHandler):
         use_external_features=False,
         batch_size=None,
         num_batches_per_epoch=None,
+        season_length=None,
         mxnet_context=None,
     ):
         super().__init__(model_name)
@@ -55,6 +57,7 @@ class Model(ModelHandler):
         self.prediction_length = prediction_length
         self.epoch = epoch
         self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
+        self.use_seasonality = ModelHandler.can_use_seasonality(self)
         self.mxnet_context = mxnet_context
 
         estimator_kwargs = {
@@ -68,11 +71,14 @@ class Model(ModelHandler):
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
-        trainer = ModelHandler.trainer(self, **trainer_kwargs)
-        if trainer is not None:
-            estimator_kwargs.update({"trainer": trainer})
+        self.trainer = ModelHandler.trainer(self, **trainer_kwargs)
+        if self.trainer is not None:
+            estimator_kwargs.update({"trainer": self.trainer})
         else:
             self.mxnet_context = None
+        self.season_length = season_length
+        if self.use_seasonality and self.season_length is not None:
+            estimator_kwargs.update({"season_length": self.season_length})
         if self.use_external_features:
             estimator_kwargs.update({"use_feat_dynamic_real": True})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
@@ -196,6 +202,8 @@ class Model(ModelHandler):
         if self.estimator is None:
             if ModelHandler.needs_num_samples(self):
                 kwargs.update({"num_samples": 100})
+            if self.use_seasonality and self.season_length:
+                kwargs.update({"season_length": self.season_length})
             predictor = ModelHandler.predictor(self, **kwargs)
         else:
             try:
@@ -212,14 +220,17 @@ class Model(ModelHandler):
             "model_name": ModelHandler.get_label(self),
             "frequency": self.frequency,
             "prediction_length": self.prediction_length,
-            "epoch": self.epoch,
             "use_external_features": self.use_external_features,
-            "batch_size": self.batch_size,
-            "num_batches_per_epoch": self.num_batches_per_epoch,
             "timeseries_number": timeseries_number,
             "timeseries_average_length": round(timeseries_total_length / timeseries_number),
             "model_parameters": self.model_parameters,
         }
+        if self.trainer is not None:
+            model_params["epoch"] = self.epoch
+            model_params["batch_size"] = self.batch_size
+            model_params["num_batches_per_epoch"] = self.num_batches_per_epoch
+        if self.use_seasonality and self.season_length is not None:
+            model_params["season_length"] = self.season_length
         if self.mxnet_context:
             model_params["mxnet.context"] = str(self.mxnet_context)
         return json.dumps(model_params)

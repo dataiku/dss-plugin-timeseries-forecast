@@ -21,7 +21,7 @@ def is_int(s):
     try:
         int(s)
         return True
-    except ValueError:
+    except (ValueError, TypeError):
         return False
 
 
@@ -29,20 +29,5 @@ def is_float(s):
     try:
         float(s)
         return True
-    except ValueError:
+    except (ValueError, TypeError):
         return False
-
-DEFAULT_SEASONALITIES = {
-    "H": 24,
-    "D": 7,
-    "W-SUN": 52,
-    "W-MON": 52,
-    "W-TUE": 52,
-    "W-WED": 52,
-    "W-THU": 52,
-    "W-FRI": 52,
-    "W-SAT": 52,
-    "M": 12,
-    "B": 5,
-    "Q-DEC": 4,
-}
