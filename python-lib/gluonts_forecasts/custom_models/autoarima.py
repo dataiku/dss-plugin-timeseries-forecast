@@ -86,6 +86,7 @@ class AutoARIMAEstimator(Estimator):
         self.freq = freq
         self.use_feat_dynamic_real = use_feat_dynamic_real
         self.kwargs = cast_kwargs(kwargs)
+        self.thread_limit = 1
 
     def train(self, training_data, validation_data=None):
         """Train the estimator on the given data.
@@ -103,7 +104,7 @@ class AutoARIMAEstimator(Estimator):
             kwargs = self._set_seasonality(self.kwargs, item[TIMESERIES_KEYS.TARGET])
             external_features = self._set_external_features(kwargs, item)
 
-            with threadpool_limits(limits=1, user_api='blas'):
+            with threadpool_limits(limits=self.thread_limit, user_api='blas'):
                 # calls to blas implementation will be limited to use only one thread
                 model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, **kwargs)
 
