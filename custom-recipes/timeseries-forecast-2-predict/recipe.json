@@ -141,7 +141,7 @@
             "label": "Include history",
             "description": "Keep historical data in addition to future values",
             "type": "BOOLEAN",
-            "defaultValue": false,
+            "defaultValue": true,
             "mandatory": true
         },
         {
@@ -168,7 +168,7 @@
             "label": "Nb. records",
             "description": "Maximum number of historical records to include per time series",
             "type": "INT",
-            "defaultValue": 1000,
+            "defaultValue": 10000,
             "mandatory": false,
             "minI": 1,
             "visibilityCondition": "model.include_history && model.sampling_method=='last_records'"
