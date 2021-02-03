@@ -78,7 +78,7 @@ class Model(ModelHandler):
             self.mxnet_context = None
         self.season_length = season_length
         if self.use_seasonality and self.season_length is not None:
-            estimator_kwargs.update({"season_length": self.season_length})
+            self.estimator_kwargs.update({"season_length": self.season_length})
         if self.use_external_features:
             self.estimator_kwargs.update({"use_feat_dynamic_real": True})
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **self.estimator_kwargs)
