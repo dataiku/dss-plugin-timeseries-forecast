@@ -60,7 +60,7 @@ class Model(ModelHandler):
         self.use_seasonality = ModelHandler.can_use_seasonality(self)
         self.mxnet_context = mxnet_context
 
-        estimator_kwargs = {
+        self.estimator_kwargs = {
             "freq": self.frequency,
             "prediction_length": self.prediction_length,
         }
@@ -73,34 +73,43 @@ class Model(ModelHandler):
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
         self.trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if self.trainer is not None:
-            estimator_kwargs.update({"trainer": self.trainer})
+            self.estimator_kwargs.update({"trainer": self.trainer})
         else:
             self.mxnet_context = None
         self.season_length = season_length
         if self.use_seasonality and self.season_length is not None:
             estimator_kwargs.update({"season_length": self.season_length})
         if self.use_external_features:
-            estimator_kwargs.update({"use_feat_dynamic_real": True})
-        self.estimator = ModelHandler.estimator(self, self.model_parameters, **estimator_kwargs)
+            self.estimator_kwargs.update({"use_feat_dynamic_real": True})
+        self.estimator = ModelHandler.estimator(self, self.model_parameters, **self.estimator_kwargs)
         self.predictor = None
-        self.evaluation_time = None
+        self.evaluation_time = 0
+        self.retraining_time = 0
 
     def get_name(self):
         return self.model_name
 
-    def train(self, train_list_dataset):
+    def train(self, train_list_dataset, reinit=True):
+        """Train model on train_list_dataset and re-instanciate estimator if reinit=True"""
         start = perf_counter()
-        logger.info(f"Training {self.get_label()} model...")
-        self.predictor = self._train_estimator(train_list_dataset)
-        logger.info(f"Training {self.get_label()} model: Done in {perf_counter() - start:.2f} seconds")
+        logger.info(f"Re-training {self.get_label()} model on entire dataset ...")
 
-    def evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False):
-        """Train Model on train_list_dataset and evaluate it on test_list_dataset.
+        if reinit:  # re-instanciate model to re-initialize model parameters
+            self.estimator = ModelHandler.estimator(self, self.model_parameters, **self.estimator_kwargs)
+
+        self.predictor = self._train_estimator(train_list_dataset)
+
+        self.retraining_time = perf_counter() - start
+        logger.info(f"Re-training {self.get_label()} model on entire dataset: Done in {self.retraining_time:.2f} seconds")
+
+    def train_evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False, retrain=False):
+        """Train Model on train_list_dataset and evaluate it on test_list_dataset. Then retrain on test_list_dataset if retrain=True.
 
         Args:
             train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
             test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
-            make_forecasts (bool, optional): [description]. Defaults to False.
+            make_forecasts (bool, optional): Whether to make the evaluation forecasts and return them. Defaults to False.
+            retrain (bool, optional): Whether to retrain model on test_list_dataset after the evaluation. Defaults to False.
 
         Returns:
             Evaluation metrics DataFrame for each target and aggregated.
@@ -113,7 +122,10 @@ class Model(ModelHandler):
 
         agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
         self.evaluation_time = perf_counter() - start
-        logger.info(f"Evaluating {self.get_label()} model performance: Done in {perf_counter() - start:.2f} seconds")
+        logger.info(f"Evaluating {self.get_label()} model performance: Done in {self.evaluation_time:.2f} seconds")
+
+        if retrain:
+            self.train(test_list_dataset)
 
         metrics, identifiers_columns = self._format_metrics(agg_metrics, item_metrics, train_list_dataset)
 
@@ -169,7 +181,7 @@ class Model(ModelHandler):
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
-        agg_metrics[METRICS_DATASET.TRAINING_TIME] = round(self.evaluation_time, 2)
+        agg_metrics[METRICS_DATASET.TRAINING_TIME] = round(self.evaluation_time + self.retraining_time, 2)
 
         for identifiers_column in identifiers_columns:
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]

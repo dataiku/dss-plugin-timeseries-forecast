@@ -60,13 +60,11 @@ training_session.create_gluon_datasets()
 
 training_session.instantiate_models()
 
-training_session.evaluate()
+training_session.train_evaluate(retrain=(not params["evaluation_only"]))
 
-logger.info("Completed evaluation of all models")
+logger.info("Completed training and evaluation of all models")
 
 if not params["evaluation_only"]:
-    logger.info("Re-training models on entire dataset")
-    training_session.train()
 
     model_folder = params["model_folder"]
 

@@ -49,7 +49,7 @@ class TestModel:
             batch_size=32,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
@@ -66,7 +66,7 @@ class TestModel:
             batch_size=32,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
@@ -83,7 +83,7 @@ class TestModel:
             batch_size=32,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
@@ -106,7 +106,12 @@ class TestModel:
     @staticmethod
     def metrics_assertions(metrics, model_name):
         expected_metrics_columns = ["store", "item"]
-        expected_metrics_columns += [METRICS_DATASET.TARGET_COLUMN, METRICS_DATASET.MODEL_COLUMN, METRICS_DATASET.MODEL_PARAMETERS, METRICS_DATASET.TRAINING_TIME]
+        expected_metrics_columns += [
+            METRICS_DATASET.TARGET_COLUMN,
+            METRICS_DATASET.MODEL_COLUMN,
+            METRICS_DATASET.MODEL_PARAMETERS,
+            METRICS_DATASET.TRAINING_TIME,
+        ]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         assert len(metrics.index) == 5
         assert set(metrics.columns) == set(expected_metrics_columns)

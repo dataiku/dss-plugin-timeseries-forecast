@@ -138,33 +138,30 @@ class TrainingSession:
                 )
             )
 
-    def train(self):
-        """ Train all the selected models on all data """
-        for model in self.models:
-            model.train(self.full_list_dataset)
-
-    def evaluate(self):
-        """Call the right evaluate function depending on the need to make forecasts. """
+    def train_evaluate(self, retrain=False):
+        """Call the right train and evaluate function depending on the need to make forecasts. """
 
         if self.make_forecasts:
-            self._evaluate_make_forecast()
+            self._train_evaluate_make_forecast(retrain)
         else:
-            self._evaluate()
+            self._train_evaluate(retrain)
 
-    def _evaluate(self):
-        """Evaluate all the selected models and get the metrics dataframe. """
+    def _train_evaluate(self, retrain):
+        """Evaluate all the selected models (then retrain on complete data if specified) and get the metrics dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            item_metrics = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset)[0]
+            item_metrics = model.train_evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, retrain=retrain)[0]
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
-    def _evaluate_make_forecast(self):
-        """Evaluate all the selected models, get the metrics dataframe and create the forecasts dataframe. """
+    def _train_evaluate_make_forecast(self, retrain):
+        """Evaluate all the selected models (then retrain on complete data if specified), get the metrics dataframe and create the forecasts dataframe. """
         metrics_df = pd.DataFrame()
         for model in self.models:
-            (item_metrics, identifiers_columns, forecasts_df) = model.evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True)
+            (item_metrics, identifiers_columns, forecasts_df) = model.train_evaluate(
+                self.evaluation_train_list_dataset, self.full_list_dataset, make_forecasts=True, retrain=retrain
+            )
             forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
             if self.forecasts_df.empty:
                 self.forecasts_df = forecasts_df
