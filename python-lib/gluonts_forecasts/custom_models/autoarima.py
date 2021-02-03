@@ -116,7 +116,7 @@ class AutoARIMAEstimator(Estimator):
         return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
 
     def _check_season_length(self, season_length, target, kwargs):
-        """Check if season_length is a working value for seasonality by performing the same test of seasonlity pm.auto_arima does.
+        """Check if season_length is a working value for seasonality by performing the same test of seasonality pm.auto_arima does.
         The goal is for pm.auto_arima not to fail the training later.
 
         Args:

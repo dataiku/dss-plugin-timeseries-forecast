@@ -297,7 +297,7 @@
             "label": "Seasonality",
             "description": "Length of the training data season to use in statistical models.",
             "type": "INT",
-            "defaultValue": 60,
+            "defaultValue": 1,
             "mandatory": false,
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'min'"
         },
@@ -454,7 +454,7 @@
         {
             "name": "stl_model_activated",
             "label": "- Seasonal Trend",
-            "description": "Based on the statsmodels package STL model with ETS as forecast model.",
+            "description": "Based on the STLForecast model from statsmodels.",
             "type": "BOOLEAN",
             "defaultValue": false,
             "mandatory": true,
