@@ -14,6 +14,8 @@ from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
 from gluonts_forecasts.custom_models.stl import STLEstimator, STLPredictor
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 from gluonts_forecasts.utils import sanitize_model_parameters
 
@@ -102,7 +104,8 @@ MODEL_DESCRIPTORS = {
 
 # these parameter are classes but are set as strings in the UI
 CLASS_PARAMETERS = {
-    "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()}
+    "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()},
+    "model": {"ARIMA": ARIMA, "ETSModel": ETSModel},
 }
 
 

@@ -81,8 +81,10 @@ class STLEstimator(Estimator):
         self.prediction_length = prediction_length
         self.freq = freq
         self.kwargs = cast_kwargs(kwargs)
-        if "period" in kwargs:
+        if "period" in self.kwargs:
             raise ValueError("Keyword argument 'period' is not writable for STL, please use the Seasonality parameter")
+        if "model" not in self.kwargs:
+            self.kwargs["model"] = ETSModel
         self.season_length = season_length if season_length is not None else 1
 
     def train(self, training_data):
@@ -97,7 +99,7 @@ class STLEstimator(Estimator):
         models = []
         logger.info("Creating one STL model per time series ...")
         for item in tqdm(training_data):
-            model = STLForecast(endog=pd.Series(item[TIMESERIES_KEYS.TARGET]), model=ETSModel, period=self.season_length, **self.kwargs)
+            model = STLForecast(endog=pd.Series(item[TIMESERIES_KEYS.TARGET]), period=self.season_length, **self.kwargs)
             models += [model]
 
         return STLPredictor(prediction_length=self.prediction_length, freq=self.freq, models=models)

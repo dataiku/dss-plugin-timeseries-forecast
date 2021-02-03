@@ -468,7 +468,7 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.stl_model_activated",
             "mandatory": false,
             "defaultValue": {
-                "seasonal": 7
+                "model": "ETSModel"
             }
         },
         {
