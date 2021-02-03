@@ -62,7 +62,7 @@ class TestTrainingSession:
         assert self.training_session.num_batches_per_epoch == 50
 
     def test_evaluation_metrics(self):
-        self.training_session.evaluate()
+        self.training_session.train_evaluate()
         expected_metrics_columns = ["store", "item"]
         expected_metrics_columns += [
             METRICS_DATASET.TARGET_COLUMN,
@@ -79,7 +79,7 @@ class TestTrainingSession:
         assert set(metrics_models) == set(expected_metrics_models)
 
     def test_evaluation_forecasts(self):
-        self.training_session.evaluate()
+        self.training_session.train_evaluate(retrain=True)
         expected_evaluation_forecasts_columns = [
             "date",
             "volume",
@@ -102,5 +102,5 @@ class TestTrainingSession:
         assert set(self.training_session.evaluation_forecasts_df.columns) == set(expected_evaluation_forecasts_columns)
         assert not_nan_count["volume"] == 6 and not_nan_count["deepar_volume"] == 2
 
-    def test_train(self):
-        self.training_session.train()
+    def test_retrain(self):
+        self.training_session.train_evaluate(retrain=True)
