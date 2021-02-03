@@ -61,7 +61,7 @@ METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.MODEL_PARAMETERS: "Parameters used for training",
     METRICS_DATASET.SESSION: "Timestamp of training session",
     METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",
-    METRICS_DATASET.TRAINING_TIME: "Time elapsed during model training, evaluation and retraining (in seconds)",
+    METRICS_DATASET.TRAINING_TIME: "Time elapsed during model training and evaluation (in seconds)",
     ROW_ORIGIN.COLUMN_NAME: "Row origin",
 }
 
