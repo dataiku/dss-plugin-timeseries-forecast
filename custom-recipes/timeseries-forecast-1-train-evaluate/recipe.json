@@ -380,7 +380,7 @@
         {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
-            "description": "Based on the trivial.identity GluonTS model. Predicted values will be the same as the last values.",
+            "description": "Based on the trivial.identity GluonTS model. Use last values to predict the future.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -393,7 +393,7 @@
         {
             "name": "seasonal_naive_model_activated",
             "label": "- Seasonal Naive",
-            "description": "Based on the seasonal_naive GluonTS model.",
+            "description": "Based on the seasonal_naive GluonTS model. Predict values of previous season.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
