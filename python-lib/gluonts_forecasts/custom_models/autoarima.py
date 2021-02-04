@@ -87,7 +87,7 @@ class AutoARIMAEstimator(Estimator):
         self.kwargs = cast_kwargs(kwargs)
         self.thread_limit = 1
         if "m" in kwargs:
-            raise ValueError("Keyword argument 'm' is not writable for AutoARIMA, please use the Seasonality parameter")
+            raise ValueError("Keyword argument 'm' is not writable for AutoARIMA, please use the Season length parameter")
         self.season_length = season_length if season_length is not None else 1
 
     def train(self, training_data, validation_data=None):
