@@ -68,7 +68,7 @@ MODEL_DESCRIPTORS = {
         IS_NAIVE: True,
     },
     "stl": {
-        LABEL: "STL",
+        LABEL: "Seasonal Trend",
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: STLEstimator,
         PREDICTOR: STLPredictor,
