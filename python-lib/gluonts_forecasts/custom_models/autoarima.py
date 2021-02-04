@@ -54,7 +54,7 @@ class AutoARIMAPredictor(RepresentablePredictor):
 
         Args:
             item (DataEntry): One timeseries.
-            trained_model (list): List of trained autoarima models.
+            trained_model (pm.auto_arima): Trained autoarima model.
 
         Returns:
             SampleForecast of quantiles.

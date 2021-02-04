@@ -32,9 +32,9 @@ class SeasonalTrendPredictor(RepresentablePredictor):
     """
 
     @validated()
-    def __init__(self, prediction_length, freq, models, lead_time=0):
+    def __init__(self, prediction_length, freq, trained_models, lead_time=0):
         super().__init__(freq=freq, lead_time=lead_time, prediction_length=prediction_length)
-        self.models = models
+        self.trained_models = trained_models
 
     def predict(self, dataset, **kwargs):
         """
@@ -47,23 +47,20 @@ class SeasonalTrendPredictor(RepresentablePredictor):
         """
         logger.info("Training models and predicting time series ...")
         for i, item in tqdm(enumerate(dataset)):
-            yield self.predict_item(item, self.models[i])
+            yield self.predict_item(item, self.trained_models[i])
 
-    def predict_item(self, item, model):
+    def predict_item(self, item, trained_model):
         """Compute quantiles using the confidence intervals of autoarima.
 
         Args:
             item (DataEntry): One timeseries.
-            model (list): List of STL instanciated models.
+            trained_model (STLForecastResults): Trained STL model.
 
         Returns:
             SampleForecast of quantiles.
         """
         target_length = len(item[TIMESERIES_KEYS.TARGET])
         start_date = frequency_add(item[TIMESERIES_KEYS.START], target_length)
-
-        # need to fit the model in the Predictor class because the results of model.fit() is some un-pickable cython
-        trained_model = model.fit()
 
         samples = []
         for alpha in np.arange(0.02, 1.01, 0.02):
@@ -94,12 +91,13 @@ class SeasonalTrendEstimator(Estimator):
             training_data (gluonts.dataset.common.Dataset): Dataset to train the model on.
 
         Returns:
-            Predictor containing the instanciated STL models.
+            Predictor containing the trained STL models.
         """
-        models = []
+        trained_models = []
         logger.info("Creating one SeasonalTrend model per time series ...")
         for item in tqdm(training_data):
             model = STLForecast(endog=pd.Series(item[TIMESERIES_KEYS.TARGET]), period=self.season_length, **self.kwargs)
-            models += [model]
+            trained_model = model.fit()
+            trained_models += [trained_model]
 
-        return SeasonalTrendPredictor(prediction_length=self.prediction_length, freq=self.freq, models=models)
+        return SeasonalTrendPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
