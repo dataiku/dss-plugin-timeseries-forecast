@@ -1,4 +1,6 @@
-from gluonts_forecasts.custom_models.autoarima import AutoARIMAPredictor, AutoARIMAEstimator
+from gluonts_forecasts.custom_models.seasonal_trend import SeasonalTrendPredictor, SeasonalTrendEstimator
+from statsmodels.tsa.exponential_smoothing.ets import ETSModel
+from statsmodels.tsa.arima.model import ARIMA
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from constants import TIMESERIES_KEYS
@@ -7,7 +9,7 @@ import numpy as np
 import pytest
 
 
-class TestAutoARIMATrain:
+class TestSeasonalTrendTrain:
     def setup_class(self):
         self.timeseries = [
             {
@@ -28,11 +30,12 @@ class TestAutoARIMATrain:
             },
         ]
 
-    def test_training_hour_frequency(self):
+    def test_training_hour_frequency_ets(self):
         prediction_length = 2
         frequency = "12H"
         gluon_dataset = ListDataset(self.timeseries, freq=frequency)
-        estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, season_length=2)
+        kwargs = {"model": ETSModel, "model_kwargs": {"seasonal_periods": 13}}
+        estimator = SeasonalTrendEstimator(prediction_length=prediction_length, freq=frequency, season_length=2, **kwargs)
         predictor = estimator.train(gluon_dataset)
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
@@ -43,14 +46,13 @@ class TestAutoARIMATrain:
         agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(gluon_dataset))
         assert agg_metrics["MSE"] is not None
 
-    def test_training_month_frequency(self):
+    def test_training_month_frequency_arima(self):
         prediction_length = 1
         frequency = "3M"
         gluon_dataset = ListDataset([self.timeseries[0]], freq=frequency)
-        estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, max_D=3, season_length=4)
+        kwargs = {"model": ARIMA, "model_kwargs": {"order": (2, 1, 1)}}
+        estimator = SeasonalTrendEstimator(prediction_length=prediction_length, freq=frequency, season_length=4, **kwargs)
         predictor = estimator.train(gluon_dataset)
-
-        assert predictor.trained_models[0].seasonal_order[3] == 4  # seasonality is 4
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
@@ -59,25 +61,3 @@ class TestAutoARIMATrain:
         evaluator = Evaluator()
         agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(gluon_dataset))
         assert agg_metrics["MSE"] is not None
-
-    def test_training_bad_seasonality_user_input(self):
-        prediction_length = 1
-        frequency = "3M"
-        gluon_dataset = ListDataset(self.timeseries, freq=frequency)
-        with pytest.raises(ValueError):
-            estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, m=12)
-
-    def test_training_external_features(self):
-        prediction_length = 2
-        frequency = "3M"
-        gluon_dataset = ListDataset(self.timeseries, freq=frequency)
-        estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, season_length=4, use_feat_dynamic_real=True)
-        predictor = estimator.train(gluon_dataset)
-
-        forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
-        timeseries = list(ts_it)
-        forecasts = list(forecast_it)
-        assert forecasts[1].samples.shape == (100, 2)
-        evaluator = Evaluator()
-        agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(gluon_dataset))
-        assert agg_metrics["MAPE"] is not None

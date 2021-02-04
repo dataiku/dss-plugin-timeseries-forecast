@@ -127,26 +127,26 @@ def quantile_forecasts_series(sample_forecasts, quantile, frequency):
 
 
 def sanitize_model_parameters(model_parameters, model_name):
-    """Json load parameter that are lists (if they begin with a '[')
+    """Json load parameter that are lists (if they begin with a '[') or dict (if they begin with a '{')
 
     Args:
         model_parameters (dict): [description]
         model_name (str): Model name use for error message
 
     Raises:
-        ValueError: If list argument cannot be json.loaded
+        ValueError: If list or dict argument cannot be json.loaded
 
     Returns:
-        Copy of the input dictionary with json loaded lists
+        Copy of the input dictionary with json loaded lists or dict
     """
     model_parameters_copy = model_parameters.copy()
     for parameter_name, parameter_value in model_parameters_copy.items():
         if isinstance(parameter_value, str):
-            if parameter_value.startswith("["):
+            if parameter_value.startswith(("[", "{")):
                 try:
                     model_parameters_copy[parameter_name] = json.loads(parameter_value)
                 except ValueError as json_error:
                     raise ValueError(
-                        f"Error with parameter {parameter_name} of model {model_name}, value '{parameter_value}' cannot be parsed into a list. Please input a valid list that can be json loaded."
+                        f"Error with parameter {parameter_name} of model {model_name}, value '{parameter_value}' cannot be parsed into a list or a dict. Please input a valid list or dict that can be json loaded."
                     )
     return model_parameters_copy

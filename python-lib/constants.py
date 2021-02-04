@@ -71,12 +71,28 @@ TIMESTAMP_REGEX_PATTERN = r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{6}Z"
 
 FORECASTING_STYLE_PRESELECTED_MODELS = {
     "auto_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
-    "auto_performance_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar"],
+    "auto_performance_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"],
     "auto_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
     "auto_performance_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"],
 }
 
 CUSTOMISABLE_FREQUENCIES_OFFSETS = Week
+
+DEFAULT_SEASONALITIES = {
+    "min": 1,
+    "H": 24,
+    "D": 7,
+    "W-SUN": 52,
+    "W-MON": 52,
+    "W-TUE": 52,
+    "W-WED": 52,
+    "W-THU": 52,
+    "W-FRI": 52,
+    "W-SAT": 52,
+    "M": 12,
+    "B": 5,
+    "Q-DEC": 4,
+}
 
 
 class GPU_CONFIGURATION:

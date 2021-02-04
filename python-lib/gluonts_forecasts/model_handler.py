@@ -13,12 +13,16 @@ from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
+from gluonts_forecasts.custom_models.seasonal_trend import SeasonalTrendEstimator, SeasonalTrendPredictor
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
 from gluonts_forecasts.utils import sanitize_model_parameters
 
 
 ESTIMATOR = "estimator"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
+CAN_USE_SEASONALITY = "can_use_seasonality"
 DEFAULT_KWARGS = "default_kwargs"
 TRAINER = "trainer"
 PREDICTOR = "predictor"
@@ -45,6 +49,7 @@ MODEL_DESCRIPTORS = {
         PREDICTOR: SeasonalNaivePredictor,
         TRAINER: None,
         IS_NAIVE: True,
+        CAN_USE_SEASONALITY: True,
     },
     "autoarima": {
         LABEL: "AutoARIMA",
@@ -52,6 +57,15 @@ MODEL_DESCRIPTORS = {
         ESTIMATOR: AutoARIMAEstimator,
         PREDICTOR: AutoARIMAPredictor,
         TRAINER: None,
+        CAN_USE_SEASONALITY: True,
+    },
+    "seasonal_trend": {
+        LABEL: "SeasonalTrend",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: SeasonalTrendEstimator,
+        PREDICTOR: SeasonalTrendPredictor,
+        TRAINER: None,
+        CAN_USE_SEASONALITY: True,
     },
     "npts": {
         LABEL: "NPTS",
@@ -90,7 +104,8 @@ MODEL_DESCRIPTORS = {
 
 # these parameter are classes but are set as strings in the UI
 CLASS_PARAMETERS = {
-    "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()}
+    "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()},
+    "model": {"ARIMA": ARIMA, "ETSModel": ETSModel},
 }
 
 
@@ -150,6 +165,9 @@ class ModelHandler:
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
+
+    def can_use_seasonality(self):
+        return self.model_descriptor.get(CAN_USE_SEASONALITY, False)
 
     def needs_num_samples(self):
         return self.model_descriptor.get(NEEDS_NUM_SAMPLES, False)

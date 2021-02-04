@@ -293,13 +293,94 @@
             "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
         },
         {
+            "name": "season_length_min",
+            "label": "Season length",
+            "description": "Length of the seasonal period used by statistical models.",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'min'"
+        },
+        {
+            "name": "season_length_H",
+            "label": "Season length",
+            "description": "Length of the seasonal period used by statistical models.",
+            "type": "INT",
+            "defaultValue": 24,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'H'"
+        },
+        {
+            "name": "season_length_D",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in days) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 7,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'D'"
+        },
+        {
+            "name": "season_length_B",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in business days) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 5,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'B'"
+        },
+        {
+            "name": "season_length_W",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in weeks) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 52,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'W'"
+        },
+        {
+            "name": "season_length_M",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in months) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 12,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == 'M'"
+        },
+        {
+            "name": "season_length_3M",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in quarters) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 4,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == '3M'"
+        },
+        {
+            "name": "season_length_6M",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in semesters) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 2,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == '6M'"
+        },
+        {
+            "name": "season_length_12M",
+            "label": "Season length",
+            "description": "Length of the seasonal period (in years) used by statistical models.",
+            "type": "INT",
+            "defaultValue": 1,
+            "mandatory": false,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == '12M'"
+        },
+        {
             "type": "SEPARATOR",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
             "name": "trivial_identity_model_activated",
             "label": "- Trivial Identity",
-            "description": "Based on the trivial.identity GluonTS model. Predicted values will be the same as the last values.",
+            "description": "Based on the trivial.identity GluonTS model. Use last values to predict the future.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -312,7 +393,7 @@
         {
             "name": "seasonal_naive_model_activated",
             "label": "- Seasonal Naive",
-            "description": "Based on the seasonal_naive GluonTS model. Seasonality is chosen based on the frequency.",
+            "description": "Based on the seasonal_naive GluonTS model. Predict values of previous season.",
             "type": "BOOLEAN",
             "defaultValue": true,
             "mandatory": true,
@@ -334,12 +415,36 @@
         {
             "name": "autoarima_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
             "defaultValue": {
-                "maxiter": 50
+                "seasonal": "True"
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "seasonal_trend_model_activated",
+            "label": "- Seasonal Trend",
+            "description": "Based on the STLForecast model from statsmodels",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "seasonal_trend_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://www.statsmodels.org/stable/generated/statsmodels.tsa.forecasting.stl.STLForecast.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.seasonal_trend_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "model": "ETSModel"
             }
         },
         {
@@ -358,8 +463,8 @@
         {
             "name": "npts_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -388,8 +493,8 @@
         {
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -412,8 +517,8 @@
         {
             "name": "deepar_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.deepar_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -436,8 +541,8 @@
         {
             "name": "transformer_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.transformer_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -460,8 +565,8 @@
         {
             "name": "mqcnn_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
             "mandatory": false
         },
@@ -481,7 +586,7 @@
         {
             "name": "tft_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
+            "label": "  ↳ Optional parameters",
             "description": "No documentation available yet",
             "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.tft_model_activated",
             "mandatory": false
@@ -502,8 +607,8 @@
         {
             "name": "nbeats_model_kwargs",
             "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
+            "label": "  ↳ Optional parameters",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
             "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
             "mandatory": false
         },
