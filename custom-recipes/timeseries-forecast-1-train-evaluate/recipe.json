@@ -420,7 +420,7 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
             "defaultValue": {
-                "maxiter": 50
+                "seasonal": "True"
             }
         },
         {
