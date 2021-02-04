@@ -73,16 +73,18 @@ class SeasonalTrendPredictor(RepresentablePredictor):
 
 class SeasonalTrendEstimator(Estimator):
     @validated()
-    def __init__(self, prediction_length, freq, season_length=None, **kwargs):
+    def __init__(self, prediction_length, freq, season_length, **kwargs):
         super().__init__()
         self.prediction_length = prediction_length
         self.freq = freq
         self.kwargs = cast_kwargs(kwargs)
         if "period" in self.kwargs:
-            raise ValueError("Keyword argument 'period' is not writable for STL, please use the Seasonality parameter")
+            raise ValueError("Keyword argument 'period' is not writable for SeasonalTrend, please use the Season length parameter")
         if "model" not in self.kwargs:
             self.kwargs["model"] = ETSModel
-        self.season_length = season_length if season_length is not None else 1
+        if season_length < 2:
+            raise ValueError("SeasonalTrend model must have a Season length higher than 2, please change the Season length parameter or unselect the model")
+        self.season_length = season_length
 
     def train(self, training_data):
         """Train the estimator on the given data.
