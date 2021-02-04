@@ -428,30 +428,6 @@
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
         },
         {
-            "name": "npts_model_activated",
-            "label": "- NPTS",
-            "description": "Based on the NPTSPredictor GluonTS model",
-            "type": "BOOLEAN",
-            "defaultValue": false,
-            "mandatory": true,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
-        },
-        {
-            "name": "npts_model_kwargs",
-            "type": "MAP",
-            "label": "  ↳ Parameters",
-            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
-            "mandatory": false,
-            "defaultValue": {
-                "use_seasonal_model": "True"
-            }
-        },
-        {
-            "type": "SEPARATOR",
-            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
-        },
-        {
             "name": "stl_model_activated",
             "label": "- Seasonal Trend",
             "description": "Based on the STLForecast model from statsmodels.",
@@ -469,6 +445,30 @@
             "mandatory": false,
             "defaultValue": {
                 "model": "ETSModel"
+            }
+        },
+        {
+            "type": "SEPARATOR",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms'"
+        },
+        {
+            "name": "npts_model_activated",
+            "label": "- NPTS",
+            "description": "Based on the NPTSPredictor GluonTS model",
+            "type": "BOOLEAN",
+            "defaultValue": false,
+            "mandatory": true,
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style)"
+        },
+        {
+            "name": "npts_model_kwargs",
+            "type": "MAP",
+            "label": "  ↳ Parameters",
+            "description": "Optional keyword arguments from https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
+            "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
+            "mandatory": false,
+            "defaultValue": {
+                "use_seasonal_model": "True"
             }
         },
         {

@@ -59,14 +59,6 @@ MODEL_DESCRIPTORS = {
         TRAINER: None,
         CAN_USE_SEASONALITY: True,
     },
-    "npts": {
-        LABEL: "NPTS",
-        CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: None,
-        PREDICTOR: NPTSPredictor,
-        TRAINER: None,
-        IS_NAIVE: True,
-    },
     "stl": {
         LABEL: "Seasonal Trend",
         CAN_USE_EXTERNAL_FEATURES: False,
@@ -74,6 +66,14 @@ MODEL_DESCRIPTORS = {
         PREDICTOR: STLPredictor,
         TRAINER: None,
         CAN_USE_SEASONALITY: True,
+    },
+    "npts": {
+        LABEL: "NPTS",
+        CAN_USE_EXTERNAL_FEATURES: False,
+        ESTIMATOR: None,
+        PREDICTOR: NPTSPredictor,
+        TRAINER: None,
+        IS_NAIVE: True,
     },
     "simplefeedforward": {
         LABEL: "FeedForward",
