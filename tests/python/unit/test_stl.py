@@ -1,4 +1,4 @@
-from gluonts_forecasts.custom_models.stl import STLPredictor, STLEstimator
+from gluonts_forecasts.custom_models.seasonal_trend import SeasonalTrendPredictor, SeasonalTrendEstimator
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from statsmodels.tsa.arima.model import ARIMA
 from gluonts.evaluation.backtest import make_evaluation_predictions
@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 
 
-class TestSTLTrain:
+class TestSeasonalTrendTrain:
     def setup_class(self):
         self.timeseries = [
             {
@@ -35,7 +35,7 @@ class TestSTLTrain:
         frequency = "12H"
         gluon_dataset = ListDataset(self.timeseries, freq=frequency)
         kwargs = {"model": ETSModel, "model_kwargs": {"seasonal_periods": 13}}
-        estimator = STLEstimator(prediction_length=prediction_length, freq=frequency, season_length=2, **kwargs)
+        estimator = SeasonalTrendEstimator(prediction_length=prediction_length, freq=frequency, season_length=2, **kwargs)
         predictor = estimator.train(gluon_dataset)
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
@@ -51,7 +51,7 @@ class TestSTLTrain:
         frequency = "3M"
         gluon_dataset = ListDataset([self.timeseries[0]], freq=frequency)
         kwargs = {"model": ARIMA, "model_kwargs": {"order": (2, 1, 1)}}
-        estimator = STLEstimator(prediction_length=prediction_length, freq=frequency, season_length=4, **kwargs)
+        estimator = SeasonalTrendEstimator(prediction_length=prediction_length, freq=frequency, season_length=4, **kwargs)
         predictor = estimator.train(gluon_dataset)
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)

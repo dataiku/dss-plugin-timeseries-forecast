@@ -13,10 +13,10 @@ from safe_logger import SafeLogger
 from tqdm import tqdm
 
 
-logger = SafeLogger("Forecast plugin - STL")
+logger = SafeLogger("Forecast plugin - SeasonalTrend")
 
 
-class STLPredictor(RepresentablePredictor):
+class SeasonalTrendPredictor(RepresentablePredictor):
     """
     An abstract predictor that can be subclassed by models that are not based
     on Gluon. Subclasses should have @validated() constructors.
@@ -74,7 +74,7 @@ class STLPredictor(RepresentablePredictor):
         return SampleForecast(samples=np.stack(samples), start_date=start_date, freq=self.freq)
 
 
-class STLEstimator(Estimator):
+class SeasonalTrendEstimator(Estimator):
     @validated()
     def __init__(self, prediction_length, freq, season_length=None, **kwargs):
         super().__init__()
@@ -97,9 +97,9 @@ class STLEstimator(Estimator):
             Predictor containing the instanciated STL models.
         """
         models = []
-        logger.info("Creating one STL model per time series ...")
+        logger.info("Creating one SeasonalTrend model per time series ...")
         for item in tqdm(training_data):
             model = STLForecast(endog=pd.Series(item[TIMESERIES_KEYS.TARGET]), period=self.season_length, **self.kwargs)
             models += [model]
 
-        return STLPredictor(prediction_length=self.prediction_length, freq=self.freq, models=models)
+        return SeasonalTrendPredictor(prediction_length=self.prediction_length, freq=self.freq, models=models)

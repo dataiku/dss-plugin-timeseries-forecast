@@ -13,7 +13,7 @@ from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 from gluonts.model.npts import NPTSPredictor
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAEstimator, AutoARIMAPredictor
-from gluonts_forecasts.custom_models.stl import STLEstimator, STLPredictor
+from gluonts_forecasts.custom_models.seasonal_trend import SeasonalTrendEstimator, SeasonalTrendPredictor
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from gluonts.mx.distribution import StudentTOutput, GaussianOutput, NegativeBinomialOutput
@@ -60,10 +60,10 @@ MODEL_DESCRIPTORS = {
         CAN_USE_SEASONALITY: True,
     },
     "seasonal_trend": {
-        LABEL: "Seasonal Trend",
+        LABEL: "SeasonalTrend",
         CAN_USE_EXTERNAL_FEATURES: False,
-        ESTIMATOR: STLEstimator,
-        PREDICTOR: STLPredictor,
+        ESTIMATOR: SeasonalTrendEstimator,
+        PREDICTOR: SeasonalTrendPredictor,
         TRAINER: None,
         CAN_USE_SEASONALITY: True,
     },
