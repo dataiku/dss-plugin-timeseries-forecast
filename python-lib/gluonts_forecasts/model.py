@@ -175,7 +175,7 @@ class Model(ModelHandler):
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
-        agg_metrics[METRICS_DATASET.TRAINING_TIME] = round(self.evaluation_time + self.retraining_time, 2)
+        agg_metrics[METRICS_DATASET.TRAINING_TIME] = self.evaluation_time + self.retraining_time
 
         for identifiers_column in identifiers_columns:
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
