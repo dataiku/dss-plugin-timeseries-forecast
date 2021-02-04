@@ -216,7 +216,7 @@
             "label": "Sampling method",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Use only the most recent data",
+            "description": "",
             "selectChoices": [
                 {
                     "value": "no_sampling",
