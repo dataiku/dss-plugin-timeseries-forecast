@@ -59,7 +59,7 @@ MODEL_DESCRIPTORS = {
         TRAINER: None,
         CAN_USE_SEASONALITY: True,
     },
-    "stl": {
+    "seasonal_trend": {
         LABEL: "Seasonal Trend",
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: STLEstimator,
