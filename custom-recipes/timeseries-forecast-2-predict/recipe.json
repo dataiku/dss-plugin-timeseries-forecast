@@ -149,7 +149,7 @@
             "label": "Sampling method",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Include only the most recent historical data",
+            "description": "",
             "selectChoices": [
                 {
                     "value": "no_sampling",
