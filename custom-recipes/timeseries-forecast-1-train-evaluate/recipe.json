@@ -416,7 +416,7 @@
             "name": "autoarima_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
+            "description": "Keyword argument ⟶ value cf. https://alkaline-ml.com/pmdarima/modules/generated/pmdarima.arima.AutoARIMA.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.autoarima_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -440,7 +440,7 @@
             "name": "seasonal_trend_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://www.statsmodels.org/stable/generated/statsmodels.tsa.forecasting.stl.STLForecast.html",
+            "description": "Keyword argument ⟶ value cf. https://www.statsmodels.org/stable/generated/statsmodels.tsa.forecasting.stl.STLForecast.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.seasonal_trend_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -464,7 +464,7 @@
             "name": "npts_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.npts.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.npts_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -494,7 +494,7 @@
             "name": "simplefeedforward_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.simple_feedforward.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.simplefeedforward_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -518,7 +518,7 @@
             "name": "deepar_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.deepar.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.deepar_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -542,7 +542,7 @@
             "name": "transformer_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.transformer.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.transformer_model_activated",
             "mandatory": false,
             "defaultValue": {
@@ -566,7 +566,7 @@
             "name": "mqcnn_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.seq2seq.html",
             "visibilityCondition": "model.forecasting_style == 'customize_algorithms' && model.mqcnn_model_activated",
             "mandatory": false
         },
@@ -608,7 +608,7 @@
             "name": "nbeats_model_kwargs",
             "type": "MAP",
             "label": "  ↳ Optional parameters",
-            "description": "Keyword argument ⟶ value cf.https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
+            "description": "Keyword argument ⟶ value cf. https://ts.gluon.ai/api/gluonts/gluonts.model.n_beats.html",
             "visibilityCondition": "false && model.forecasting_style == 'customize_algorithms' && model.nbeats_model_activated",
             "mandatory": false
         },
