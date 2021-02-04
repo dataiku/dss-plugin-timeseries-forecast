@@ -371,7 +371,7 @@
             "type": "INT",
             "defaultValue": 1,
             "mandatory": false,
-            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == '12'"
+            "visibilityCondition": "['choose_algorithms', 'customize_algorithms'].includes(model.forecasting_style) && model.frequency_unit == '12M'"
         },
         {
             "type": "SEPARATOR",
