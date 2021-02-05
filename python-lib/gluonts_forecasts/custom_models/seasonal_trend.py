@@ -82,6 +82,15 @@ class SeasonalTrendEstimator(Estimator):
             raise ValueError("Keyword argument 'period' is not writable for SeasonalTrend, please use the Season length parameter")
         if "model" not in self.kwargs:
             self.kwargs["model"] = ETSModel
+
+        if self.kwargs["model"] == ETSModel:
+            # set trend='add' by default if no trend set by user in 'model_kwargs' for ETS
+            if "model_kwargs" not in self.kwargs:
+                self.kwargs["model_kwargs"] = {"trend": "add"}
+            elif "trend" not in self.kwargs["model_kwargs"]:
+                self.kwargs["model_kwargs"]["trend"] = "add"
+            logger.info(f"Setting trend parameter of ETSModel to: '{self.kwargs['model_kwargs']['trend']}'")
+
         if season_length < 2:
             raise ValueError("SeasonalTrend model must have a Season length higher than 2, please change the Season length parameter or unselect the model")
         self.season_length = season_length
