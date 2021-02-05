@@ -19,6 +19,12 @@ class ModelTrainingError(Exception):
     pass
 
 
+class ModelPredictionError(Exception):
+    """Custom exception raised when the model predictions fail"""
+
+    pass
+
+
 class Model(ModelHandler):
     """
     Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
@@ -149,8 +155,11 @@ class Model(ModelHandler):
             DataFrame of metrics for each timeseries (i.e., each target column).
             List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
         """
-        forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
-        forecasts = list(forecast_it)
+        try:
+            forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
+            forecasts = list(forecast_it)
+        except Exception as err:
+            raise ModelPredictionError(f"GluonTS '{self.model_name}' model crashed when making predictions. Full error: {err}")
         evaluator = Evaluator(num_workers=min(2, multiprocessing.cpu_count()))
         agg_metrics, item_metrics = evaluator(ts_it, forecasts, num_series=len(test_list_dataset))
         return agg_metrics, item_metrics, forecasts
