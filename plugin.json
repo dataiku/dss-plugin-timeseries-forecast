@@ -4,7 +4,7 @@
     "meta": {
         "label": "Forecast",
         "category": "Time Series",
-        "description": "Forecast multivariate time series from year to minute frequency with Deep Learning models",
+        "description": "Forecast multivariate time series from year to minute frequency with Deep Learning and statistical models",
         "author": "Dataiku",
         "icon": "icon-signal",
         "licenseInfo": "Apache Software License v2",
