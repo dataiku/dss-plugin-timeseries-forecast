@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import gzip
 from safe_logger import SafeLogger
-from constants import ObjectType
+from dku_constants import ObjectType
 
 logger = SafeLogger("Forecast plugin")
 

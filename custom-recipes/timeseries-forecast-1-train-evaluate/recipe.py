@@ -8,7 +8,7 @@ from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
 from gluonts_forecasts.model_handler import get_model_label
-from constants import ObjectType
+from dku_constants import ObjectType
 from timeseries_preparation.preparation import TimeseriesPreparator
 from safe_logger import SafeLogger
 from time import perf_counter

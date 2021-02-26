@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import dataiku
-from constants import TIMESTAMP_REGEX_PATTERN
+from dku_constants import TIMESTAMP_REGEX_PATTERN
 from gluonts_forecasts.model_handler import list_available_models_labels
 
 

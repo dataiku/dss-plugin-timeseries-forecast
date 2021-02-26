@@ -1,7 +1,7 @@
 from gluonts.dataset.common import ListDataset
 from gluonts.model.trivial.identity import IdentityPredictor
 from gluonts_forecasts.trained_model import TrainedModel
-from constants import TIMESERIES_KEYS, METRICS_DATASET, ROW_ORIGIN
+from dku_constants import TIMESERIES_KEYS, METRICS_DATASET, ROW_ORIGIN
 from datetime import datetime
 import pandas as pd
 import numpy as np

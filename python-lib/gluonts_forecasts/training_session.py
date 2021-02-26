@@ -3,7 +3,7 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
+from dku_constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.model_handler import list_available_models
 from gluonts_forecasts.utils import add_row_origin

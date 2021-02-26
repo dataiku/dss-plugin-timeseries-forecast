@@ -8,7 +8,7 @@ import re
 from gluonts.time_feature import get_seasonality
 from gluonts_forecasts.model_handler import list_available_models
 from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
-from constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION, DEFAULT_SEASONALITIES
+from dku_constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION, DEFAULT_SEASONALITIES
 from safe_logger import SafeLogger
 
 logger = SafeLogger("Forecast plugin")

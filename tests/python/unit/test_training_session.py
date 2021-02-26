@@ -1,6 +1,6 @@
 from gluonts_forecasts.training_session import TrainingSession
 from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL
-from constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
+from dku_constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from datetime import datetime
 from pandas.api.types import is_datetime64_ns_dtype
 import pandas as pd

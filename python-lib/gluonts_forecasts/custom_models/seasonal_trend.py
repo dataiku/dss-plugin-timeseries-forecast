@@ -4,7 +4,7 @@ from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
 from gluonts_forecasts.custom_models.utils import cast_kwargs
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 import numpy as np

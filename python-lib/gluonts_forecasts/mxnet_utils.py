@@ -1,4 +1,4 @@
-from constants import GPU_CONFIGURATION
+from dku_constants import GPU_CONFIGURATION
 
 
 class GPUError(Exception):

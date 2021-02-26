@@ -3,7 +3,7 @@ from gluonts_forecasts.trained_model import TrainedModel
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL
-from constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
+from dku_constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
 from datetime import datetime
 from pandas.api.types import is_datetime64_ns_dtype
 import pandas as pd

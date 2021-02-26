@@ -1,7 +1,7 @@
 from gluonts.dataset.common import ListDataset
 from gluonts_forecasts.model import Model
 from gluonts_forecasts.trained_model import TrainedModel
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 import pandas as pd
 import numpy as np
 

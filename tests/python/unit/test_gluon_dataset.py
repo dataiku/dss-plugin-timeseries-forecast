@@ -1,5 +1,5 @@
 from gluonts_forecasts.gluon_dataset import GluonDataset
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 import pandas as pd
 import numpy as np
 import pytest
