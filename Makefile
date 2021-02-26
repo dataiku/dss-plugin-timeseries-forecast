@@ -74,7 +74,6 @@ unit-tests:
 		export PYTHONPATH="$(PYTHONPATH):$(PWD)/python-lib"; \
 		export RESOURCE_FOLDER_PATH="$(PWD)/resource"; \
 		python3 -m pytest tests/python/unit --alluredir=tests/allure_report; \
-		deactivate; \
 	)
 	@echo "[SUCCESS] Running unit tests: Done!"
 
