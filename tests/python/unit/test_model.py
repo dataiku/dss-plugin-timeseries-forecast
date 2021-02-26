@@ -1,7 +1,9 @@
 from gluonts_forecasts.model import Model
+from gluonts_forecasts.trained_model import TrainedModel
 from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL
-from constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
+from dku_constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
 from datetime import datetime
 from pandas.api.types import is_datetime64_ns_dtype
 import pandas as pd
@@ -121,3 +123,77 @@ class TestModel:
     def forecasts_assertions(forecasts_df, model_name, prediction_length=1):
         assert len(forecasts_df.index) == 2
         assert forecasts_df["index"].nunique() == prediction_length
+
+
+class TestExternalFeaturesSimpleFeedForward:
+    """Test simple feed forward with external features on multiple timeseries of different lengths"""
+
+    def setup_class(self):
+        df = pd.DataFrame(
+            {
+                "date": ["2018-01-06", "2018-01-07", "2018-01-08", "2018-01-09", "2018-01-08", "2018-01-09", "2018-01-10", "2018-01-11", "2018-01-12"],
+                "target": [2, 4, 2, 2, 5, 2, 3, 2, 3],
+                "key": [1, 1, 1, 1, 2, 2, 2, 2, 2],
+                "ext_feat": [0, 0, 0, 0, 0, 1, 0, 1, 1],
+            }
+        )
+        df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(tz=None)
+
+        self.frequency = "D"
+
+        gluon_dataset = GluonDataset(
+            dataframe=df,
+            time_column_name="date",
+            frequency=self.frequency,
+            target_columns_names=["target"],
+            timeseries_identifiers_names=["key"],
+            external_features_columns_names=["ext_feat"],
+            min_length=2,
+        )
+
+        self.prediction_length = 2
+        gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        self.train_list_dataset = gluon_list_datasets[0]
+        self.test_list_dataset = gluon_list_datasets[1]
+
+        self.model_name = "simplefeedforward"
+        self.model = Model(
+            self.model_name,
+            model_parameters={"activated": True, "kwargs": {}},
+            frequency=self.frequency,
+            prediction_length=self.prediction_length,
+            epoch=1,
+            use_external_features=True,
+            batch_size=32,
+            num_batches_per_epoch=50,
+        )
+
+    def test_simplefeedforward_external_features_training(self):
+        metrics, identifiers_columns, forecasts_df = self.model.train_evaluate(
+            self.train_list_dataset, self.test_list_dataset, make_forecasts=True, retrain=True
+        )
+        assert len(forecasts_df.index) == 4
+
+    def test_simplefeedforward_external_features_predictions(self):
+        external_features_future_df = pd.DataFrame(
+            {
+                "date": ["2018-01-10", "2018-01-11", "2018-01-13", "2018-01-14"],
+                "key": [1, 1, 2, 2],
+                "ext_feat": [0, 0, 0, 1],
+            }
+        )
+        external_features_future_df["date"] = pd.to_datetime(external_features_future_df["date"]).dt.tz_localize(tz=None)
+
+        gluon_dataset = add_future_external_features(self.test_list_dataset, external_features_future_df, self.prediction_length, self.frequency)
+
+        trained_model = TrainedModel(
+            model_name=self.model_name,
+            predictor=self.model.predictor,
+            gluon_dataset=gluon_dataset,
+            prediction_length=self.prediction_length,
+            quantiles=[0.1, 0.5, 0.9],
+            include_history=True,
+        )
+        trained_model.predict()
+        forecasts_df = trained_model.get_forecasts_df(session="1234")
+        assert len(forecasts_df.index) == 13

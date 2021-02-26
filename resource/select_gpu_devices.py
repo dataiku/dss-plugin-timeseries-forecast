@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from constants import GPU_CONFIGURATION
+from dku_constants import GPU_CONFIGURATION
 from safe_logger import SafeLogger
 
 

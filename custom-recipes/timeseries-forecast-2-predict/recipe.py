@@ -45,13 +45,14 @@ trained_model = TrainedModel(
     quantiles=params["quantiles"],
     include_history=params["include_history"],
     history_length_limit=params["history_length_limit"],
+    model_name=model_selection.get_model_name(),
 )
 
 trained_model.predict()
 
 logger.info("Forecasting future values: Done in {:.2f} seconds".format(perf_counter() - start))
 
-forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name(), model_label=model_selection.get_model_label())
+forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name())
 params["output_dataset"].write_with_schema(forecasts_df)
 
 column_descriptions = trained_model.create_forecasts_column_description()

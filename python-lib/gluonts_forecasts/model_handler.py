@@ -223,3 +223,8 @@ def get_model_label(model_name):
         return None
     else:
         return model_descriptor.get(LABEL, "")
+
+
+def get_model_name_from_label(model_label):
+    available_models = MODEL_DESCRIPTORS.copy()
+    return next((model_name for model_name in available_models if available_models[model_name].get(LABEL) == model_label), None)

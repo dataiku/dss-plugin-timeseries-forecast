@@ -1,4 +1,4 @@
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 from safe_logger import SafeLogger
 
 

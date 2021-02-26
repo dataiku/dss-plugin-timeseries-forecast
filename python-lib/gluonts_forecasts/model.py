@@ -1,6 +1,7 @@
-from constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS, CUSTOMISABLE_FREQUENCIES_OFFSETS
+from dku_constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
+from gluonts_forecasts.gluon_dataset import remove_unused_external_features
 from gluonts_forecasts.model_handler import ModelHandler
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, quantile_forecasts_series
 from time import perf_counter
@@ -122,6 +123,10 @@ class Model(ModelHandler):
             List of timeseries identifiers column names. Empty list if none found in train_list_dataset.
             DataFrame of predictions for the last prediction_length timesteps of the test_list_dataset timeseries if make_forecasts is True.
         """
+        if not self.use_external_features and TIMESERIES_KEYS.FEAT_DYNAMIC_REAL in train_list_dataset.list_data[0]:
+            train_list_dataset = remove_unused_external_features(train_list_dataset, self.frequency)
+            test_list_dataset = remove_unused_external_features(test_list_dataset, self.frequency)
+
         logger.info(f"Evaluating {self.get_label()} model performance...")
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)

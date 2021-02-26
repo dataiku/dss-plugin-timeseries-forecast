@@ -1,5 +1,5 @@
 from gluonts.dataset.common import ListDataset
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 import numpy as np
 
 
@@ -128,3 +128,22 @@ class GluonDataset:
             min_length += cut_length
         if len(dataframe.index) < min_length:
             raise ValueError(f"Time series must have at least {min_length} values")
+
+
+def remove_unused_external_features(list_dataset, frequency):
+    """Copy a gluon list dataset and remove the external features fields
+
+    Args:
+        list_dataset (ListDataset): Gluon ListDataset with FEAT_DYNAMIC_REAL fields
+        frequency (str)
+
+    Returns:
+        A ListDataset without FEAT_DYNAMIC_REAL fields
+    """    
+    new_list_dataset = []
+    for data in list_dataset.list_data:
+        new_data = data.copy()
+        new_data.pop(TIMESERIES_KEYS.FEAT_DYNAMIC_REAL, None)
+        new_data.pop(TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES, None)
+        new_list_dataset.append(new_data)
+    return ListDataset(new_list_dataset, freq=frequency)

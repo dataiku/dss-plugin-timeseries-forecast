@@ -1,8 +1,8 @@
 import re
 import os
 from dku_io_utils.utils import read_from_folder
-from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
-from gluonts_forecasts.model_handler import list_available_models_labels
+from dku_constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
+from gluonts_forecasts.model_handler import list_available_models_labels, get_model_name_from_label
 
 
 class ModelSelectionError(ValueError):
@@ -59,6 +59,9 @@ class ModelSelection:
 
     def get_model_label(self):
         return self.model_label
+
+    def get_model_name(self):
+        return get_model_name_from_label(self.model_label)
 
     def get_session_name(self):
         return self.session_name

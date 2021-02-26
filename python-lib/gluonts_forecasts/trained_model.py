@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
+from gluonts_forecasts.model_handler import ModelHandler, get_model_label
+from gluonts_forecasts.gluon_dataset import remove_unused_external_features
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, add_row_origin, quantile_forecasts_series
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
+from dku_constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts.model.forecast import QuantileForecast
 from safe_logger import SafeLogger
 
@@ -23,9 +25,10 @@ class TrainedModel:
         time_column_name (str): Time column name used in training
         identifiers_columns (list): List of timeseries identifiers column names used in training.
         forecasts_df (DataFrame): Dataframe with the different quantiles forecasts and the training data if include_history is True
+        model_name (str, optional)
     """
 
-    def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history, history_length_limit=None):
+    def __init__(self, predictor, gluon_dataset, prediction_length, quantiles, include_history, history_length_limit=None, model_name=None):
         self.predictor = predictor
         self.gluon_dataset = gluon_dataset
         self.prediction_length = predictor.prediction_length if prediction_length == -1 else prediction_length
@@ -36,6 +39,7 @@ class TrainedModel:
         self.forecasts_df = None
         self.frequency = gluon_dataset.process.trans[0].freq
         self.history_length_limit = history_length_limit
+        self.model_name = model_name
         self._check()
 
     def predict(self):
@@ -43,7 +47,14 @@ class TrainedModel:
         Use the gluon dataset of training to predict future values and
         concat all forecasts timeseries of different identifiers and quantiles together
         """
-        forecasts = self.predictor.predict(self.gluon_dataset)
+        model_handler = ModelHandler(self.model_name)
+        if self.model_name and not model_handler.can_use_external_feature() and TIMESERIES_KEYS.FEAT_DYNAMIC_REAL in self.gluon_dataset.list_data[0]:
+            # remove external features from the ListDataset used for predictions if the model cannot use them
+            gluon_dataset_without_external_features = remove_unused_external_features(self.gluon_dataset, self.frequency)
+            forecasts = self.predictor.predict(gluon_dataset_without_external_features)
+        else:
+            forecasts = self.predictor.predict(self.gluon_dataset)
+
         forecasts_list = list(forecasts)
 
         forecasts_timeseries = self._compute_forecasts_timeseries(forecasts_list)
@@ -200,12 +211,11 @@ class TrainedModel:
         forecasts_columns = [column for column in self.forecasts_df if column not in [self.time_column_name] + self.identifiers_columns]
         self.forecasts_df = self.forecasts_df[[self.time_column_name] + self.identifiers_columns + forecasts_columns]
 
-    def get_forecasts_df(self, session=None, model_label=None):
+    def get_forecasts_df(self, session=None):
         """Add the session timestamp and model label to the forecasts dataframe. Sort timeseries in revert order to display predictions on top.
 
         Args:
             session (Timstamp, optional)
-            model_label (str, optional)
 
         Returns:
             Forecasts DaaFrame
@@ -214,8 +224,8 @@ class TrainedModel:
             self._reorder_forecasts_df()
         if session:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
-        if model_label:
-            self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = model_label
+        if self.model_name:
+            self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = get_model_label(self.model_name)
 
         self.forecasts_df = self.forecasts_df.sort_values(
             by=self.identifiers_columns + [self.time_column_name], ascending=[True] * len(self.identifiers_columns) + [False]
