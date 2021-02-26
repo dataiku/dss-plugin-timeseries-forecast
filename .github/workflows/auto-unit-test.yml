@@ -9,12 +9,16 @@ jobs:
   # This workflow contains a single job called "greet"
   unit-test:
     # The type of runner that the job will run on
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.6' # Version range or exact version of a Python version to use, using SemVer's version range syntax
     # Runs a single command using the runners shell
     - name: Run unit tests
       run: make unit-tests
