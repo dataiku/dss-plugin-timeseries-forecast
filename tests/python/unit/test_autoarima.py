@@ -1,7 +1,7 @@
 from gluonts_forecasts.custom_models.autoarima import AutoARIMAPredictor, AutoARIMAEstimator
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 from gluonts.dataset.common import ListDataset
 import numpy as np
 import pytest

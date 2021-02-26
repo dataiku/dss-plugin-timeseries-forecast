@@ -3,7 +3,7 @@ from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from statsmodels.tsa.arima.model import ARIMA
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 from gluonts.dataset.common import ListDataset
 import numpy as np
 import pytest

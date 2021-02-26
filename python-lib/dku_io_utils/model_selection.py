@@ -1,7 +1,7 @@
 import re
 import os
 from dku_io_utils.utils import read_from_folder
-from constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
+from dku_constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
 from gluonts_forecasts.model_handler import list_available_models_labels, get_model_name_from_label
 
 

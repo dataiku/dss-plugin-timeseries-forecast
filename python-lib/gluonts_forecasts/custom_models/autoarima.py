@@ -4,7 +4,7 @@ from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
 from gluonts_forecasts.custom_models.utils import cast_kwargs
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 from pmdarima.arima.utils import nsdiffs
 import pmdarima as pm
 import numpy as np

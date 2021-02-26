@@ -3,7 +3,7 @@ import numpy as np
 from gluonts_forecasts.model_handler import ModelHandler, get_model_label
 from gluonts_forecasts.gluon_dataset import remove_unused_external_features
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, add_row_origin, quantile_forecasts_series
-from constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
+from dku_constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, ROW_ORIGIN, CUSTOMISABLE_FREQUENCIES_OFFSETS
 from gluonts.model.forecast import QuantileForecast
 from safe_logger import SafeLogger
 

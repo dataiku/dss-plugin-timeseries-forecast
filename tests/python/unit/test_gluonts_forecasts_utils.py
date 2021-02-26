@@ -1,7 +1,7 @@
 from gluonts.dataset.common import ListDataset
 from timeseries_preparation.preparation import assert_time_column_valid
 from gluonts_forecasts.utils import add_future_external_features
-from constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS
 import pandas as pd
 import numpy as np
 import pytest
