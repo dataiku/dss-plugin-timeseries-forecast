@@ -125,7 +125,7 @@ class TestModel:
         assert forecasts_df["index"].nunique() == prediction_length
 
 
-class TestExternalFeaturesModel:
+class TestExternalFeaturesSimpleFeedForward:
     """Test simple feed forward with external features on multiple timeseries of different lengths"""
 
     def setup_class(self):

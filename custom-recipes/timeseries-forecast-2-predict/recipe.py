@@ -39,13 +39,13 @@ if external_features:
     )
 
 trained_model = TrainedModel(
-    model_name=model_selection.get_model_name(),
     predictor=predictor,
     gluon_dataset=gluon_train_dataset,
     prediction_length=params["prediction_length"],
     quantiles=params["quantiles"],
     include_history=params["include_history"],
     history_length_limit=params["history_length_limit"],
+    model_name=model_selection.get_model_name(),
 )
 
 trained_model.predict()
