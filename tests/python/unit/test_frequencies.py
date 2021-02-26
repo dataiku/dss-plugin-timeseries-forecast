@@ -29,6 +29,7 @@ def test_minute_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-15 13:00:00")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -36,7 +37,7 @@ def test_minute_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-01-15 13:20:00")
 
 
@@ -63,6 +64,7 @@ def test_hours_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-15 18:00:00")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -70,7 +72,7 @@ def test_hours_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-01-16 00:00:00")
 
 
@@ -97,6 +99,7 @@ def test_day_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-18")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -104,7 +107,7 @@ def test_day_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-01-21")
 
 
@@ -131,6 +134,7 @@ def test_business_day_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-15")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -138,7 +142,7 @@ def test_business_day_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-01-18")
 
 
@@ -165,6 +169,7 @@ def test_week_sunday_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-24")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -172,7 +177,7 @@ def test_week_sunday_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-01-31")
 
 
@@ -199,6 +204,7 @@ def test_week_tuesday_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-26")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -206,7 +212,7 @@ def test_week_tuesday_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-02-02")
 
 
@@ -234,6 +240,7 @@ def test_month_frequency():
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-05-31")
 
     trained_model = TrainedModel(
+        model_name="simplefeedforward",
         predictor=model.predictor,
         gluon_dataset=gluon_dataset,
         prediction_length=prediction_length,
@@ -241,5 +248,5 @@ def test_month_frequency():
         include_history=True,
     )
     trained_model.predict()
-    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01", model_label="TEST")
+    forecasts_df = trained_model.get_forecasts_df(session="2021-01-01")
     assert forecasts_df["date"].iloc[0] == pd.Timestamp("2021-09-30")

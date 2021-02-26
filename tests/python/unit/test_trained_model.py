@@ -37,6 +37,7 @@ class TestTrainedModel:
         self.session_name = datetime.utcnow().isoformat() + "Z"
         self.model_label = "TrivialIdentity"
         self.trained_model = TrainedModel(
+            model_name="trivial_identity",
             predictor=self.predictor,
             gluon_dataset=self.gluon_dataset,
             prediction_length=self.prediction_length,
@@ -46,7 +47,7 @@ class TestTrainedModel:
 
     def test_predict(self):
         self.trained_model.predict()
-        forecasts_df = self.trained_model.get_forecasts_df(session=self.session_name, model_label=self.model_label)
+        forecasts_df = self.trained_model.get_forecasts_df(session=self.session_name)
         expected_forecasts_columns = [
             "date",
             "store",
