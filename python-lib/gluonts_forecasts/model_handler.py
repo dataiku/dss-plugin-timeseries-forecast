@@ -227,7 +227,4 @@ def get_model_label(model_name):
 
 def get_model_name_from_label(model_label):
     available_models = MODEL_DESCRIPTORS.copy()
-    for model_name in available_models:
-        if available_models[model_name].get(LABEL) == model_label:
-            return model_name
-    return None
+    return next((model_name for model_name in available_models if available_models[model_name].get(LABEL) == model_label), None)
