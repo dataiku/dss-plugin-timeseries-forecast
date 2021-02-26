@@ -39,6 +39,7 @@ if external_features:
     )
 
 trained_model = TrainedModel(
+    model_name=model_selection.get_model_name(),
     predictor=predictor,
     gluon_dataset=gluon_train_dataset,
     prediction_length=params["prediction_length"],
@@ -51,7 +52,7 @@ trained_model.predict()
 
 logger.info("Forecasting future values: Done in {:.2f} seconds".format(perf_counter() - start))
 
-forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name(), model_label=model_selection.get_model_label())
+forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name())
 params["output_dataset"].write_with_schema(forecasts_df)
 
 column_descriptions = trained_model.create_forecasts_column_description()
