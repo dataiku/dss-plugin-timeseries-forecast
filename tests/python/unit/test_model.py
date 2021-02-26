@@ -103,6 +103,49 @@ class TestModel:
         model.train(self.test_list_dataset)
         assert model.predictor is not None
 
+    def test_simplefeedforward_external_features_different_lengths_timeseries(self):
+        df = pd.DataFrame(
+                    {
+                        "date": ["2018-01-06", "2018-01-07", "2018-01-08", "2018-01-09","2018-01-08", "2018-01-09", "2018-01-10", "2018-01-11", "2018-01-12"],
+                        "target": [2, 4, 2, 2, 5, 2, 3, 2, 3],
+                        "key": [1, 1, 1, 1, 2, 2, 2, 2, 2],
+                        "ext_feat": [0, 0, 0, 0, 0, 1, 0, 1, 1]
+                    }
+                )
+        df["date"] = pd.to_datetime(df["date"]).dt.tz_localize(tz=None)
+
+        gluon_dataset = GluonDataset(
+                    dataframe=df,
+                    time_column_name="date",
+                    frequency="D",
+                    target_columns_names=["target"],
+                    timeseries_identifiers_names=["key"],
+                    external_features_columns_names=["ext_feat"],
+                    min_length=2,
+                )
+
+        prediction_length = 2
+        gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[prediction_length, 0])
+        train_list_dataset = gluon_list_datasets[0]
+        test_list_dataset = gluon_list_datasets[1]
+
+        model_name = "simplefeedforward"
+        model = Model(
+            model_name,
+            model_parameters={"activated": True, "kwargs": {}},
+            frequency="D",
+            prediction_length=prediction_length,
+            epoch=1,
+            use_external_features=True,
+            batch_size=32,
+            num_batches_per_epoch=50,
+        )
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(train_list_dataset, test_list_dataset, make_forecasts=True, retrain=True)
+        assert len(forecasts_df.index) == 4
+        forecasts = model.predictor.predict(test_list_dataset)
+        forecasts_list = list(forecasts)
+
+
     @staticmethod
     def metrics_assertions(metrics, model_name):
         expected_metrics_columns = ["store", "item"]
