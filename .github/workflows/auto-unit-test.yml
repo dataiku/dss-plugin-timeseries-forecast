@@ -17,4 +17,4 @@ jobs:
       uses: actions/checkout@v2
     # Runs a single command using the runners shell
     - name: Run unit tests
-      run: make unit-tests
+      run: sh make unit-tests
