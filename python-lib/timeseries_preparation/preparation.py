@@ -59,12 +59,12 @@ class TimeseriesPreparator:
         dataframe_prepared = self._sort(dataframe_prepared)
 
         self._check_regular_frequency(dataframe_prepared)
-        log_message_prefix = "Found "
+        log_message_prefix = "Found"
         self._log_timeseries_lengths(dataframe_prepared, log_message_prefix=log_message_prefix)
 
         if self.max_timeseries_length:
             dataframe_prepared = self._keep_last_dates(dataframe_prepared)
-            log_message_prefix = f"Sampled {self.max_timeseries_length}"
+            log_message_prefix = f"Sampling {self.max_timeseries_length} last records, obtained"
             self._log_timeseries_lengths(dataframe_prepared, log_message_prefix=log_message_prefix)
 
         return dataframe_prepared
