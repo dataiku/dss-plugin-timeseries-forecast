@@ -8,6 +8,11 @@ Documentation: https://www.dataiku.com/product/plugins/timeseries-forecast/
 
 ## Release notes
 
+**Version 1.0.1 (2021-03)** - Bugfix release
+
+- 🪲 Bugfix with the FeedForward model when using external features of different lengths
+- 💅 Small naming and logging enhancements
+
 **Version 1.0.0 (2021-02)** - Initial release
 
 - 🔥 Multivariate forecasting, scaling to 1000s of time series
@@ -15,11 +20,6 @@ Documentation: https://www.dataiku.com/product/plugins/timeseries-forecast/
 - 🗓 Frequencies from year to minute, inc. business day
 - 🐍 Easy-to-install code environment in Python
 - 👾 GPU version to train your models even faster
-
-**Version 1.0.1 (2021-03)** - Bugfix release
-
-- 🪲 Bugfix with the FeedForward model when using external features of different lengths
-- 💅 Small naming and logging enhancements
 
 ## License
 
