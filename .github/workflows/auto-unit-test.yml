@@ -1,21 +1,27 @@
 name: Auto unit test
 
-on:  [push, pull_request]
+on: [push, pull_request]
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  unit-test:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+  unit-tests:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: ["3.6", "3.7"]
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Setup Python
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
-        python-version: '3.6' # Version range or exact version of a Python version to use, using SemVer's version range syntax
-    # Runs a single command using the runners shell
+        python-version: ${{ matrix.python-version }}
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
     - name: Run unit tests
       run: make unit-tests
