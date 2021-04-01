@@ -1,3 +1,5 @@
+SHELL:=/bin/bash
+
 # Plugin identifier for the main CPU version of the plugin
 # This will be used as prefix for the GPU versions
 PLUGIN_ID="timeseries-forecast"
@@ -58,37 +60,34 @@ endif
 	@echo "[SUCCESS] Saving ZIP archive of the plugin (GPU - CUDA ${CUDA_VERSION}): Done!"
 
 unit-tests:
-	@echo "[START] Running unit tests..."
+	@echo "Running unit tests..."
 	@( \
+		set -e; \
 		PYTHON_VERSION=`python3 -V 2>&1 | sed 's/[^0-9]*//g' | cut -c 1,2`; \
 		PYTHON_VERSION_IS_CORRECT=`cat code-env/python/desc.json | python3 -c "import sys, json; print(str($$PYTHON_VERSION) in [x[-2:] for x in json.load(sys.stdin)['acceptedPythonInterpreters']]);"`; \
 		if [ $$PYTHON_VERSION_IS_CORRECT == "False" ]; then echo "Python version $$PYTHON_VERSION is not in acceptedPythonInterpreters"; exit 1; else echo "Python version $$PYTHON_VERSION is in acceptedPythonInterpreters"; fi; \
-	)
-	@( \
-		rm -rf tests/python/unit/env/; \
-		python3 -m venv tests/python/unit/env/; \
-		source tests/python/unit/env/bin/activate; \
-		pip3 install --upgrade pip; \
-		pip3 install --no-cache-dir -r tests/python/unit/requirements.txt; \
-		pip3 install --no-cache-dir -r code-env/python/spec/requirements.txt; \
+		rm -rf ./env/; \
+		python3 -m venv env/; \
+		source env/bin/activate; \
+		pip3 install --upgrade pip;\
+		pip install --no-cache-dir -r tests/python/unit/requirements.txt; \
+		pip install --no-cache-dir -r code-env/python/spec/requirements.txt; \
 		export PYTHONPATH="$(PYTHONPATH):$(PWD)/python-lib"; \
 		export RESOURCE_FOLDER_PATH="$(PWD)/resource"; \
-		python3 -m pytest tests/python/unit --alluredir=tests/allure_report; \
+		pytest tests/python/unit --alluredir=tests/allure_report || ret=$$?; exit $$ret \
 	)
-	@echo "[SUCCESS] Running unit tests: Done!"
 
 integration-tests:
-	@echo "[START] Running integration tests..."
+	@echo "Running integration tests..."
 	@( \
-		rm -rf tests/python/integration/env/; \
-		python3 -m venv tests/python/integration/env/; \
-		source tests/python/integration/env/bin/activate; \
+		set -e; \
+		rm -rf ./env/; \
+		python3 -m venv env/; \
+		source env/bin/activate; \
 		pip3 install --upgrade pip;\
-		pip3 install --no-cache-dir -r tests/python/integration/requirements.txt; \
-		pytest tests/python/integration --alluredir=tests/allure_report --exclude-dss-targets="DSS7"; \
-		deactivate; \
+		pip install --no-cache-dir -r tests/python/integration/requirements.txt; \
+		pytest tests/python/integration --alluredir=tests/allure_report || ret=$$?; exit $$ret \
 	)
-	@echo "[SUCCESS] Running integration tests: Done!"
 
 tests: unit-tests integration-tests
 
