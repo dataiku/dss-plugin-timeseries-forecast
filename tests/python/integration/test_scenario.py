@@ -8,16 +8,14 @@ pytestmark = pytest.mark.usefixtures("plugin", "dss_target")
 
 
 test_kwargs = {
-    "user": "user1",
-    "project_key": "TIMESERIESTEST",
-    "logger": logging.getLogger("dss-plugin-test.timeseries-forecast.test_scenario"),
+    "user": "data_scientist_1",
+    "project_key": "TIMESERIESTEST"
 }
 
 
-def test_run_timeseries_forecast_regular(user_clients):
-    test_kwargs["client"] = user_clients[test_kwargs["user"]]
-    dss_scenario.run(scenario_id="Regular", **test_kwargs)
+def test_run_timeseries_forecast_regular(dss_user_clients):
+    dss_scenario.run(dss_user_clients, scenario_id="Regular", **test_kwargs)
 
 
-def test_run_timeseries_forecast_partition(user_clients):
-    dss_scenario.run(scenario_id="Partitions", **test_kwargs)
+def test_run_timeseries_forecast_partition(dss_user_clients):
+    dss_scenario.run(dss_user_clients, scenario_id="Partitions", **test_kwargs)
