@@ -81,7 +81,7 @@ def load_training_config(recipe_config):
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
     if params["frequency_unit"] == "W":
-        params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', 1)}"
+        params["frequency"] = f"W-{recipe_config.get('frequency_end_of_week', "SUN")}"
     elif params["frequency_unit"] == "H":
         params["frequency"] = f"{recipe_config.get('frequency_step_hours', 1)}H"
     elif params["frequency_unit"] == "min":
