@@ -1,11 +1,15 @@
 # Changelog
 
-## [Version 1.0.1](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.0.1) - Bugfix release - 2021-03-02
+## [Version 1.1.0](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.1.0) - Bugfix release - 2021-04
+- ✨ Added Python 3.7 support (introduced in DSS 9.0)
+- 🪲 Fixed wrong default value for the end of week frequency
+
+## [Version 1.0.1](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.0.1) - Bugfix release - 2021-03
 
 - 🪲 Bugfix with the FeedForward model when using external features of different lengths
 - 💅 Small naming and logging enhancements
 
-## [Version 1.0.0](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.0.0) - Initial release - 2021-02-08
+## [Version 1.0.0](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.0.0) - Initial release - 2021-02
 
 - 🔥 Multivariate forecasting, scaling to 1000s of time series
 - 😎 Deep Learning models from GluonTS (DeepAR, Transformer, ...)
