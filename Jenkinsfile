@@ -1,11 +1,16 @@
 pipeline {
-   options { disableConcurrentBuilds() }
+   options {
+        disableConcurrentBuilds()
+   }
    agent { label 'dss-plugin-tests'}
    environment {
         PLUGIN_INTEGRATION_TEST_INSTANCE="$HOME/instance_config.json"
-    }
+        UNIT_TEST_FILES_STATUS_CODE = sh(script: 'ls ./tests/*/unit/test*', returnStatus: true)
+        INTEGRATION_TEST_FILES_STATUS_CODE = sh(script: 'ls ./tests/*/integration/test*', returnStatus: true)
+   }
    stages {
       stage('Run Unit Tests') {
+         when { environment name: 'UNIT_TEST_FILES_STATUS_CODE', value: "0"}
          steps {
             sh 'echo "Running unit tests"'
             catchError(stageResult: 'FAILURE') {
@@ -17,6 +22,7 @@ pipeline {
          }
       }
       stage('Run Integration Tests') {
+         when { environment name: 'INTEGRATION_TEST_FILES_STATUS_CODE', value: "0"}
          steps {
             sh 'echo "Running integration tests"'
             catchError(stageResult: 'FAILURE') {
@@ -41,6 +47,7 @@ pipeline {
 
             def status = currentBuild.currentResult
             sh "file_name=\$(echo ${env.JOB_NAME} | tr '/' '-').status; touch \$file_name; echo \"${env.BUILD_URL};${env.CHANGE_TITLE};${env.CHANGE_AUTHOR};${env.CHANGE_URL};${env.BRANCH_NAME};${status};\" >> $HOME/daily-statuses/\$file_name"
+            cleanWs()
         }
      }
    }
