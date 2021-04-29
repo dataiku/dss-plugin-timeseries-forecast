@@ -55,7 +55,7 @@ endif
 		rm -rf dist && mkdir dist; \
 		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \
 		git archive -v -9 --format zip -o dist/$${archive_file_name_gpu} $${git_stash:-HEAD}; \
-		zip --delete dist/${archive_file_name} "tests/*"; \
+		zip --delete dist/$${archive_file_name_gpu} "tests/*"; \
 		git reset --hard HEAD; \
 		git stash clear; \
 	)
