@@ -1,6 +1,6 @@
 # Changelog
 
-## [Version 1.1.0](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.1.0) - Bugfix release - 2021-04
+## [Version 1.1.0](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.1.0) - New feature and bugfix release - 2021-04
 - ✨ Added Python 3.7 support (introduced in DSS 9.0)
 - 🪲 Fixed wrong default value for the end of week frequency
 
