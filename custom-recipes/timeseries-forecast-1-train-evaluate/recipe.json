@@ -650,7 +650,7 @@
         {
             "name": "num_batches_per_epoch",
             "label": "Number of batches per epoch",
-            "description": "Number of training batches used in one epoch. Higher values increase runtime",
+            "description": "Number of training batches used in one epoch. Higher values increase runtime.",
             "type": "INT",
             "defaultValue": 50,
             "mandatory": false,
