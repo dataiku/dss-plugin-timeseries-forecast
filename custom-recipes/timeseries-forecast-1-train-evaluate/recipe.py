@@ -5,7 +5,7 @@ from dataiku.customrecipe import get_recipe_config
 from datetime import datetime
 from dku_io_utils.utils import set_column_description
 from gluonts_forecasts.training_session import TrainingSession
-from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
+from dku_io_utils.recipe_config_loading import get_models_parameters
 from dku_io_utils.utils import write_to_folder
 from dku_io_utils.config_handler import create_dku_config
 from dku_io_utils.dku_file_manager import DkuFileManager

@@ -216,7 +216,42 @@ def add_train_evaluate_config(dku_config, config, file_manager):
 
 
 def add_predict_config(dku_config, config, file_manager):
-    pass
+    dku_config.add_param(
+        name="partition_root", value=get_folder_partition_root(file_manager.model_folder, is_input=True)
+    )
+
+    check_only_one_read_partition(dku_config.partition_root, file_manager.model_folder)
+    check_only_one_read_partition(dku_config.partition_root, file_manager.external_features_future_dataset)
+
+    dku_config.add_param(
+        name="manual_selection", value=True if config.get("model_selection_mode") == "manual" else False
+    )
+
+    dku_config.add_param(name="performance_metric", value=config.get("performance_metric"))
+
+    dku_config.add_param(name="selected_session", value=config.get("manually_selected_session", "latest_session"))
+    dku_config.add_param(name="selected_model_label", value=config.get("manually_selected_model_label"))
+
+    dku_config.add_param(name="prediction_length", value=config.get("prediction_length", -1))
+    dku_config.add_param(name="confidence_interval", value=config.get("confidence_interval", 95))
+    dku_config.add_param(
+        name="quantiles", value=convert_confidence_interval_to_quantiles(dku_config.confidence_interval)
+    )
+    dku_config.add_param(name="include_history", value=config.get("include_history", False))
+
+    dku_config.add_param(name="sampling_method", value=config.get("sampling_method", "last_records"))
+    dku_config.add_param(name="history_length_limit", value=None)
+
+    if dku_config.sampling_method == "last_records":
+        dku_config.add_param(
+            name="history_length_limit",
+            label="Number of historical records",
+            value=config.get("number_records", 1000),
+            checks=[
+                {"type": "is_type", "op": int},
+                {"type": "sup_eq", "op": 1},
+            ],
+        )
 
 
 class PluginParamValidationError(ValueError):
