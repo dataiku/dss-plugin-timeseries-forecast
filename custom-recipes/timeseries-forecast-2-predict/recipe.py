@@ -1,5 +1,4 @@
 from dataiku.customrecipe import get_recipe_config
-from numpy.lib.function_base import flip
 from dku_io_utils.utils import set_column_description
 from dku_io_utils.checks_utils import external_features_check
 from dku_io_utils.model_selection import ModelSelection
