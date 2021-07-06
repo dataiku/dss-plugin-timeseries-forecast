@@ -1,4 +1,9 @@
-from dku_constants import EVALUATION_METRICS_DESCRIPTIONS, METRICS_DATASET, TIMESERIES_KEYS, CUSTOMISABLE_FREQUENCIES_OFFSETS
+from dku_constants import (
+    EVALUATION_METRICS_DESCRIPTIONS,
+    METRICS_DATASET,
+    TIMESERIES_KEYS,
+    CUSTOMISABLE_FREQUENCIES_OFFSETS,
+)
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.gluon_dataset import remove_unused_external_features
@@ -60,9 +65,14 @@ class Model(ModelHandler):
         self.model_name = model_name
         self.model_parameters = model_parameters
         self.custom_frequency = frequency
-        self.frequency = frequency if not isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS) else to_offset(frequency).name.split("-")[0]
+        self.frequency = (
+            frequency
+            if not isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS)
+            else to_offset(frequency).name.split("-")[0]
+        )
         self.prediction_length = prediction_length
         self.epoch = epoch
+        self.use_batch_size = ModelHandler.can_use_batch_size(self)
         self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
         self.use_seasonality = ModelHandler.can_use_seasonality(self)
         self.mxnet_context = mxnet_context
@@ -72,22 +82,28 @@ class Model(ModelHandler):
             "prediction_length": self.prediction_length,
         }
         trainer_kwargs = {"ctx": self.mxnet_context, "epochs": self.epoch}
-        self.batch_size = batch_size
-        if self.batch_size is not None:
-            trainer_kwargs.update({"batch_size": self.batch_size})
+
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
+
         self.trainer = ModelHandler.trainer(self, **trainer_kwargs)
         if self.trainer is not None:
             self.estimator_kwargs.update({"trainer": self.trainer})
         else:
             self.mxnet_context = None
+
+        self.batch_size = batch_size
+        if self.use_batch_size and self.batch_size is not None:
+            self.estimator_kwargs.update({"batch_size": self.batch_size})
+
         self.season_length = season_length
         if self.use_seasonality and self.season_length is not None:
             self.estimator_kwargs.update({"season_length": self.season_length})
+
         if self.use_external_features:
             self.estimator_kwargs.update({"use_feat_dynamic_real": True})
+
         self.estimator = ModelHandler.estimator(self, self.model_parameters, **self.estimator_kwargs)
         self.predictor = None
         self.evaluation_time = 0
@@ -107,7 +123,9 @@ class Model(ModelHandler):
         self.predictor = self._train_estimator(train_list_dataset)
 
         self.retraining_time = perf_counter() - start
-        logger.info(f"Re-training {self.get_label()} model on entire dataset: Done in {self.retraining_time:.2f} seconds")
+        logger.info(
+            f"Re-training {self.get_label()} model on entire dataset: Done in {self.retraining_time:.2f} seconds"
+        )
 
     def train_evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False, retrain=False):
         """Train Model on train_list_dataset and evaluate it on test_list_dataset. Then retrain on test_list_dataset if retrain=True.
@@ -131,7 +149,9 @@ class Model(ModelHandler):
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)
 
-        agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(evaluation_predictor, test_list_dataset)
+        agg_metrics, item_metrics, forecasts = self._make_evaluation_predictions(
+            evaluation_predictor, test_list_dataset
+        )
         self.evaluation_time = perf_counter() - start
         logger.info(f"Evaluating {self.get_label()} model performance: Done in {self.evaluation_time:.2f} seconds")
 
@@ -161,10 +181,14 @@ class Model(ModelHandler):
             List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
         """
         try:
-            forecast_it, ts_it = make_evaluation_predictions(dataset=test_list_dataset, predictor=predictor, num_samples=100)
+            forecast_it, ts_it = make_evaluation_predictions(
+                dataset=test_list_dataset, predictor=predictor, num_samples=100
+            )
             forecasts = list(forecast_it)
         except Exception as err:
-            raise ModelPredictionError(f"GluonTS '{self.model_name}' model crashed when making predictions. Full error: {err}")
+            raise ModelPredictionError(
+                f"GluonTS '{self.model_name}' model crashed when making predictions. Full error: {err}"
+            )
         evaluator = Evaluator(num_workers=min(2, multiprocessing.cpu_count()))
         agg_metrics, item_metrics = evaluator(ts_it, forecasts, num_series=len(test_list_dataset))
         return agg_metrics, item_metrics, forecasts
@@ -184,14 +208,18 @@ class Model(ModelHandler):
         agg_metrics[METRICS_DATASET.MODEL_COLUMN] = ModelHandler.get_label(self)
 
         identifiers_columns = (
-            list(train_list_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys()) if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[0] else []
+            list(train_list_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys())
+            if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[0]
+            else []
         )
         identifiers_values = {identifiers_column: [] for identifiers_column in identifiers_columns}
         target_columns = []
         for univariate_timeseries in train_list_dataset.list_data:
             target_columns += [univariate_timeseries[TIMESERIES_KEYS.TARGET_NAME]]
             for identifiers_column in identifiers_columns:
-                identifiers_values[identifiers_column] += [univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS][identifiers_column]]
+                identifiers_values[identifiers_column] += [
+                    univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS][identifiers_column]
+                ]
 
         item_metrics[METRICS_DATASET.TARGET_COLUMN] = target_columns
         agg_metrics[METRICS_DATASET.TARGET_COLUMN] = METRICS_DATASET.AGGREGATED_ROW
@@ -199,7 +227,9 @@ class Model(ModelHandler):
 
         for identifiers_column in identifiers_columns:
             item_metrics[identifiers_column] = identifiers_values[identifiers_column]
-            agg_metrics[identifiers_column] = METRICS_DATASET.AGGREGATED_ROW  # or keep empty but will cast integer to float
+            agg_metrics[
+                identifiers_column
+            ] = METRICS_DATASET.AGGREGATED_ROW  # or keep empty but will cast integer to float
 
         metrics = item_metrics.append(agg_metrics, ignore_index=True)
 
@@ -235,7 +265,9 @@ class Model(ModelHandler):
             try:
                 predictor = self.estimator.train(train_list_dataset)
             except Exception as err:
-                raise ModelTrainingError(f"GluonTS '{self.model_name}' model crashed during training. Full error: {err}")
+                raise ModelTrainingError(
+                    f"GluonTS '{self.model_name}' model crashed during training. Full error: {err}"
+                )
         return predictor
 
     def _get_model_parameters_json(self, train_list_dataset):
@@ -277,7 +309,9 @@ class Model(ModelHandler):
                 f"{self.model_name}_{train_list_dataset.list_data[i][TIMESERIES_KEYS.TARGET_NAME]}"
             )
             if TIMESERIES_KEYS.IDENTIFIERS in train_list_dataset.list_data[i]:
-                timeseries_identifier_key = tuple(sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items()))
+                timeseries_identifier_key = tuple(
+                    sorted(train_list_dataset.list_data[i][TIMESERIES_KEYS.IDENTIFIERS].items())
+                )
             else:
                 timeseries_identifier_key = None
 
