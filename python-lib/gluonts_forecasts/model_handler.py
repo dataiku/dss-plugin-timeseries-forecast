@@ -75,6 +75,9 @@ class ModelHandler:
             )
         return ret
 
+    def can_use_batch_size(self):
+        return False
+
     def can_use_external_feature(self):
         return False
 
@@ -176,6 +179,9 @@ class FeedForward(ModelHandler):
         self.estimator_class = SimpleFeedForwardEstimator
         self.trainer_class = Trainer
 
+    def can_use_batch_size(self):
+        return True
+
 
 class DeepAR(ModelHandler):
     def __init__(self):
@@ -188,6 +194,9 @@ class DeepAR(ModelHandler):
     def can_use_external_feature(self):
         return True
 
+    def can_use_batch_size(self):
+        return True
+
 
 class Transformer(ModelHandler):
     def __init__(self):
@@ -198,6 +207,9 @@ class Transformer(ModelHandler):
         self.trainer_class = Trainer
 
     def can_use_external_feature(self):
+        return True
+
+    def can_use_batch_size(self):
         return True
 
 

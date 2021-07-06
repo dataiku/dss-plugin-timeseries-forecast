@@ -77,6 +77,7 @@ class Model:
         # self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
         self.use_external_features = use_external_features and self.model_handler.can_use_external_feature()
         self.use_seasonality = self.model_handler.can_use_seasonality()
+        self.use_batch_size = self.model_handler.can_use_batch_size()
         self.mxnet_context = mxnet_context
 
         self.estimator_kwargs = {
@@ -84,9 +85,7 @@ class Model:
             "prediction_length": self.prediction_length,
         }
         trainer_kwargs = {"ctx": self.mxnet_context, "epochs": self.epoch}
-        self.batch_size = batch_size
-        if self.batch_size is not None:
-            trainer_kwargs.update({"batch_size": self.batch_size})
+
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
@@ -95,9 +94,15 @@ class Model:
             self.estimator_kwargs.update({"trainer": self.trainer})
         else:
             self.mxnet_context = None
+
+        self.batch_size = batch_size
+        if self.use_batch_size and self.batch_size is not None:
+            self.estimator_kwargs.update({"batch_size": self.batch_size})
+
         self.season_length = season_length
         if self.use_seasonality and self.season_length is not None:
             self.estimator_kwargs.update({"season_length": self.season_length})
+
         if self.use_external_features:
             self.estimator_kwargs.update({"use_feat_dynamic_real": True})
         self.estimator = self.model_handler.estimator(self.model_parameters, **self.estimator_kwargs)
