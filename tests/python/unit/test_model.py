@@ -48,13 +48,14 @@ class TestModel:
             prediction_length=self.prediction_length,
             epoch=1,
             use_external_features=True,
-            batch_size=32,
+            batch_size=16,
             num_batches_per_epoch=50,
         )
         metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
+        assert model.estimator.batch_size == 16
 
     def test_transformer(self):
         model_name = "transformer"
@@ -65,13 +66,14 @@ class TestModel:
             prediction_length=self.prediction_length,
             epoch=1,
             use_external_features=True,
-            batch_size=32,
+            batch_size=64,
             num_batches_per_epoch=50,
         )
         metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
+        assert model.estimator.batch_size == 64
 
     def test_seasonal_naive(self):
         model_name = "seasonal_naive"

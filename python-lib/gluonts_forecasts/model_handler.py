@@ -21,6 +21,7 @@ from gluonts_forecasts.utils import sanitize_model_parameters
 
 
 ESTIMATOR = "estimator"
+CAN_USE_BATCH_SIZE = "can_use_batch_size"
 CAN_USE_EXTERNAL_FEATURES = "can_use_external_feature"
 CAN_USE_SEASONALITY = "can_use_seasonality"
 DEFAULT_KWARGS = "default_kwargs"
@@ -77,24 +78,28 @@ MODEL_DESCRIPTORS = {
     },
     "simplefeedforward": {
         LABEL: "FeedForward",
+        CAN_USE_BATCH_SIZE: True,
         CAN_USE_EXTERNAL_FEATURES: False,
         ESTIMATOR: SimpleFeedForwardEstimator,
         TRAINER: Trainer,
     },
     "deepar": {
         LABEL: "DeepAR",
+        CAN_USE_BATCH_SIZE: True,
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: DeepAREstimator,
         TRAINER: Trainer,
     },
     "transformer": {
         LABEL: "Transformer",
+        CAN_USE_BATCH_SIZE: True,
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: TransformerEstimator,
         TRAINER: Trainer,
     },
     "mqcnn": {
         LABEL: "MQ-CNN",
+        CAN_USE_BATCH_SIZE: False,
         CAN_USE_EXTERNAL_FEATURES: True,
         ESTIMATOR: MQCNNEstimator,
         TRAINER: Trainer,
@@ -104,7 +109,11 @@ MODEL_DESCRIPTORS = {
 
 # these parameter are classes but are set as strings in the UI
 CLASS_PARAMETERS = {
-    "distr_output": {"StudentTOutput()": StudentTOutput(), "GaussianOutput()": GaussianOutput(), "NegativeBinomialOutput()": NegativeBinomialOutput()},
+    "distr_output": {
+        "StudentTOutput()": StudentTOutput(),
+        "GaussianOutput()": GaussianOutput(),
+        "NegativeBinomialOutput()": NegativeBinomialOutput(),
+    },
     "model": {"ARIMA": ARIMA, "ETSModel": ETSModel},
 }
 
@@ -144,7 +153,9 @@ class ModelHandler:
         try:
             ret = None if estimator is None else estimator(**kwargs)
         except Exception as err:
-            raise ModelParameterError(f"Issue with parameters '{kwargs}' of model '{self.model_name}'. Full error: {err}")
+            raise ModelParameterError(
+                f"Issue with parameters '{kwargs}' of model '{self.model_name}'. Full error: {err}"
+            )
         return ret
 
     def trainer(self, **kwargs):
@@ -152,7 +163,9 @@ class ModelHandler:
         try:
             ret = None if trainer is None else trainer(**kwargs)
         except Exception as err:
-            raise ModelParameterError(f"Issue with parameters '{kwargs}' of model trainer for '{self.model_name}'. Full error: {err}")
+            raise ModelParameterError(
+                f"Issue with parameters '{kwargs}' of model trainer for '{self.model_name}'. Full error: {err}"
+            )
         return ret
 
     def predictor(self, **kwargs):
@@ -160,8 +173,13 @@ class ModelHandler:
         try:
             ret = None if predictor is None else predictor(**kwargs)
         except Exception as err:
-            raise ModelParameterError(f"Issue with parameters '{kwargs}' of model predictor for {self.model_name}. Full error: {err}")
+            raise ModelParameterError(
+                f"Issue with parameters '{kwargs}' of model predictor for {self.model_name}. Full error: {err}"
+            )
         return ret
+
+    def can_use_batch_size(self):
+        return self.model_descriptor.get(CAN_USE_BATCH_SIZE, False)
 
     def can_use_external_feature(self):
         return self.model_descriptor.get(CAN_USE_EXTERNAL_FEATURES, False)
@@ -176,7 +194,7 @@ class ModelHandler:
         return self.model_descriptor.get(LABEL, "")
 
     def _convert_parameters_to_class(self, parameters):
-        """Evaluate string parameters that are classes so that they become instances of their class """
+        """Evaluate string parameters that are classes so that they become instances of their class"""
         parameters_converted = parameters.copy()
         for class_parameter, class_parameter_values in CLASS_PARAMETERS.items():
             if class_parameter in parameters_converted:
@@ -188,7 +206,9 @@ class ModelHandler:
                     """
                     )
                 else:
-                    parameters_converted[class_parameter] = class_parameter_values[parameters_converted[class_parameter]]
+                    parameters_converted[class_parameter] = class_parameter_values[
+                        parameters_converted[class_parameter]
+                    ]
         return parameters_converted
 
 
@@ -227,4 +247,6 @@ def get_model_label(model_name):
 
 def get_model_name_from_label(model_label):
     available_models = MODEL_DESCRIPTORS.copy()
-    return next((model_name for model_name in available_models if available_models[model_name].get(LABEL) == model_label), None)
+    return next(
+        (model_name for model_name in available_models if available_models[model_name].get(LABEL) == model_label), None
+    )
