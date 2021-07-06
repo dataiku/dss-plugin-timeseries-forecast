@@ -24,9 +24,7 @@ def create_dku_config(recipe_id, config, file_manager):
 def add_train_evaluate_config(dku_config, config, file_manager):
     input_dataset_columns = get_column_names(file_manager.input_dataset)
 
-    dku_config.add_param(
-        name="partition_root", value=get_folder_partition_root(file_manager.model_folder, is_input=True)
-    )
+    dku_config.add_param(name="partition_root", value=get_folder_partition_root(file_manager.model_folder))
     check_only_one_read_partition(dku_config.partition_root, file_manager.input_dataset)
 
     dku_config.add_param(
@@ -171,22 +169,14 @@ def add_train_evaluate_config(dku_config, config, file_manager):
 
     dku_config.add_param(name="auto_num_batches_per_epoch", value=config.get("auto_num_batches_per_epoch", True))
     if dku_config.auto_num_batches_per_epoch:
-        dku_config.add_param(
-            name="num_batches_per_epoch",
-            label="Number of batches per epoch",
-            value=-1,
-            checks=[
-                {"type": "not_in", "op": [0]},
-            ],
-        )
+        dku_config.add_param(name="num_batches_per_epoch", label="Number of batches per epoch", value=-1)
     else:
+        print(f"recipe_config: {config}")
         dku_config.add_param(
             name="num_batches_per_epoch",
             label="Number of batches per epoch",
-            value=config.get("num_batches_per_epoch", 50),
-            checks=[
-                {"type": "not_in", "op": [0]},
-            ],
+            value=config.get("num_batches_per_epoch"),
+            required=True,
         )
 
     # Overwrite values in case of autoML mode selected
@@ -199,6 +189,7 @@ def add_train_evaluate_config(dku_config, config, file_manager):
     if dku_config.sampling_method == "last_records":
         dku_config.add_param(
             name="max_timeseries_length",
+            label="Number of records",
             value=config.get("number_records", 10000),
             checks=[
                 {"type": "sup_eq", "op": 4},
@@ -207,12 +198,6 @@ def add_train_evaluate_config(dku_config, config, file_manager):
 
     dku_config.add_param(name="evaluation_strategy", value="split")
     dku_config.add_param(name="evaluation_only", value=False)
-
-    # printable_params = {
-    #     param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
-    # }
-    # logger.info(f"Recipe parameters: {printable_params}")
-    # return params
 
 
 def add_predict_config(dku_config, config, file_manager):
