@@ -42,10 +42,12 @@ class ModelHandler:
     Class to retrieve the estimator, trainer or descriptor of a GluonTS model
     """
 
-    def __init__(self):
-        self.estimator_class = None
-        self.predictor_class = None
-        self.trainer_class = None
+    def __init__(self, model_name, label, estimator_class=None, predictor_class=None, trainer_class=None):
+        self.model_name = model_name
+        self.label = label
+        self.estimator_class = estimator_class
+        self.predictor_class = predictor_class
+        self.trainer_class = trainer_class
 
     def estimator(self, model_parameters, **kwargs):
         model_parameters_sanitized = sanitize_model_parameters(model_parameters.get("kwargs", {}), self.model_name)
@@ -110,11 +112,10 @@ class ModelHandler:
 
 
 class TrivialIdentity(ModelHandler):
+    model_name = "trivial_identity"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "trivial_identity"
-        self.label = "TrivialIdentity"
-        self.predictor_class = IdentityPredictor
+        super().__init__(model_name=self.model_name, label="TrivialIdentity", predictor_class=IdentityPredictor)
 
     def needs_num_samples(self):
         return True
@@ -126,23 +127,25 @@ class TrivialIdentity(ModelHandler):
 
 
 class SeasonalNaive(ModelHandler):
+    model_name = "seasonal_naive"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "seasonal_naive"
-        self.label = "SeasonalNaive"
-        self.predictor_class = SeasonalNaivePredictor
+        super().__init__(model_name=self.model_name, label="SeasonalNaive", predictor_class=SeasonalNaivePredictor)
 
     def can_use_seasonality(self):
         return True
 
 
 class AutoARIMA(ModelHandler):
+    model_name = "autoarima"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "autoarima"
-        self.label = "AutoARIMA"
-        self.estimator_class = AutoARIMAEstimator
-        self.predictor_class = AutoARIMAPredictor
+        super().__init__(
+            model_name=self.model_name,
+            label="AutoARIMA",
+            estimator_class=AutoARIMAEstimator,
+            predictor_class=AutoARIMAPredictor,
+        )
 
     def can_use_seasonality(self):
         return True
@@ -152,44 +155,49 @@ class AutoARIMA(ModelHandler):
 
 
 class SeasonalTrend(ModelHandler):
+    model_name = "seasonal_trend"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "seasonal_trend"
-        self.label = "SeasonalTrend"
-        self.estimator_class = SeasonalTrendEstimator
-        self.predictor_class = SeasonalTrendPredictor
+        super().__init__(
+            model_name=self.model_name,
+            label="SeasonalTrend",
+            estimator_class=SeasonalTrendEstimator,
+            predictor_class=SeasonalTrendPredictor,
+        )
 
     def can_use_seasonality(self):
         return True
 
 
 class NPTS(ModelHandler):
+    model_name = "npts"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "npts"
-        self.label = "NPTS"
-        self.predictor_class = NPTSPredictor
+        super().__init__(model_name=self.model_name, label="NPTS", predictor_class=NPTSPredictor)
 
 
 class FeedForward(ModelHandler):
+    model_name = "simplefeedforward"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "simplefeedforward"
-        self.label = "FeedForward"
-        self.estimator_class = SimpleFeedForwardEstimator
-        self.trainer_class = Trainer
+        super().__init__(
+            model_name=self.model_name,
+            label="FeedForward",
+            estimator_class=SimpleFeedForwardEstimator,
+            trainer_class=Trainer,
+        )
 
     def can_use_batch_size(self):
         return True
 
 
 class DeepAR(ModelHandler):
+    model_name = "deepar"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "deepar"
-        self.label = "DeepAR"
-        self.estimator_class = DeepAREstimator
-        self.trainer_class = Trainer
+        super().__init__(
+            model_name=self.model_name, label="DeepAR", estimator_class=DeepAREstimator, trainer_class=Trainer
+        )
 
     def can_use_external_feature(self):
         return True
@@ -199,12 +207,12 @@ class DeepAR(ModelHandler):
 
 
 class Transformer(ModelHandler):
+    model_name = "transformer"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "transformer"
-        self.label = "Transformer"
-        self.estimator_class = TransformerEstimator
-        self.trainer_class = Trainer
+        super().__init__(
+            model_name=self.model_name, label="Transformer", estimator_class=TransformerEstimator, trainer_class=Trainer
+        )
 
     def can_use_external_feature(self):
         return True
@@ -214,27 +222,27 @@ class Transformer(ModelHandler):
 
 
 class MQCNN(ModelHandler):
+    model_name = "mqcnn"
+
     def __init__(self):
-        super().__init__()
-        self.model_name = "mqcnn"
-        self.label = "MQ-CNN"
-        self.estimator_class = MQCNNEstimator
-        self.trainer_class = Trainer
+        super().__init__(
+            model_name=self.model_name, label="MQ-CNN", estimator_class=MQCNNEstimator, trainer_class=Trainer
+        )
 
     def can_use_external_feature(self):
         return True
 
 
 ModelHandlerRegistry = {
-    "trivial_identity": TrivialIdentity(),
-    "seasonal_naive": SeasonalNaive(),
-    "autoarima": AutoARIMA(),
-    "seasonal_trend": SeasonalTrend(),
-    "npts": NPTS(),
-    "simplefeedforward": FeedForward(),
-    "deepar": DeepAR(),
-    "transformer": Transformer(),
-    "mqcnn": MQCNN(),
+    TrivialIdentity.model_name: TrivialIdentity(),
+    SeasonalNaive.model_name: SeasonalNaive(),
+    AutoARIMA.model_name: AutoARIMA(),
+    SeasonalTrend.model_name: SeasonalTrend(),
+    NPTS.model_name: NPTS(),
+    FeedForward.model_name: FeedForward(),
+    DeepAR.model_name: DeepAR(),
+    Transformer.model_name: Transformer(),
+    MQCNN.model_name: MQCNN(),
 }
 
 
