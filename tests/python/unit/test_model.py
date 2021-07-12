@@ -121,7 +121,7 @@ class TestModel:
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         assert len(metrics.index) == 5
         assert set(metrics.columns) == set(expected_metrics_columns)
-        assert metrics[METRICS_DATASET.MODEL_COLUMN].unique() == ModelHandlerRegistry().get_model_label(model_name)
+        assert metrics[METRICS_DATASET.MODEL_COLUMN].unique() == ModelHandlerRegistry().get_model(model_name).get_label()
 
     @staticmethod
     def forecasts_assertions(forecasts_df, model_name, prediction_length=1):

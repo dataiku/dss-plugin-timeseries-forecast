@@ -264,7 +264,7 @@ class TrainedModel:
         if session:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
         if self.model_name:
-            self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = ModelHandlerRegistry().get_model_label(self.model_name)
+            self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = ModelHandlerRegistry().get_model(self.model_name).get_label()
 
         self.forecasts_df = self.forecasts_df.sort_values(
             by=self.identifiers_columns + [self.time_column_name],

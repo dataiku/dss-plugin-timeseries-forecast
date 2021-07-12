@@ -76,12 +76,12 @@ if not params["evaluation_only"]:
 
     for model in training_session.models:
         model_path = "{}/{}/model.pk.gz".format(
-            training_session.session_path, ModelHandlerRegistry().get_model_label(model.model_name)
+            training_session.session_path, ModelHandlerRegistry().get_model(model.model_name).get_label()
         )
         write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)
 
         parameters_path = "{}/{}/params.json".format(
-            training_session.session_path, ModelHandlerRegistry().get_model_label(model.model_name)
+            training_session.session_path, ModelHandlerRegistry().get_model(model.model_name).get_label()
         )
         write_to_folder(model.model_parameters, model_folder, parameters_path, ObjectType.JSON)
 

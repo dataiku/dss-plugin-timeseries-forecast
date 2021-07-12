@@ -72,10 +72,11 @@ class TestTrainingSession:
         ]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         metrics_models = self.training_session.metrics_df[METRICS_DATASET.MODEL_COLUMN].unique()
+        model_handler_registry = ModelHandlerRegistry()
         expected_metrics_models = [
-            ModelHandlerRegistry().get_model_label("deepar"),
-            ModelHandlerRegistry().get_model_label("mqcnn"),
-            ModelHandlerRegistry().get_model_label("trivial_identity"),
+            model_handler_registry.get_model("deepar").get_label(),
+            model_handler_registry.get_model("mqcnn").get_label(),
+            model_handler_registry.get_model("trivial_identity").get_label(),
         ]
         assert len(self.training_session.metrics_df.index) == 15
         assert set(self.training_session.metrics_df.columns) == set(expected_metrics_columns)
