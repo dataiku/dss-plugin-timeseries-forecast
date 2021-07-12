@@ -7,7 +7,7 @@ from dku_io_utils.utils import set_column_description
 from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
-from gluonts_forecasts.model_handler import get_model_label
+from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
 from dku_constants import ObjectType
 from timeseries_preparation.preparation import TimeseriesPreparator
 from safe_logger import SafeLogger
@@ -75,10 +75,14 @@ if not params["evaluation_only"]:
     write_to_folder(training_session.full_list_dataset, model_folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
 
     for model in training_session.models:
-        model_path = "{}/{}/model.pk.gz".format(training_session.session_path, get_model_label(model.model_name))
+        model_path = "{}/{}/model.pk.gz".format(
+            training_session.session_path, ModelHandlerRegistry().get_model_label(model.model_name)
+        )
         write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)
 
-        parameters_path = "{}/{}/params.json".format(training_session.session_path, get_model_label(model.model_name))
+        parameters_path = "{}/{}/params.json".format(
+            training_session.session_path, ModelHandlerRegistry().get_model_label(model.model_name)
+        )
         write_to_folder(model.model_parameters, model_folder, parameters_path, ObjectType.JSON)
 
 logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))

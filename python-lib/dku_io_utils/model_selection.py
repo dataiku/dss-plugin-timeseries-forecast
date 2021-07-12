@@ -2,7 +2,7 @@ import re
 import os
 from dku_io_utils.utils import read_from_folder
 from dku_constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
-from gluonts_forecasts.model_handler import list_available_models_labels, get_model_name_from_label
+from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
 
 
 class ModelSelectionError(ValueError):
@@ -61,13 +61,13 @@ class ModelSelection:
         return self.model_label
 
     def get_model_name(self):
-        return get_model_name_from_label(self.model_label)
+        return ModelHandlerRegistry().get_model_name_from_label(self.model_label)
 
     def get_session_name(self):
         return self.session_name
 
     def get_model_predictor(self):
-        """ Retrieve the GluonTS Predictor object obtained during training and saved into the model folder """
+        """Retrieve the GluonTS Predictor object obtained during training and saved into the model folder"""
         if not self.manual_selection:
             self.session_name = self._get_last_session()
             self.session_path = os.path.join(self.partition_root, self.session_name)
@@ -84,7 +84,7 @@ class ModelSelection:
         return model
 
     def get_gluon_train_dataset(self):
-        """ Retrieve the GluonDataset object with training data that was saved in the model folder during training """
+        """Retrieve the GluonDataset object with training data that was saved in the model folder during training"""
         gluon_train_dataset_path = f"{self.session_path}/gluon_train_dataset.pk.gz"
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
         return gluon_train_dataset
@@ -110,7 +110,7 @@ class ModelSelection:
         Returns:
             Label of the best model.
         """
-        available_models_labels = list_available_models_labels()
+        available_models_labels = ModelHandlerRegistry().list_available_models_labels()
         df = read_from_folder(self.folder, f"{self.session_path}/metrics.csv", ObjectType.CSV)
         try:
             if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():

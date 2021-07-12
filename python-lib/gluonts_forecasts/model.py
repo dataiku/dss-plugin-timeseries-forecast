@@ -8,7 +8,7 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.gluon_dataset import remove_unused_external_features
 
-from gluonts_forecasts.model_handler import ModelHandlerRegistry
+from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, quantile_forecasts_series
 from time import perf_counter
 from pandas.tseries.frequencies import to_offset
@@ -62,7 +62,7 @@ class Model:
         season_length=None,
         mxnet_context=None,
     ):
-        self.model_handler = ModelHandlerRegistry.get(model_name)
+        self.model_handler = ModelHandlerRegistry().get_model(model_name)
 
         self.model_name = model_name
         self.model_parameters = model_parameters

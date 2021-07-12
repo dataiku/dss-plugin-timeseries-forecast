@@ -5,7 +5,7 @@ from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
 from dku_constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from gluonts_forecasts.gluon_dataset import GluonDataset
-from gluonts_forecasts.model_handler import list_available_models
+from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
 from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
 
@@ -210,7 +210,7 @@ class TrainingSession:
             Dictionary of description (value) by column (key).
         """
         column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()
-        available_models = list_available_models()
+        available_models = ModelHandlerRegistry().list_available_models()
         for column in self.evaluation_forecasts_df.columns:
             model = next((model for model in available_models if model in column), None)
             if model:

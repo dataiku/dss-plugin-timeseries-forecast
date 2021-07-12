@@ -2,7 +2,7 @@ from gluonts_forecasts.model import Model
 from gluonts_forecasts.trained_model import TrainedModel
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.utils import add_future_external_features
-from gluonts_forecasts.model_handler import ModelHandlerRegistry
+from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
 from dku_constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
 import pandas as pd
 
@@ -121,7 +121,7 @@ class TestModel:
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         assert len(metrics.index) == 5
         assert set(metrics.columns) == set(expected_metrics_columns)
-        assert metrics[METRICS_DATASET.MODEL_COLUMN].unique() == ModelHandlerRegistry[model_name].get_label()
+        assert metrics[METRICS_DATASET.MODEL_COLUMN].unique() == ModelHandlerRegistry().get_model_label(model_name)
 
     @staticmethod
     def forecasts_assertions(forecasts_df, model_name, prediction_length=1):

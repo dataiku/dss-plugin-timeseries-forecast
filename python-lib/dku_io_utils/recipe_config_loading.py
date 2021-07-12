@@ -6,7 +6,7 @@ from dataiku.customrecipe import (
 )
 import re
 from gluonts.time_feature import get_seasonality
-from gluonts_forecasts.model_handler import list_available_models
+from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
 from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
 from dku_constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION, DEFAULT_SEASONALITIES
 from safe_logger import SafeLogger
@@ -202,7 +202,7 @@ def get_models_parameters(config, is_training_multivariate=False):
         Dictionary of model parameter (value) by activated model name (key).
     """
     models_parameters = {}
-    for model in list_available_models():
+    for model in ModelHandlerRegistry().list_available_models():
         if is_activated(config, model, is_training_multivariate):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
