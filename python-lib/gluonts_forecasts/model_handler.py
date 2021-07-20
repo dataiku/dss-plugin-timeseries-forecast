@@ -39,7 +39,8 @@ class ModelParameterError(ValueError):
 
 class ModelHandler:
     """
-    Class to retrieve the estimator, trainer or descriptor of a GluonTS model
+    Class to retrieve the estimator, trainer or descriptor of a GluonTS model.
+    By default, models have no special behaviors (such as batch size, external features, seasonality).
     """
 
     def __init__(self, model_name, label, estimator_class=None, predictor_class=None, trainer_class=None):
