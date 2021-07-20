@@ -2,13 +2,9 @@ from gluonts_forecasts.model import Model
 from gluonts_forecasts.trained_model import TrainedModel
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from gluonts_forecasts.utils import add_future_external_features
-from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
-from datetime import datetime
-from pandas.api.types import is_datetime64_ns_dtype
 import pandas as pd
-import numpy as np
-import pytest
 
 
 class TestModel:
@@ -51,7 +47,9 @@ class TestModel:
             batch_size=16,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+            self.train_list_dataset, self.test_list_dataset, make_forecasts=True
+        )
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
@@ -69,7 +67,9 @@ class TestModel:
             batch_size=64,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+            self.train_list_dataset, self.test_list_dataset, make_forecasts=True
+        )
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
@@ -87,7 +87,9 @@ class TestModel:
             batch_size=32,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(self.train_list_dataset, self.test_list_dataset, make_forecasts=True)
+        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+            self.train_list_dataset, self.test_list_dataset, make_forecasts=True
+        )
 
         TestModel.metrics_assertions(metrics, model_name)
         TestModel.forecasts_assertions(forecasts_df, model_name, prediction_length=self.prediction_length)
@@ -119,7 +121,7 @@ class TestModel:
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         assert len(metrics.index) == 5
         assert set(metrics.columns) == set(expected_metrics_columns)
-        assert metrics[METRICS_DATASET.MODEL_COLUMN].unique() == MODEL_DESCRIPTORS[model_name][LABEL]
+        assert metrics[METRICS_DATASET.MODEL_COLUMN].unique() == ModelConfigRegistry().get_model(model_name).get_label()
 
     @staticmethod
     def forecasts_assertions(forecasts_df, model_name, prediction_length=1):
@@ -133,7 +135,17 @@ class TestExternalFeaturesSimpleFeedForward:
     def setup_class(self):
         df = pd.DataFrame(
             {
-                "date": ["2018-01-06", "2018-01-07", "2018-01-08", "2018-01-09", "2018-01-08", "2018-01-09", "2018-01-10", "2018-01-11", "2018-01-12"],
+                "date": [
+                    "2018-01-06",
+                    "2018-01-07",
+                    "2018-01-08",
+                    "2018-01-09",
+                    "2018-01-08",
+                    "2018-01-09",
+                    "2018-01-10",
+                    "2018-01-11",
+                    "2018-01-12",
+                ],
                 "target": [2, 4, 2, 2, 5, 2, 3, 2, 3],
                 "key": [1, 1, 1, 1, 2, 2, 2, 2, 2],
                 "ext_feat": [0, 0, 0, 0, 0, 1, 0, 1, 1],
@@ -184,9 +196,13 @@ class TestExternalFeaturesSimpleFeedForward:
                 "ext_feat": [0, 0, 0, 1],
             }
         )
-        external_features_future_df["date"] = pd.to_datetime(external_features_future_df["date"]).dt.tz_localize(tz=None)
+        external_features_future_df["date"] = pd.to_datetime(external_features_future_df["date"]).dt.tz_localize(
+            tz=None
+        )
 
-        gluon_dataset = add_future_external_features(self.test_list_dataset, external_features_future_df, self.prediction_length, self.frequency)
+        gluon_dataset = add_future_external_features(
+            self.test_list_dataset, external_features_future_df, self.prediction_length, self.frequency
+        )
 
         trained_model = TrainedModel(
             model_name=self.model_name,

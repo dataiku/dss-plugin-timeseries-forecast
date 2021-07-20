@@ -2,7 +2,6 @@ from gluonts_forecasts.gluon_dataset import GluonDataset
 from dku_constants import TIMESERIES_KEYS
 import pandas as pd
 import numpy as np
-import pytest
 
 
 class TestGluonDataset:
@@ -39,7 +38,9 @@ class TestGluonDataset:
         assert (self.gluon_list_dataset.list_data[1][TIMESERIES_KEYS.TARGET] == np.array([12, 13, 14])).all()
 
     def test_external_features(self):
-        assert (self.gluon_list_dataset.list_data[1][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] == np.array([[0, 0, 0], [1, 0, 0]])).all()
+        assert (
+            self.gluon_list_dataset.list_data[1][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] == np.array([[0, 0, 0], [1, 0, 0]])
+        ).all()
 
     def test_timeseries_identifiers(self):
         assert self.gluon_list_dataset.list_data[2][TIMESERIES_KEYS.IDENTIFIERS] == {"store": 1, "item": 2}
