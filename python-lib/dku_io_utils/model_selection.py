@@ -2,7 +2,7 @@ import re
 import os
 from dku_io_utils.utils import read_from_folder
 from dku_constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 
 
 class ModelSelectionError(ValueError):
@@ -61,7 +61,7 @@ class ModelSelection:
         return self.model_label
 
     def get_model_name(self):
-        return ModelHandlerRegistry().get_model_name_from_label(self.model_label)
+        return ModelConfigRegistry().get_model_name_from_label(self.model_label)
 
     def get_session_name(self):
         return self.session_name
@@ -110,7 +110,7 @@ class ModelSelection:
         Returns:
             Label of the best model.
         """
-        available_models_labels = ModelHandlerRegistry().list_available_models_labels()
+        available_models_labels = ModelConfigRegistry().list_available_models_labels()
         df = read_from_folder(self.folder, f"{self.session_path}/metrics.csv", ObjectType.CSV)
         try:
             if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():

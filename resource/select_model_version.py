@@ -2,7 +2,7 @@
 import re
 import dataiku
 from dku_constants import TIMESTAMP_REGEX_PATTERN
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 
 
 def do(payload, config, plugin_config, inputs):
@@ -26,7 +26,7 @@ def do(payload, config, plugin_config, inputs):
 
     elif payload.get("parameterName") == "manually_selected_model_label":
         all_paths = input_folder.list_paths_in_partition()
-        for model_label in ModelHandlerRegistry().list_available_models_labels():
+        for model_label in ModelConfigRegistry().list_available_models_labels():
             for path in all_paths:
                 if bool(re.search(f"({model_label})(/model.pk.gz)", path)):
                     choices += [{"label": model_label, "value": model_label}]

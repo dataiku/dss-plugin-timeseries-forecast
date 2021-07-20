@@ -3,9 +3,15 @@ import os
 import math
 from pandas.api.types import is_numeric_dtype, is_string_dtype
 from gluonts_forecasts.model import Model
-from dku_constants import METRICS_DATASET, METRICS_COLUMNS_DESCRIPTIONS, TIMESERIES_KEYS, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
+from dku_constants import (
+    METRICS_DATASET,
+    METRICS_COLUMNS_DESCRIPTIONS,
+    TIMESERIES_KEYS,
+    EVALUATION_METRICS_DESCRIPTIONS,
+    ROW_ORIGIN,
+)
 from gluonts_forecasts.gluon_dataset import GluonDataset
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
 
@@ -121,7 +127,7 @@ class TrainingSession:
             self.num_batches_per_epoch = self.user_num_batches_per_epoch
 
     def instantiate_models(self):
-        """Instantiate all the selected models. """
+        """Instantiate all the selected models."""
         for model_name, model_parameters in self.models_parameters.items():
             self.models.append(
                 Model(
@@ -139,7 +145,7 @@ class TrainingSession:
             )
 
     def train_evaluate(self, retrain=False):
-        """Call the right train and evaluate function depending on the need to make forecasts. """
+        """Call the right train and evaluate function depending on the need to make forecasts."""
 
         if self.make_forecasts:
             self._train_evaluate_make_forecast(retrain)
@@ -147,16 +153,18 @@ class TrainingSession:
             self._train_evaluate(retrain)
 
     def _train_evaluate(self, retrain):
-        """Evaluate all the selected models (then retrain on complete data if specified) and get the metrics dataframe. """
+        """Evaluate all the selected models (then retrain on complete data if specified) and get the metrics dataframe."""
         metrics_df = pd.DataFrame()
         for model in self.models:
-            item_metrics = model.train_evaluate(self.evaluation_train_list_dataset, self.full_list_dataset, retrain=retrain)[0]
+            item_metrics = model.train_evaluate(
+                self.evaluation_train_list_dataset, self.full_list_dataset, retrain=retrain
+            )[0]
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
     def _train_evaluate_make_forecast(self, retrain):
-        """Evaluate all the selected models (then retrain on complete data if specified), get the metrics dataframe and create the forecasts dataframe. """
+        """Evaluate all the selected models (then retrain on complete data if specified), get the metrics dataframe and create the forecasts dataframe."""
         metrics_df = pd.DataFrame()
         for model in self.models:
             (item_metrics, identifiers_columns, forecasts_df) = model.train_evaluate(
@@ -166,14 +174,20 @@ class TrainingSession:
             if self.forecasts_df.empty:
                 self.forecasts_df = forecasts_df
             else:
-                self.forecasts_df = self.forecasts_df.merge(forecasts_df, on=[self.time_column_name] + identifiers_columns)
+                self.forecasts_df = self.forecasts_df.merge(
+                    forecasts_df, on=[self.time_column_name] + identifiers_columns
+                )
             metrics_df = metrics_df.append(item_metrics)
         metrics_df[METRICS_DATASET.SESSION] = self.session_name
         self.metrics_df = self._reorder_metrics_df(metrics_df)
 
-        self.evaluation_forecasts_df = self.training_df.merge(self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True)
+        self.evaluation_forecasts_df = self.training_df.merge(
+            self.forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True
+        )
 
-        self.evaluation_forecasts_df = add_row_origin(self.evaluation_forecasts_df, both=ROW_ORIGIN.EVALUATION, left_only=ROW_ORIGIN.TRAIN)
+        self.evaluation_forecasts_df = add_row_origin(
+            self.evaluation_forecasts_df, both=ROW_ORIGIN.EVALUATION, left_only=ROW_ORIGIN.TRAIN
+        )
 
         # sort forecasts dataframe by timeseries identifiers (ascending) and time column (descending)
         self.evaluation_forecasts_df = self.evaluation_forecasts_df.sort_values(
@@ -210,7 +224,7 @@ class TrainingSession:
             Dictionary of description (value) by column (key).
         """
         column_descriptions = METRICS_COLUMNS_DESCRIPTIONS.copy()
-        available_models = ModelHandlerRegistry().list_available_models()
+        available_models = ModelConfigRegistry().list_available_models()
         for column in self.evaluation_forecasts_df.columns:
             model = next((model for model in available_models if model in column), None)
             if model:
@@ -231,10 +245,15 @@ class TrainingSession:
             Dataframe of metrics to display to users.
         """
         evaluation_metrics_df = self.metrics_df.copy()
-        evaluation_metrics_df.columns = [column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column for column in evaluation_metrics_df.columns]
+        evaluation_metrics_df.columns = [
+            column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column
+            for column in evaluation_metrics_df.columns
+        ]
         if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
             evaluation_metrics_df = self.metrics_df.copy()
-            evaluation_metrics_df = evaluation_metrics_df[evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
+            evaluation_metrics_df = evaluation_metrics_df[
+                evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW
+            ]
             evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] = self.target_columns_names[0]
         return evaluation_metrics_df
 
@@ -250,13 +269,13 @@ class TrainingSession:
         return column_descriptions
 
     def _check_target_columns_types(self):
-        """ Raises ValueError if a target column is not numerical """
+        """Raises ValueError if a target column is not numerical"""
         for column_name in self.target_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
                 raise ValueError(f"Target column '{column_name}' must be of numeric type")
 
     def _check_external_features_columns_types(self):
-        """ Raises ValueError if an external feature column is not numerical """
+        """Raises ValueError if an external feature column is not numerical"""
         for column_name in self.external_features_columns_names:
             if not is_numeric_dtype(self.training_df[column_name]):
                 raise ValueError(f"External feature '{column_name}' must be of numeric type")
@@ -271,5 +290,7 @@ class TrainingSession:
             num_samples = math.ceil(timeseries_length / self.prediction_length)
             num_samples_total += num_samples
         optimal_num_batches_per_epoch = max(math.ceil(num_samples_total / self.batch_size), 50)
-        logger.info(f"Number of batches per epoch automatically scaled to training data size: {optimal_num_batches_per_epoch}")
+        logger.info(
+            f"Number of batches per epoch automatically scaled to training data size: {optimal_num_batches_per_epoch}"
+        )
         return optimal_num_batches_per_epoch

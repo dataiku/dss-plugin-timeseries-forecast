@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from gluonts_forecasts.gluon_dataset import remove_unused_external_features
 from gluonts_forecasts.utils import (
     concat_timeseries_per_identifiers,
@@ -67,10 +67,10 @@ class TrainedModel:
         Use the gluon dataset of training to predict future values and
         concat all forecasts timeseries of different identifiers and quantiles together
         """
-        model_handler = ModelHandlerRegistry().get_model(self.model_name)
+        model_config = ModelConfigRegistry().get_model(self.model_name)
         if (
             self.model_name
-            and not model_handler.can_use_external_feature()
+            and not model_config.can_use_external_feature()
             and TIMESERIES_KEYS.FEAT_DYNAMIC_REAL in self.gluon_dataset.list_data[0]
         ):
             # remove external features from the ListDataset used for predictions if the model cannot use them
@@ -264,7 +264,9 @@ class TrainedModel:
         if session:
             self.forecasts_df[METRICS_DATASET.SESSION] = session
         if self.model_name:
-            self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = ModelHandlerRegistry().get_model(self.model_name).get_label()
+            self.forecasts_df[METRICS_DATASET.MODEL_COLUMN] = (
+                ModelConfigRegistry().get_model(self.model_name).get_label()
+            )
 
         self.forecasts_df = self.forecasts_df.sort_values(
             by=self.identifiers_columns + [self.time_column_name],

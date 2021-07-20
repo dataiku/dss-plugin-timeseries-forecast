@@ -8,7 +8,7 @@ from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.evaluation import Evaluator
 from gluonts_forecasts.gluon_dataset import remove_unused_external_features
 
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from gluonts_forecasts.utils import concat_timeseries_per_identifiers, concat_all_timeseries, quantile_forecasts_series
 from time import perf_counter
 from pandas.tseries.frequencies import to_offset
@@ -37,7 +37,7 @@ class Model:
     Wrapper class to train and evaluate a GluonTS estimator, and retrieve the evaluation metrics and predictions
 
     Attributes:
-        model_name (str): Model name belonging to model_handler.MODEL_DESCRIPTORS
+        model_name (str): Model name of a ModelConfig()
         model_parameters (dict): Kwargs of model parameters
         custom_frequency (str): Pandas timeseries frequency not necessarily supported by GluonTS Estimators (e.g. 'W-MON')
         frequency (str): Pandas timeseries frequency (e.g. '3M') supported by GluonTS Estimators
@@ -62,7 +62,7 @@ class Model:
         season_length=None,
         mxnet_context=None,
     ):
-        self.model_handler = ModelHandlerRegistry().get_model(model_name)
+        self.model_config = ModelConfigRegistry().get_model(model_name)
 
         self.model_name = model_name
         self.model_parameters = model_parameters
@@ -74,10 +74,9 @@ class Model:
         )
         self.prediction_length = prediction_length
         self.epoch = epoch
-        # self.use_external_features = use_external_features and ModelHandler.can_use_external_feature(self)
-        self.use_external_features = use_external_features and self.model_handler.can_use_external_feature()
-        self.use_seasonality = self.model_handler.can_use_seasonality()
-        self.use_batch_size = self.model_handler.can_use_batch_size()
+        self.use_external_features = use_external_features and self.model_config.can_use_external_feature()
+        self.use_seasonality = self.model_config.can_use_seasonality()
+        self.use_batch_size = self.model_config.can_use_batch_size()
         self.mxnet_context = mxnet_context
 
         self.estimator_kwargs = {
@@ -89,7 +88,7 @@ class Model:
         self.num_batches_per_epoch = num_batches_per_epoch
         if self.num_batches_per_epoch is not None:
             trainer_kwargs.update({"num_batches_per_epoch": self.num_batches_per_epoch})
-        self.trainer = self.model_handler.trainer(**trainer_kwargs)
+        self.trainer = self.model_config.trainer(**trainer_kwargs)
         if self.trainer is not None:
             self.estimator_kwargs.update({"trainer": self.trainer})
         else:
@@ -105,7 +104,7 @@ class Model:
 
         if self.use_external_features:
             self.estimator_kwargs.update({"use_feat_dynamic_real": True})
-        self.estimator = self.model_handler.estimator(self.model_parameters, **self.estimator_kwargs)
+        self.estimator = self.model_config.estimator(self.model_parameters, **self.estimator_kwargs)
         self.predictor = None
         self.evaluation_time = 0
         self.retraining_time = 0
@@ -116,16 +115,16 @@ class Model:
     def train(self, train_list_dataset, reinit=True):
         """Train model on train_list_dataset and re-instanciate estimator if reinit=True"""
         start = perf_counter()
-        logger.info(f"Re-training {self.model_handler.get_label()} model on entire dataset ...")
+        logger.info(f"Re-training {self.model_config.get_label()} model on entire dataset ...")
 
         if reinit:  # re-instanciate model to re-initialize model parameters
-            self.estimator = self.model_handler.estimator(self.model_parameters, **self.estimator_kwargs)
+            self.estimator = self.model_config.estimator(self.model_parameters, **self.estimator_kwargs)
 
         self.predictor = self._train_estimator(train_list_dataset)
 
         self.retraining_time = perf_counter() - start
         logger.info(
-            f"Re-training {self.model_handler.get_label()} model on entire dataset: Done in {self.retraining_time:.2f} seconds"
+            f"Re-training {self.model_config.get_label()} model on entire dataset: Done in {self.retraining_time:.2f} seconds"
         )
 
     def train_evaluate(self, train_list_dataset, test_list_dataset, make_forecasts=False, retrain=False):
@@ -146,7 +145,7 @@ class Model:
             train_list_dataset = remove_unused_external_features(train_list_dataset, self.frequency)
             test_list_dataset = remove_unused_external_features(test_list_dataset, self.frequency)
 
-        logger.info(f"Evaluating {self.model_handler.get_label()} model performance...")
+        logger.info(f"Evaluating {self.model_config.get_label()} model performance...")
         start = perf_counter()
         evaluation_predictor = self._train_estimator(train_list_dataset)
 
@@ -155,7 +154,7 @@ class Model:
         )
         self.evaluation_time = perf_counter() - start
         logger.info(
-            f"Evaluating {self.model_handler.get_label()} model performance: Done in {self.evaluation_time:.2f} seconds"
+            f"Evaluating {self.model_config.get_label()} model performance: Done in {self.evaluation_time:.2f} seconds"
         )
 
         if retrain:
@@ -207,8 +206,8 @@ class Model:
         Returns:
             DataFrame of metrics, model name, target column and identifiers columns.
         """
-        item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_handler.get_label()
-        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_handler.get_label()
+        item_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_config.get_label()
+        agg_metrics[METRICS_DATASET.MODEL_COLUMN] = self.model_config.get_label()
 
         identifiers_columns = (
             list(train_list_dataset.list_data[0][TIMESERIES_KEYS.IDENTIFIERS].keys())
@@ -259,11 +258,11 @@ class Model:
         """
         kwargs = {"freq": self.frequency, "prediction_length": self.prediction_length}
         if self.estimator is None:
-            if self.model_handler.needs_num_samples():
+            if self.model_config.needs_num_samples():
                 kwargs.update({"num_samples": 100})
             if self.use_seasonality and self.season_length:
                 kwargs.update({"season_length": self.season_length})
-            predictor = self.model_handler.predictor(**kwargs)
+            predictor = self.model_config.predictor(**kwargs)
         else:
             try:
                 predictor = self.estimator.train(train_list_dataset)
@@ -278,7 +277,7 @@ class Model:
         timeseries_number = len(train_list_dataset.list_data)
         timeseries_total_length = sum([len(ts[TIMESERIES_KEYS.TARGET]) for ts in train_list_dataset.list_data])
         model_params = {
-            "model_name": self.model_handler.get_label(),
+            "model_name": self.model_config.get_label(),
             "frequency": self.frequency,
             "prediction_length": self.prediction_length,
             "use_external_features": self.use_external_features,

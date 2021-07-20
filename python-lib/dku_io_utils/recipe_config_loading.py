@@ -6,7 +6,7 @@ from dataiku.customrecipe import (
 )
 import re
 from gluonts.time_feature import get_seasonality
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_io_utils.partitions_handling import get_folder_partition_root, check_only_one_read_partition
 from dku_constants import FORECASTING_STYLE_PRESELECTED_MODELS, GPU_CONFIGURATION, DEFAULT_SEASONALITIES
 from safe_logger import SafeLogger
@@ -53,7 +53,9 @@ def load_training_config(recipe_config):
         raise PluginParamValidationError(f"Invalid time column selection: {params['time_column_name']}")
 
     params["target_columns_names"] = sanitize_column_list(recipe_config.get("target_columns"))
-    if len(params["target_columns_names"]) == 0 or not all(column in training_dataset_columns for column in params["target_columns_names"]):
+    if len(params["target_columns_names"]) == 0 or not all(
+        column in training_dataset_columns for column in params["target_columns_names"]
+    ):
         raise PluginParamValidationError(f"Invalid target column(s) selection: {params['target_columns_names']}")
     params["target_columns_names"] = reorder_column_list(params["target_columns_names"], training_dataset_columns)
 
@@ -61,22 +63,32 @@ def load_training_config(recipe_config):
     if long_format:
         params["timeseries_identifiers_names"] = sanitize_column_list(recipe_config.get("timeseries_identifiers", []))
         if not all(column in training_dataset_columns for column in params["timeseries_identifiers_names"]):
-            raise PluginParamValidationError(f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}")
+            raise PluginParamValidationError(
+                f"Invalid time series identifiers selection: {params['timeseries_identifiers_names']}"
+            )
     else:
         params["timeseries_identifiers_names"] = []
 
-    params["is_training_multivariate"] = True if (len(params["target_columns_names"]) > 1) or (len(params["timeseries_identifiers_names"]) > 0) else False
+    params["is_training_multivariate"] = (
+        True
+        if (len(params["target_columns_names"]) > 1) or (len(params["timeseries_identifiers_names"]) > 0)
+        else False
+    )
 
     if long_format and len(params["timeseries_identifiers_names"]) == 0:
         raise PluginParamValidationError("Long format is activated but no time series identifiers have been provided")
 
     external_feature_activated = recipe_config.get("external_feature_activated", False)
     if external_feature_activated:
-        params["external_features_columns_names"] = sanitize_column_list(recipe_config.get("external_feature_columns", []))
+        params["external_features_columns_names"] = sanitize_column_list(
+            recipe_config.get("external_feature_columns", [])
+        )
     else:
         params["external_features_columns_names"] = []
     if not all(column in training_dataset_columns for column in params["external_features_columns_names"]):
-        raise PluginParamValidationError(f"Invalid external features selection: {params['external_features_columns_names']}")
+        raise PluginParamValidationError(
+            f"Invalid external features selection: {params['external_features_columns_names']}"
+        )
 
     params["frequency_unit"] = recipe_config.get("frequency_unit")
 
@@ -134,7 +146,9 @@ def load_training_config(recipe_config):
     params["evaluation_strategy"] = "split"
     params["evaluation_only"] = False
 
-    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
+    printable_params = {
+        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
+    }
     logger.info(f"Recipe parameters: {printable_params}")
     return params
 
@@ -184,7 +198,9 @@ def load_predict_config():
         if params["history_length_limit"] < 1:
             raise PluginParamValidationError("Number of historical records must be higher than 1")
 
-    printable_params = {param: value for param, value in params.items() if "dataset" not in param and "folder" not in param}
+    printable_params = {
+        param: value for param, value in params.items() if "dataset" not in param and "folder" not in param
+    }
     logger.info(f"Recipe parameters: {printable_params}")
     return params
 
@@ -202,11 +218,13 @@ def get_models_parameters(config, is_training_multivariate=False):
         Dictionary of model parameter (value) by activated model name (key).
     """
     models_parameters = {}
-    for model in ModelHandlerRegistry().list_available_models():
+    for model in ModelConfigRegistry().list_available_models():
         if is_activated(config, model, is_training_multivariate):
             model_presets = get_model_presets(config, model)
             if "prediction_length" in model_presets.get("kwargs", {}):
-                raise ValueError("Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter")
+                raise ValueError(
+                    "Keyword argument 'prediction_length' is not writable, please use the Forecasting horizon parameter"
+                )
             models_parameters.update({model: model_presets})
     if not models_parameters:
         raise PluginParamValidationError("Please select at least one model")
@@ -224,7 +242,9 @@ def is_activated(config, model, is_training_multivariate=False):
     Returns:
         True if model is activated, else False.
     """
-    forecasting_style = config.get("forecasting_style", "auto") + ("_multivariate" if is_training_multivariate else "_univariate")
+    forecasting_style = config.get("forecasting_style", "auto") + (
+        "_multivariate" if is_training_multivariate else "_univariate"
+    )
     if forecasting_style in FORECASTING_STYLE_PRESELECTED_MODELS:
         preselected_models = FORECASTING_STYLE_PRESELECTED_MODELS.get(forecasting_style)
         return model in preselected_models
@@ -252,7 +272,7 @@ def get_model_presets(config, model):
 
 
 def automl_params_overwrite(params):
-    """Overwrite some training options based on the selected automl mode """
+    """Overwrite some training options based on the selected automl mode"""
     params_copy = params.copy()
     if params_copy["forecasting_style"].startswith("auto"):
         params_copy["season_length"] = get_seasonality(params_copy["frequency"], DEFAULT_SEASONALITIES)
@@ -269,7 +289,7 @@ def automl_params_overwrite(params):
 
 
 def sanitize_column_list(input_column_list):
-    """ Remove empty elements (Nones, '') from input columns list"""
+    """Remove empty elements (Nones, '') from input columns list"""
     sanitized_column_list = [input for input in input_column_list if input]
     return sanitized_column_list
 
@@ -294,7 +314,7 @@ def convert_confidence_interval_to_quantiles(confidence_interval):
 
 
 def reorder_column_list(column_list_to_reorder, reference_column_list):
-    """ Keep the target list in same order as the training dataset, for consistency of forecasted columns order"""
+    """Keep the target list in same order as the training dataset, for consistency of forecasted columns order"""
     reordered_list = []
     for column_name in reference_column_list:
         if column_name in column_list_to_reorder:
@@ -319,9 +339,13 @@ def parse_gpu_devices(gpu_devices):
     if len(gpu_devices) == 0:  # nothing selected
         raise PluginParamValidationError("Please select one local GPU device")
     elif len(gpu_devices) > 1:
-        raise PluginParamValidationError("GluonTS does not currently support multi-GPU training, please select only one GPU device")
+        raise PluginParamValidationError(
+            "GluonTS does not currently support multi-GPU training, please select only one GPU device"
+        )
     else:  # one element list
         if gpu_devices[0] == GPU_CONFIGURATION.NO_GPU:
-            raise PluginParamValidationError("Local GPU device parameter is invalid, please check the CUDA/GPU installation on the DSS server")
+            raise PluginParamValidationError(
+                "Local GPU device parameter is invalid, please check the CUDA/GPU installation on the DSS server"
+            )
         else:
             return [int(gpu_device.split("_")[1]) for gpu_device in gpu_devices]

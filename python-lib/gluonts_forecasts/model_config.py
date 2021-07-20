@@ -37,7 +37,7 @@ class ModelParameterError(ValueError):
     pass
 
 
-class ModelHandler:
+class ModelConfig:
     """
     Class to retrieve the estimator, trainer or descriptor of a GluonTS model.
     By default, models have no special behaviors (such as batch size, external features, seasonality).
@@ -112,7 +112,7 @@ class ModelHandler:
         return parameters_converted
 
 
-class TrivialIdentity(ModelHandler):
+class TrivialIdentity(ModelConfig):
     model_name = "trivial_identity"
 
     def __init__(self):
@@ -127,7 +127,7 @@ class TrivialIdentity(ModelHandler):
         return super().estimator(model_parameters, **kwargs)
 
 
-class SeasonalNaive(ModelHandler):
+class SeasonalNaive(ModelConfig):
     model_name = "seasonal_naive"
 
     def __init__(self):
@@ -137,7 +137,7 @@ class SeasonalNaive(ModelHandler):
         return True
 
 
-class AutoARIMA(ModelHandler):
+class AutoARIMA(ModelConfig):
     model_name = "autoarima"
 
     def __init__(self):
@@ -155,7 +155,7 @@ class AutoARIMA(ModelHandler):
         return True
 
 
-class SeasonalTrend(ModelHandler):
+class SeasonalTrend(ModelConfig):
     model_name = "seasonal_trend"
 
     def __init__(self):
@@ -170,14 +170,14 @@ class SeasonalTrend(ModelHandler):
         return True
 
 
-class NPTS(ModelHandler):
+class NPTS(ModelConfig):
     model_name = "npts"
 
     def __init__(self):
         super().__init__(model_name=self.model_name, label="NPTS", predictor_class=NPTSPredictor)
 
 
-class FeedForward(ModelHandler):
+class FeedForward(ModelConfig):
     model_name = "simplefeedforward"
 
     def __init__(self):
@@ -192,7 +192,7 @@ class FeedForward(ModelHandler):
         return True
 
 
-class DeepAR(ModelHandler):
+class DeepAR(ModelConfig):
     model_name = "deepar"
 
     def __init__(self):
@@ -207,7 +207,7 @@ class DeepAR(ModelHandler):
         return True
 
 
-class Transformer(ModelHandler):
+class Transformer(ModelConfig):
     model_name = "transformer"
 
     def __init__(self):
@@ -222,7 +222,7 @@ class Transformer(ModelHandler):
         return True
 
 
-class MQCNN(ModelHandler):
+class MQCNN(ModelConfig):
     model_name = "mqcnn"
 
     def __init__(self):

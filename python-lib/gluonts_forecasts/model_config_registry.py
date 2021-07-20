@@ -1,4 +1,4 @@
-from gluonts_forecasts.model_handler import (
+from gluonts_forecasts.model_config import (
     TrivialIdentity,
     SeasonalNaive,
     AutoARIMA,
@@ -11,7 +11,7 @@ from gluonts_forecasts.model_handler import (
 )
 
 
-class ModelHandlerRegistry:
+class ModelConfigRegistry:
     def __init__(self):
         self.models = {}
         self.register(TrivialIdentity)
@@ -47,4 +47,6 @@ class ModelHandlerRegistry:
         return available_models_labels
 
     def get_model_name_from_label(self, model_label):
-        return next((model_name for model_name in self.models if self._get_model_label(model_name) == model_label), None)
+        return next(
+            (model_name for model_name in self.models if self._get_model_label(model_name) == model_label), None
+        )

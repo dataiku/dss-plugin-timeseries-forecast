@@ -1,5 +1,5 @@
 from gluonts_forecasts.training_session import TrainingSession
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from datetime import datetime
 import pandas as pd
@@ -72,11 +72,11 @@ class TestTrainingSession:
         ]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         metrics_models = self.training_session.metrics_df[METRICS_DATASET.MODEL_COLUMN].unique()
-        model_handler_registry = ModelHandlerRegistry()
+        model_config_registry = ModelConfigRegistry()
         expected_metrics_models = [
-            model_handler_registry.get_model("deepar").get_label(),
-            model_handler_registry.get_model("mqcnn").get_label(),
-            model_handler_registry.get_model("trivial_identity").get_label(),
+            model_config_registry.get_model("deepar").get_label(),
+            model_config_registry.get_model("mqcnn").get_label(),
+            model_config_registry.get_model("trivial_identity").get_label(),
         ]
         assert len(self.training_session.metrics_df.index) == 15
         assert set(self.training_session.metrics_df.columns) == set(expected_metrics_columns)

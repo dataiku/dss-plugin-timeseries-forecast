@@ -7,7 +7,7 @@ from dku_io_utils.utils import set_column_description
 from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.recipe_config_loading import load_training_config, get_models_parameters
 from dku_io_utils.utils import write_to_folder
-from gluonts_forecasts.model_handler_registry import ModelHandlerRegistry
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import ObjectType
 from timeseries_preparation.preparation import TimeseriesPreparator
 from safe_logger import SafeLogger
@@ -76,12 +76,12 @@ if not params["evaluation_only"]:
 
     for model in training_session.models:
         model_path = "{}/{}/model.pk.gz".format(
-            training_session.session_path, ModelHandlerRegistry().get_model(model.model_name).get_label()
+            training_session.session_path, ModelConfigRegistry().get_model(model.model_name).get_label()
         )
         write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)
 
         parameters_path = "{}/{}/params.json".format(
-            training_session.session_path, ModelHandlerRegistry().get_model(model.model_name).get_label()
+            training_session.session_path, ModelConfigRegistry().get_model(model.model_name).get_label()
         )
         write_to_folder(model.model_parameters, model_folder, parameters_path, ObjectType.JSON)
 
