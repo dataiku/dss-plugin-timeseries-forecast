@@ -1,4 +1,4 @@
-from dku_config import DkuConfig
+from dkulib.dku_config import DkuConfig
 from dku_constants import RECIPE
 import re
 from gluonts.time_feature import get_seasonality

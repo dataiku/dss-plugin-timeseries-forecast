@@ -1,6 +1,6 @@
 from dataiku.customrecipe import get_input_names_for_role, get_output_names_for_role
 import dataiku
-from dku_config import DkuConfig
+from dkulib.dku_config import DkuConfig
 
 
 class DkuFileManager(DkuConfig):
