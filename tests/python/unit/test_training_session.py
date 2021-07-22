@@ -1,11 +1,8 @@
 from gluonts_forecasts.training_session import TrainingSession
-from gluonts_forecasts.model_handler import MODEL_DESCRIPTORS, LABEL
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from datetime import datetime
-from pandas.api.types import is_datetime64_ns_dtype
 import pandas as pd
-import numpy as np
-import pytest
 
 
 class TestTrainingSession:
@@ -57,7 +54,9 @@ class TestTrainingSession:
 
     def test_gluon_list_datasets(self):
         test_timeseries_length = len(self.training_session.full_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
-        train_timeseries_length = len(self.training_session.evaluation_train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+        train_timeseries_length = len(
+            self.training_session.evaluation_train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]
+        )
         assert test_timeseries_length == train_timeseries_length + self.training_session.prediction_length
         assert self.training_session.num_batches_per_epoch == 50
 
@@ -73,7 +72,12 @@ class TestTrainingSession:
         ]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         metrics_models = self.training_session.metrics_df[METRICS_DATASET.MODEL_COLUMN].unique()
-        expected_metrics_models = [MODEL_DESCRIPTORS["deepar"][LABEL], MODEL_DESCRIPTORS["mqcnn"][LABEL], MODEL_DESCRIPTORS["trivial_identity"][LABEL]]
+        model_config_registry = ModelConfigRegistry()
+        expected_metrics_models = [
+            model_config_registry.get_model("deepar").get_label(),
+            model_config_registry.get_model("mqcnn").get_label(),
+            model_config_registry.get_model("trivial_identity").get_label(),
+        ]
         assert len(self.training_session.metrics_df.index) == 15
         assert set(self.training_session.metrics_df.columns) == set(expected_metrics_columns)
         assert set(metrics_models) == set(expected_metrics_models)

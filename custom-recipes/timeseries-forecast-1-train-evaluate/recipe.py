@@ -8,7 +8,7 @@ from gluonts_forecasts.training_session import TrainingSession
 from dku_io_utils.utils import write_to_folder
 from dku_io_utils.config_handler import create_dku_config, get_models_parameters
 from dku_io_utils.dku_file_manager import DkuFileManager
-from gluonts_forecasts.model_handler import get_model_label
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import ObjectType, RECIPE
 from timeseries_preparation.preparation import TimeseriesPreparator
 from safe_logger import SafeLogger
@@ -80,25 +80,25 @@ def run():
     logger.info("Completed training and evaluation of all models")
 
     if not dku_config.evaluation_only:
-
         model_folder = file_manager.model_folder
-
         metrics_path = "{}/metrics.csv".format(training_session.session_path)
         write_to_folder(training_session.get_metrics_df(), model_folder, metrics_path, ObjectType.CSV)
+
+    for model in training_session.models:
+        model_path = "{}/{}/model.pk.gz".format(
+            training_session.session_path, ModelConfigRegistry().get_model(model.model_name).get_label()
+        )
+        write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)
+
+        parameters_path = "{}/{}/params.json".format(
+            training_session.session_path, ModelConfigRegistry().get_model(model.model_name).get_label()
+        )
+        write_to_folder(model.model_parameters, model_folder, parameters_path, ObjectType.JSON)
 
         gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(training_session.session_path)
         write_to_folder(
             training_session.full_list_dataset, model_folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ
         )
-
-        for model in training_session.models:
-            model_path = "{}/{}/model.pk.gz".format(training_session.session_path, get_model_label(model.model_name))
-            write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)
-
-            parameters_path = "{}/{}/params.json".format(
-                training_session.session_path, get_model_label(model.model_name)
-            )
-            write_to_folder(model.model_parameters, model_folder, parameters_path, ObjectType.JSON)
 
     logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 
