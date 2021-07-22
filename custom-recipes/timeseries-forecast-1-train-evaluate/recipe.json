@@ -151,6 +151,7 @@
         {
             "name": "frequency_step_hours",
             "label": "Number of hours",
+            "description": "Number of hours between each record",
             "type": "INT",
             "defaultValue": 1,
             "mandatory": false,
@@ -160,6 +161,7 @@
         {
             "name": "frequency_step_minutes",
             "label": "Number of minutes",
+            "description": "Number of minutes between each record",
             "type": "INT",
             "defaultValue": 1,
             "mandatory": false,
