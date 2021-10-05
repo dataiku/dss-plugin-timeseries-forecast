@@ -1,6 +1,6 @@
 mxnet==1.7.0.post1
-gluonts==0.7.6
+gluonts==0.8.1
 dill==0.3.3
-pmdarima==1.8.0
+pmdarima==1.8.3
 threadpoolctl==2.1.0
 statsmodels==0.12.2
