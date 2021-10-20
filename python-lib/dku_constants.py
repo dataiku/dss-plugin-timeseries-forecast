@@ -3,6 +3,11 @@ from pandas.tseries.offsets import Week
 from enum import Enum
 
 
+class RECIPE(Enum):
+    TRAIN_EVALUATE = "train_evaluate"
+    PREDICT = "predict"
+
+
 class ObjectType(Enum):
     CSV = "csv"
     CSV_GZ = "csv.gz"
@@ -12,7 +17,7 @@ class ObjectType(Enum):
 
 
 class METRICS_DATASET:
-    """ Class of constants with labels used in the evaluation metrics dataframe of the train recipe """
+    """Class of constants with labels used in the evaluation metrics dataframe of the train recipe"""
 
     TARGET_COLUMN = "target_column"
     MODEL_COLUMN = "model"
@@ -23,7 +28,7 @@ class METRICS_DATASET:
 
 
 class TIMESERIES_KEYS:
-    """ Class of constants with labels for the keys used in the timeseries of the GluonDataset class """
+    """Class of constants with labels for the keys used in the timeseries of the GluonDataset class"""
 
     START = FieldName.START
     TARGET = FieldName.TARGET
@@ -35,7 +40,7 @@ class TIMESERIES_KEYS:
 
 
 class ROW_ORIGIN:
-    """ Class of constants to label if the row is a forecast, historical data, ... """
+    """Class of constants to label if the row is a forecast, historical data, ..."""
 
     COLUMN_NAME = "row_origin"
     FORECAST = "forecast"
@@ -73,7 +78,13 @@ FORECASTING_STYLE_PRESELECTED_MODELS = {
     "auto_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
     "auto_performance_univariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"],
     "auto_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward"],
-    "auto_performance_multivariate": ["trivial_identity", "seasonal_naive", "simplefeedforward", "deepar", "transformer"],
+    "auto_performance_multivariate": [
+        "trivial_identity",
+        "seasonal_naive",
+        "simplefeedforward",
+        "deepar",
+        "transformer",
+    ],
 }
 
 CUSTOMISABLE_FREQUENCIES_OFFSETS = Week
