@@ -64,12 +64,16 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
             time_column_name=time_column_name,
             frequency=frequency,
         )
-        timeseries_external_features_future_df = timeseries_preparator.prepare_timeseries_dataframe(timeseries_external_features_future_df)
+        timeseries_external_features_future_df = timeseries_preparator.prepare_timeseries_dataframe(
+            timeseries_external_features_future_df
+        )
 
         feat_dynamic_real_future = timeseries_external_features_future_df[feat_dynamic_real_columns_names].values.T
 
         if feat_dynamic_real_future.shape[1] != prediction_length:
-            raise ValueError(f"Please provide {prediction_length} future values of external features, as this was the forecasting horizon used for training")
+            raise ValueError(
+                f"Please provide {prediction_length} future values of external features, as this was the forecasting horizon used for training"
+            )
 
         feat_dynamic_real_appended = np.append(feat_dynamic_real_train, feat_dynamic_real_future, axis=1)
 

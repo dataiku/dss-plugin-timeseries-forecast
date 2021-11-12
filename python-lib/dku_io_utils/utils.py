@@ -30,9 +30,11 @@ def read_from_folder(folder, path, object_type):
     with folder.get_download_stream(path) as stream:
         if object_type == ObjectType.PICKLE:
             return pickle.loads(stream.read())
-        if object_type == ObjectType.PICKLE_GZ:
+        elif object_type == ObjectType.PICKLE_GZ:
             with gzip.GzipFile(fileobj=stream) as fgzip:
                 return pickle.loads(fgzip.read())
+        elif object_type == ObjectType.JSON:
+            return json.loads(stream.read().decode())
         elif object_type == ObjectType.CSV:
             data = io.StringIO(stream.read().decode())
             return pd.read_csv(data)

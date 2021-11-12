@@ -19,6 +19,15 @@
             "acceptsManagedFolder": true
         },
         {
+            "name": "historical_dataset",
+            "label": "Optional - Dataset of historical data after which to forecast",
+            "description": "If not specified, the recipe will forecast right after the training data of the \"Train and evaluate forecasting models\"",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsManagedFolder": false
+        },
+        {
             "name": "external_features_future_dataset",
             "label": "Optional - Dataset with future values of external features",
             "description": "Only required if you specified external features in the \"Train and evaluate forecasting models\" recipe",

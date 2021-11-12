@@ -22,7 +22,6 @@ class TestModel:
         )
         self.df["date"] = pd.to_datetime(self.df["date"]).dt.tz_localize(tz=None)
         self.gluon_dataset = GluonDataset(
-            dataframe=self.df,
             time_column_name="date",
             frequency="D",
             target_columns_names=["volume", "revenue"],
@@ -31,7 +30,7 @@ class TestModel:
             min_length=2,
         )
         self.prediction_length = 1
-        gluon_list_datasets = self.gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        gluon_list_datasets = self.gluon_dataset.create_list_datasets(self.df, cut_lengths=[self.prediction_length, 0])
         self.train_list_dataset = gluon_list_datasets[0]
         self.test_list_dataset = gluon_list_datasets[1]
 
@@ -156,7 +155,6 @@ class TestExternalFeaturesSimpleFeedForward:
         self.frequency = "D"
 
         gluon_dataset = GluonDataset(
-            dataframe=df,
             time_column_name="date",
             frequency=self.frequency,
             target_columns_names=["target"],
@@ -166,7 +164,7 @@ class TestExternalFeaturesSimpleFeedForward:
         )
 
         self.prediction_length = 2
-        gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        gluon_list_datasets = gluon_dataset.create_list_datasets(df, cut_lengths=[self.prediction_length, 0])
         self.train_list_dataset = gluon_list_datasets[0]
         self.test_list_dataset = gluon_list_datasets[1]
 

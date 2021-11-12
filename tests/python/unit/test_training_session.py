@@ -49,7 +49,7 @@ class TestTrainingSession:
             user_num_batches_per_epoch=-1,
         )
         self.training_session.init(self.session_name)
-        self.training_session.create_gluon_datasets()
+        self.training_session.create_gluon_list_datasets()
         self.training_session.instantiate_models()
 
     def test_gluon_list_datasets(self):

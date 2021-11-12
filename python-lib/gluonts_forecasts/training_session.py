@@ -101,14 +101,13 @@ class TrainingSession:
         self._check_target_columns_types()
         self._check_external_features_columns_types()
 
-    def create_gluon_datasets(self):
+    def create_gluon_list_datasets(self):
         """Create train and test gluon list datasets.
         The last prediction_length time steps are removed from each timeseries of the train dataset.
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
 
         gluon_dataset = GluonDataset(
-            dataframe=self.training_df,
             time_column_name=self.time_column_name,
             frequency=self.frequency,
             target_columns_names=self.target_columns_names,
@@ -117,7 +116,9 @@ class TrainingSession:
             min_length=2 * self.prediction_length,  # Assuming that context_length = prediction_length
         )
 
-        gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        gluon_list_datasets = gluon_dataset.create_list_datasets(
+            self.training_df, cut_lengths=[self.prediction_length, 0]
+        )
         self.evaluation_train_list_dataset = gluon_list_datasets[0]
         self.full_list_dataset = gluon_list_datasets[1]
 

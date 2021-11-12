@@ -40,6 +40,7 @@ def run():
     )
     start = perf_counter()
 
+    # TODO2 only retrieve the needed columns
     training_df = file_manager.input_dataset.get_dataframe()
 
     timeseries_preparator = TimeseriesPreparator(
@@ -49,9 +50,12 @@ def run():
         timeseries_identifiers_names=dku_config.timeseries_identifiers_names,
         external_features_columns_names=dku_config.external_features_columns_names,
         max_timeseries_length=dku_config.max_timeseries_length,
+        prediction_length=dku_config.prediction_length,
     )
 
     training_df_prepared = timeseries_preparator.prepare_timeseries_dataframe(training_df)
+
+    training_timeseries_metadata = timeseries_preparator.get_timeseries_metadata()
 
     training_session = TrainingSession(
         target_columns_names=dku_config.target_columns_names,
@@ -71,7 +75,7 @@ def run():
     )
     training_session.init(partition_root=dku_config.partition_root, session_name=session_name)
 
-    training_session.create_gluon_datasets()
+    training_session.create_gluon_list_datasets()
 
     training_session.instantiate_models()
 
@@ -81,24 +85,23 @@ def run():
 
     if not dku_config.evaluation_only:
         model_folder = file_manager.model_folder
-        metrics_path = "{}/metrics.csv".format(training_session.session_path)
+        metrics_path = f"{training_session.session_path}/metrics.csv"
         write_to_folder(training_session.get_metrics_df(), model_folder, metrics_path, ObjectType.CSV)
 
     for model in training_session.models:
-        model_path = "{}/{}/model.pk.gz".format(
-            training_session.session_path, ModelConfigRegistry().get_model(model.model_name).get_label()
-        )
+        model_label = ModelConfigRegistry().get_model(model.model_name).get_label()
+
+        model_path = f"{training_session.session_path}/{model_label}/model.pk.gz"
         write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)
 
-        parameters_path = "{}/{}/params.json".format(
-            training_session.session_path, ModelConfigRegistry().get_model(model.model_name).get_label()
-        )
+        parameters_path = f"{training_session.session_path}/{model_label}/params.json"
         write_to_folder(model.model_parameters, model_folder, parameters_path, ObjectType.JSON)
 
-        gluon_train_dataset_path = "{}/gluon_train_dataset.pk.gz".format(training_session.session_path)
-        write_to_folder(
-            training_session.full_list_dataset, model_folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ
-        )
+    gluon_train_dataset_path = f"{training_session.session_path}/gluon_train_dataset.pk.gz"
+    write_to_folder(training_session.full_list_dataset, model_folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
+
+    training_timeseries_metadata_path = f"{training_session.session_path}/training_timeseries_metadata.json"
+    write_to_folder(training_timeseries_metadata, model_folder, training_timeseries_metadata_path, ObjectType.JSON)
 
     logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 
