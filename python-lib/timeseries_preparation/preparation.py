@@ -83,9 +83,7 @@ class TimeseriesPreparator:
             self._log_timeseries_lengths(dataframe_prepared, log_message_prefix=log_message_prefix)
 
         if self.timeseries_identifiers_names:
-            print(f"self.timeseries_identifiers_names: {self.timeseries_identifiers_names}")
             if self.timeseries_identifiers_values:
-                print(f"self.timeseries_identifiers_values: {self.timeseries_identifiers_values}")
                 self._check_identifiers_values(dataframe_prepared)
             else:
                 self.timeseries_identifiers_values = (
