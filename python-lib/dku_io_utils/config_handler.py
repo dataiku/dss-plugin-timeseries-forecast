@@ -171,7 +171,6 @@ def add_train_evaluate_config(dku_config, config, file_manager):
     if dku_config.auto_num_batches_per_epoch:
         dku_config.add_param(name="num_batches_per_epoch", label="Number of batches per epoch", value=-1)
     else:
-        print(f"recipe_config: {config}")
         dku_config.add_param(
             name="num_batches_per_epoch",
             label="Number of batches per epoch",
