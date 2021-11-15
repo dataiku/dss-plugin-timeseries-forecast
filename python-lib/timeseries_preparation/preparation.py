@@ -96,31 +96,6 @@ class TimeseriesPreparator:
         # TODO
         pass
 
-    def get_timeseries_metadata(self):
-        """Get metadata of training timeseries"""
-        # dataset meteadata needed
-        # target_columns_names, time_column_name, frequency, external_features_columns_names, timeseries_identifiers_names, max_timeseries_length
-        # same timeseries identifiers values (actually only needed for autoarima, it doesn't matter for gluonts models)
-        # to note: because dataframe is sorted in preparation according to identifiers and time column, order is maintained if same timeseries identifiers identifiers
-        timeseries_metadata = {
-            METADATA_KEYS.TIME_COLUMN_NAME: self.time_column_name,
-            METADATA_KEYS.FREQUENCY: self.frequency,
-        }
-        if len(self.target_columns_names) > 0:
-            timeseries_metadata[METADATA_KEYS.TARGET_COLUMNS_NAMES] = self.target_columns_names
-        if len(self.timeseries_identifiers_names) > 0:
-            timeseries_metadata[METADATA_KEYS.TIMESERIES_IDENTIFIERS_NAMES] = self.timeseries_identifiers_names
-        if len(self.external_features_columns_names) > 0:
-            timeseries_metadata[METADATA_KEYS.EXTERNAL_FEATURES_COLUMNS_NAMES] = self.external_features_columns_names
-        if self.timeseries_identifiers_values:
-            timeseries_metadata[METADATA_KEYS.TIMESERIES_IDENTIFIERS_VALUES] = self.timeseries_identifiers_values
-        if self.max_timeseries_length:
-            timeseries_metadata[METADATA_KEYS.MAX_TIMESERIES_LENGTH] = self.max_timeseries_length
-        if self.prediction_length:
-            timeseries_metadata[METADATA_KEYS.PREDICTION_LENGTH] = self.prediction_length
-
-        return timeseries_metadata
-
     def _check_data(self, df):
         self._check_not_empty_dataframe(df)
         self._check_timeseries_identifiers_columns_types(df)

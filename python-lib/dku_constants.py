@@ -39,19 +39,6 @@ class TIMESERIES_KEYS:
     IDENTIFIERS = "identifiers"
 
 
-class METADATA_KEYS:
-    """Class of constants with labels for the keys used in the timeseries metadata json files"""
-
-    TARGET_COLUMNS_NAMES = "target_columns_names"
-    TIME_COLUMN_NAME = "time_column_name"
-    FREQUENCY = "frequency"
-    PREDICTION_LENGTH = "prediction_length"
-    EXTERNAL_FEATURES_COLUMNS_NAMES = "external_features_columns_names"
-    TIMESERIES_IDENTIFIERS_NAMES = "timeseries_identifiers_names"
-    MAX_TIMESERIES_LENGTH = "max_timeseries_length"
-    TIMESERIES_IDENTIFIERS_VALUES = "timeseries_identifiers_values"
-
-
 class ROW_ORIGIN:
     """Class of constants to label if the row is a forecast, historical data, ..."""
 
