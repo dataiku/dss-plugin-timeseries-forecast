@@ -164,6 +164,54 @@ def test_add_future_external_features_with_identifiers():
     external_features_future_df["date"] = pd.to_datetime(external_features_future_df["date"]).dt.tz_localize(tz=None)
 
     prediction_length = 3
-    gluon_dataset = add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length, frequency)
+    gluon_dataset = add_future_external_features(
+        gluon_train_dataset, external_features_future_df, prediction_length, frequency
+    )
 
-    assert (gluon_dataset.list_data[0][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])).all()
+    assert (
+        gluon_dataset.list_data[0][TIMESERIES_KEYS.FEAT_DYNAMIC_REAL]
+        == np.array([[1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 1, 1, 0, 0]])
+    ).all()
+
+
+def test_invalid_add_future_external_features_with_identifiers():
+    frequency = "D"
+    timeseries_0 = {
+        TIMESERIES_KEYS.START: "2018-01-01",
+        TIMESERIES_KEYS.TARGET: np.array([12, 13, 14, 15, 16]),
+        TIMESERIES_KEYS.TARGET_NAME: "sales_0",
+        TIMESERIES_KEYS.TIME_COLUMN_NAME: "date",
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: np.array([[1, 0, 0, 0, 0], [0, 0, 0, 1, 1]]),
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
+        TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 1},
+    }
+    timeseries_1 = {
+        TIMESERIES_KEYS.START: "2018-01-01",
+        TIMESERIES_KEYS.TARGET: np.array([2, 3, 4, 5, 6]),
+        TIMESERIES_KEYS.TARGET_NAME: "sales_1",
+        TIMESERIES_KEYS.TIME_COLUMN_NAME: "date",
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL: np.array([[0, 0, 0, 0, 1], [0, 0, 0, 1, 1]]),
+        TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES: ["is_holiday", "is_weekend"],
+        TIMESERIES_KEYS.IDENTIFIERS: {"store": 1, "item": 2},
+    }
+    gluon_train_dataset = ListDataset([timeseries_0, timeseries_1], freq=frequency)
+
+    external_features_future_df = pd.DataFrame(
+        {
+            "date": [
+                "2018-01-06",
+                "2018-01-07",
+                "2018-01-08",
+            ],
+            "store": [1, 1, 1],
+            "item": [1, 1, 1],
+            "is_holiday": [0, 0, 0],
+            "is_weekend": [1, 0, 0],
+        }
+    )
+    external_features_future_df["date"] = pd.to_datetime(external_features_future_df["date"]).dt.tz_localize(tz=None)
+
+    prediction_length = 3
+
+    with pytest.raises(ValueError):
+        _ = add_future_external_features(gluon_train_dataset, external_features_future_df, prediction_length, frequency)

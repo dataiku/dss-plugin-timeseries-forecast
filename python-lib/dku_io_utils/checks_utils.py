@@ -34,8 +34,8 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
     """Check that an external features dataset with the right schema was provided if and only if external features were used during training
 
     Args:
-        gluon_train_dataset ([type]): [description]
-        external_features_future_dataset ([type]): [description]
+        gluon_train_dataset (ListDataset): Dataset used for training
+        external_features_future_dataset (dataiku.Dataset): Dataset of future values of external features
 
     Raises:
         ValueError:
@@ -45,7 +45,6 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
     Returns:
         True if external features are needed for prediction, else False
     """
-    # TODO2 don't only check the first time series, check also that the time series identifiers values are the same
     train_data_sample = gluon_train_dataset.list_data[0]
     trained_with_external_features = TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES in train_data_sample
     if trained_with_external_features and external_features_future_dataset:
@@ -60,8 +59,3 @@ def external_features_check(gluon_train_dataset, external_features_future_datase
             """A dataset of future values of external features was provided, but no external features were used when training the selected model."""
         )
     return False
-
-
-def check_schema_from_metadata(timeseries_metadata, dataset):
-    # TODO1: compare timeseries_metadata with dataset schema (dataset can have more columns at least all of the metadata columns)
-    pass

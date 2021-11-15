@@ -1,14 +1,13 @@
 from dataiku.customrecipe import get_recipe_config
 from dku_io_utils.utils import set_column_description
-from dku_io_utils.checks_utils import external_features_check, check_schema_from_metadata
+from dku_io_utils.checks_utils import external_features_check
 from dku_io_utils.model_selection import ModelSelection
 from dku_io_utils.config_handler import create_dku_config
 from dku_io_utils.dku_file_manager import DkuFileManager
 from dku_constants import RECIPE
-from timeseries_preparation.preparation import get_timeseries_preparator_from_metadata
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
-from gluonts_forecasts.gluon_dataset import get_gluon_dataset_from_metadata
+from gluonts_forecasts.gluon_dataset import GluonDataset
 from safe_logger import SafeLogger
 from time import perf_counter
 
@@ -48,17 +47,24 @@ def run():
     if file_manager.historical_dataset:
         # note: because dataframe is sorted in preparation according to identifiers and time column, order is maintained if same timeseries identifiers identifiers
 
-        training_timeseries_metadata = model_selection.get_training_timeseries_metadata()
+        timeseries_preparator = model_selection.get_timeseries_preparator()
 
-        check_schema_from_metadata(training_timeseries_metadata, file_manager.historical_dataset)
+        timeseries_preparator.check_schema_from_dataset(file_manager.historical_dataset.read_schema())
 
         historical_dataset_dataframe = file_manager.historical_dataset.get_dataframe()
 
-        timeseries_preparator = get_timeseries_preparator_from_metadata(training_timeseries_metadata)
-
         prepared_dataframe = timeseries_preparator.prepare_timeseries_dataframe(historical_dataset_dataframe)
 
-        gluon_dataset = get_gluon_dataset_from_metadata(training_timeseries_metadata)
+        gluon_dataset = GluonDataset(
+            time_column_name=timeseries_preparator.time_column_name,
+            frequency=timeseries_preparator.frequency,
+            target_columns_names=timeseries_preparator.target_columns_names
+            if timeseries_preparator.target_columns_names
+            else [],
+            timeseries_identifiers_names=timeseries_preparator.timeseries_identifiers_names,
+            external_features_columns_names=timeseries_preparator.external_features_columns_names,
+            min_length=2 * (timeseries_preparator.prediction_length if timeseries_preparator.prediction_length else 1),
+        )
 
         gluon_train_list_dataset = gluon_dataset.create_list_datasets(prepared_dataframe)[0]
 

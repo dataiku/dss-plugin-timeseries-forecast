@@ -10,18 +10,6 @@ from safe_logger import SafeLogger
 logger = SafeLogger("Forecast plugin")
 
 
-def get_timeseries_preparator_from_metadata(timeseries_metadata):
-    return TimeseriesPreparator(
-        time_column_name=timeseries_metadata[METADATA_KEYS.TIME_COLUMN_NAME],
-        frequency=timeseries_metadata[METADATA_KEYS.FREQUENCY],
-        target_columns_names=timeseries_metadata.get(METADATA_KEYS.TARGET_COLUMNS_NAMES, []),
-        timeseries_identifiers_names=timeseries_metadata.get(METADATA_KEYS.TIMESERIES_IDENTIFIERS_NAMES, []),
-        external_features_columns_names=timeseries_metadata.get(METADATA_KEYS.EXTERNAL_FEATURES_COLUMNS_NAMES, []),
-        max_timeseries_length=timeseries_metadata.get(METADATA_KEYS.MAX_TIMESERIES_LENGTH, None),
-        prediction_length=timeseries_metadata.get(METADATA_KEYS.PREDICTION_LENGTH, None),
-    )
-
-
 class TimeseriesPreparator:
     """
     Class to check the timeseries has the right data and prepare it to have regular date interval
@@ -101,7 +89,11 @@ class TimeseriesPreparator:
     def _check_identifiers_values(self, dataframe):
         # raise Exception if not identical values for each timeseries identifiers
         # compare self.timeseries_identifiers_values and dataframe[self.timeseries_identifiers_names].drop_duplicates().to_dict("records")
-        # TODO1
+        # TODO
+        pass
+
+    def check_schema_from_dataset(self, dataset_schema):
+        # TODO
         pass
 
     def get_timeseries_metadata(self):
@@ -130,6 +122,7 @@ class TimeseriesPreparator:
         return timeseries_metadata
 
     def _check_data(self, df):
+        self._check_not_empty_dataframe(df)
         self._check_timeseries_identifiers_columns_types(df)
         self._check_no_missing_values(df)
 
@@ -254,6 +247,10 @@ class TimeseriesPreparator:
     def _count_duplicate_dates(self, df):
         """Return total number of duplicates dates within all timeseries"""
         return df.duplicated(subset=self.timeseries_identifiers_names + [self.time_column_name], keep=False).sum()
+
+    def _check_not_empty_dataframe(self, df):
+        if len(df.index) == 0:
+            raise ValueError(f"Input dataframe is empty")
 
     def _check_timeseries_identifiers_columns_types(self, df):
         """Raises ValueError if a timeseries identifiers column is not numerical or string"""

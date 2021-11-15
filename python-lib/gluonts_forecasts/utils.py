@@ -46,13 +46,16 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
     if isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS):
         frequency = gluon_train_dataset.process.trans[0].freq
 
-    start_date, periods = None, None
     for i, timeseries in enumerate(gluon_train_dataset):
         if TIMESERIES_KEYS.IDENTIFIERS in timeseries:
             # filter the dataframe to only get rows with the right identifiers
             timeseries_identifiers = timeseries[TIMESERIES_KEYS.IDENTIFIERS]
             conditions = [external_features_future_df[k] == v for k, v in timeseries_identifiers.items()]
             timeseries_external_features_future_df = apply_filter_conditions(external_features_future_df, conditions)
+            if len(timeseries_external_features_future_df.index) == 0:
+                raise ValueError(
+                    f"No future values of external features were provided for timeseries with identifiers values: {timeseries_identifiers}"
+                )
         else:
             timeseries_external_features_future_df = external_features_future_df
 

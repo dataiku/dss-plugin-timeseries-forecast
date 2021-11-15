@@ -2,23 +2,6 @@ from gluonts.dataset.common import ListDataset
 from dku_constants import TIMESERIES_KEYS, METADATA_KEYS
 
 
-def get_gluon_dataset_from_metadata(timeseries_metadata):
-    """Get a GluonDataset from metadata
-
-    Args:
-        metadata (dict): Metadata of the dataset
-    """
-
-    return GluonDataset(
-        time_column_name=timeseries_metadata[METADATA_KEYS.TIME_COLUMN_NAME],
-        frequency=timeseries_metadata[METADATA_KEYS.FREQUENCY],
-        target_columns_names=timeseries_metadata.get(METADATA_KEYS.TARGET_COLUMNS_NAMES, []),
-        timeseries_identifiers_names=timeseries_metadata.get(METADATA_KEYS.TIMESERIES_IDENTIFIERS_NAMES),
-        external_features_columns_names=timeseries_metadata.get(METADATA_KEYS.EXTERNAL_FEATURES_COLUMNS_NAMES),
-        min_length=2 * timeseries_metadata.get(METADATA_KEYS.PREDICTION_LENGTH, 1),
-    )
-
-
 class GluonDataset:
     """
     Wrapper class to generate a GluonTS ListDataset with multiple time series based on the target and identifiers columns
@@ -29,8 +12,8 @@ class GluonDataset:
         time_column_name (list)
         frequency (str): Pandas timeseries frequency (e.g. '3M')
         target_columns_names (list): List of column names to predict
-        timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
-        external_features_columns_names (list): List of columns with dynamic real features over time
+        timeseries_identifiers_names (list, optional): Columns to identify multiple time series when data is in long format
+        external_features_columns_names (list, optional): List of columns with dynamic real features over time
     """
 
     def __init__(

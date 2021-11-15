@@ -55,8 +55,6 @@ def run():
 
     training_df_prepared = timeseries_preparator.prepare_timeseries_dataframe(training_df)
 
-    training_timeseries_metadata = timeseries_preparator.get_timeseries_metadata()
-
     training_session = TrainingSession(
         target_columns_names=dku_config.target_columns_names,
         time_column_name=dku_config.time_column_name,
@@ -100,8 +98,8 @@ def run():
     gluon_train_dataset_path = f"{training_session.session_path}/gluon_train_dataset.pk.gz"
     write_to_folder(training_session.full_list_dataset, model_folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
 
-    training_timeseries_metadata_path = f"{training_session.session_path}/training_timeseries_metadata.json"
-    write_to_folder(training_timeseries_metadata, model_folder, training_timeseries_metadata_path, ObjectType.JSON)
+    timeseries_preparator_path = f"{training_session.session_path}/timeseries_preparator.pk.gz"
+    write_to_folder(timeseries_preparator, model_folder, timeseries_preparator_path, ObjectType.PICKLE_GZ)
 
     logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 

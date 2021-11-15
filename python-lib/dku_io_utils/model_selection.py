@@ -89,19 +89,17 @@ class ModelSelection:
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
         return gluon_train_dataset
 
-    def get_training_timeseries_metadata(self):
-        training_timeseries_metadata_path = os.path.join(self.session_path, "training_timeseries_metadata.json")
+    def get_timeseries_preparator(self):
+        timeseries_preparator_path = os.path.join(self.session_path, "timeseries_preparator.pk.gz")
         try:
-            training_timeseries_metadata = read_from_folder(
-                self.folder, training_timeseries_metadata_path, ObjectType.JSON
-            )
+            timeseries_preparator = read_from_folder(self.folder, timeseries_preparator_path, ObjectType.PICKLE_GZ)
         except ValueError as e:
             raise ModelSelectionError(
-                f"Unable to retrieve training timeseries metadata path '{training_timeseries_metadata_path}'"
+                f"Unable to retrieve training timeseries metadata at path '{timeseries_preparator_path}'"
                 f"from session '{self.session_name}'. "
                 + f"Please make sure that it exists in the Trained model folder. Full error: {e}"
             )
-        return training_timeseries_metadata
+        return timeseries_preparator
 
     def _get_last_session(self):
         """Retrieve the last training session using name of subfolders and append the partition root path.
