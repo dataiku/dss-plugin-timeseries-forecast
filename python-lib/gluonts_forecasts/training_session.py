@@ -32,13 +32,13 @@ class TrainingSession:
         prediction_length (int): Number of time steps to predict
         training_df (DataFrame): Training dataframe
         make_forecasts (bool): True to output the evaluation predictions of the last prediction_length time steps
-        external_features_columns_names (list): List of columns with dynamic real features over time
-        timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
-        batch_size (int): Size of batch used by the GluonTS Trainer class
-        user_num_batches_per_epoch (int): Number of batches per epoch selected by user. -1 means to compute scaled number
-        num_batches_per_epoch (int): Number of batches per epoch
-        season_length (int): Length of the seasonality parameter.
-        mxnet_context (mxnet.context.Context): MXNet context to use for Deep Learning models training.
+        external_features_columns_names (list, optional): List of columns with dynamic real features over time
+        timeseries_identifiers_names (list, optional): Columns to identify multiple time series when data is in long format
+        batch_size (int, optional): Size of batch used by the GluonTS Trainer class
+        user_num_batches_per_epoch (int, optional): Number of batches per epoch selected by user. -1 means to compute scaled number
+        num_batches_per_epoch (int, optional): Number of batches per epoch
+        season_length (int, optional): Length of the seasonality parameter.
+        mxnet_context (mxnet.context.Context, optional): MXNet context to use for Deep Learning models training.
     """
 
     def __init__(
@@ -69,7 +69,7 @@ class TrainingSession:
         self.epoch = epoch
         self.make_forecasts = make_forecasts
         self.external_features_columns_names = external_features_columns_names
-        self.use_external_features = len(external_features_columns_names) > 0
+        self.use_external_features = bool(external_features_columns_names)
         self.timeseries_identifiers_names = timeseries_identifiers_names
         self.session_name = None
         self.session_path = None
@@ -250,7 +250,7 @@ class TrainingSession:
             column.lower() if column in EVALUATION_METRICS_DESCRIPTIONS else column
             for column in evaluation_metrics_df.columns
         ]
-        if len(self.target_columns_names) == 1 and len(self.timeseries_identifiers_names) == 0:
+        if len(self.target_columns_names) == 1 and not self.timeseries_identifiers_names:
             evaluation_metrics_df = self.metrics_df.copy()
             evaluation_metrics_df = evaluation_metrics_df[
                 evaluation_metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW
@@ -277,9 +277,10 @@ class TrainingSession:
 
     def _check_external_features_columns_types(self):
         """Raises ValueError if an external feature column is not numerical"""
-        for column_name in self.external_features_columns_names:
-            if not is_numeric_dtype(self.training_df[column_name]):
-                raise ValueError(f"External feature '{column_name}' must be of numeric type")
+        if self.external_features_columns_names:
+            for column_name in self.external_features_columns_names:
+                if not is_numeric_dtype(self.training_df[column_name]):
+                    raise ValueError(f"External feature '{column_name}' must be of numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
         """Compute the optimal value of num batches per epoch to scale to the training data size.

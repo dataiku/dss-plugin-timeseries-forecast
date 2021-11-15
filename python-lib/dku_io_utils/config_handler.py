@@ -83,7 +83,7 @@ def add_train_evaluate_config(dku_config, config, file_manager):
             ],
         )
     else:
-        dku_config.add_param(name="timeseries_identifiers_names", value=[])
+        dku_config.add_param(name="timeseries_identifiers_names", value=None)
 
     is_training_multivariate = (
         True
@@ -112,7 +112,7 @@ def add_train_evaluate_config(dku_config, config, file_manager):
             ],
         )
     else:
-        dku_config.add_param(name="external_features_columns_names", value=[])
+        dku_config.add_param(name="external_features_columns_names", value=None)
 
     dku_config.add_param(name="frequency_unit", value=config.get("frequency_unit"))
 

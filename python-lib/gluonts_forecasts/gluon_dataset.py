@@ -1,5 +1,5 @@
 from gluonts.dataset.common import ListDataset
-from dku_constants import TIMESERIES_KEYS, METADATA_KEYS
+from dku_constants import TIMESERIES_KEYS
 
 
 class GluonDataset:

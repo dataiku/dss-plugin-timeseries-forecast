@@ -58,9 +58,7 @@ def run():
         gluon_dataset = GluonDataset(
             time_column_name=timeseries_preparator.time_column_name,
             frequency=timeseries_preparator.frequency,
-            target_columns_names=timeseries_preparator.target_columns_names
-            if timeseries_preparator.target_columns_names
-            else [],
+            target_columns_names=timeseries_preparator.target_columns_names,
             timeseries_identifiers_names=timeseries_preparator.timeseries_identifiers_names,
             external_features_columns_names=timeseries_preparator.external_features_columns_names,
             min_length=2 * (timeseries_preparator.prediction_length if timeseries_preparator.prediction_length else 1),

@@ -4,7 +4,6 @@ from pandas.api.types import is_numeric_dtype, is_string_dtype
 from pandas.tseries.offsets import Tick, BusinessDay, Week, MonthEnd
 from pandas.tseries.frequencies import to_offset
 from timeseries_preparation.h2g2 import H2G2
-from dku_constants import METADATA_KEYS
 from safe_logger import SafeLogger
 
 logger = SafeLogger("Forecast plugin")
@@ -13,18 +12,25 @@ logger = SafeLogger("Forecast plugin")
 class TimeseriesPreparator:
     """
     Class to check the timeseries has the right data and prepare it to have regular date interval
-    """
 
-    # TODO2: make default value None for target_columns_names, timeseries_identifiers_names, external_features_columns_names
-    # for consistency with default values of GluonDataset
+    Attributes:
+        time_column_name (str): Name of the time column
+        frequency (list): Pandas timeseries frequency (e.g. '3M')
+        target_columns_names (list, optional): List of column names to predict
+        timeseries_identifiers_names (list, optional): Columns to identify multiple time series when data is in long format
+        external_features_columns_names (list, optional): List of columns with dynamic real features over time
+        max_timeseries_length (int, optional): Maximum number of records to keep in the timeseries
+        timeseries_identifiers_values (list, optional): List of dict with timeseries identifiers name as keys and timeseries identifiers values as values
+        prediction_length (int, optional): Number of records to predict
+    """
 
     def __init__(
         self,
         time_column_name,
         frequency,
-        target_columns_names=[],
-        timeseries_identifiers_names=[],
-        external_features_columns_names=[],
+        target_columns_names=None,
+        timeseries_identifiers_names=None,
+        external_features_columns_names=None,
         max_timeseries_length=None,
         timeseries_identifiers_values=None,
         prediction_length=None,
@@ -76,7 +82,7 @@ class TimeseriesPreparator:
             log_message_prefix = f"Sampling {self.max_timeseries_length} last records, obtained"
             self._log_timeseries_lengths(dataframe_prepared, log_message_prefix=log_message_prefix)
 
-        if len(self.timeseries_identifiers_names) > 0:
+        if self.timeseries_identifiers_names:
             if self.timeseries_identifiers_values:
                 self._check_identifiers_values(dataframe_prepared)
             else:
@@ -124,7 +130,7 @@ class TimeseriesPreparator:
         df_truncated = df.copy()
 
         error_message_suffix = (
-            ". Please check the Long format parameter." if len(self.timeseries_identifiers_names) == 0 else "."
+            ". Please check the Long format parameter." if not self.timeseries_identifiers_names else "."
         )
         self._check_duplicate_dates(df_truncated, error_message_suffix=error_message_suffix)
 
@@ -152,12 +158,12 @@ class TimeseriesPreparator:
 
     def _sort(self, df):
         """Return a DataFrame sorted by timeseries identifiers and time column (both ascending)"""
-        return df.sort_values(by=self.timeseries_identifiers_names + [self.time_column_name])
+        return df.sort_values(by=(self.timeseries_identifiers_names or []) + [self.time_column_name])
 
     def _check_regular_frequency(self, df):
         """Check that time column exactly equals the pandas.dat_range with selected frequency"""
         if self.timeseries_identifiers_names:
-            for identifiers_values, identifiers_df in df.groupby(self.timeseries_identifiers_names):
+            for _, identifiers_df in df.groupby(self.timeseries_identifiers_names):
                 assert_time_column_valid(identifiers_df, self.time_column_name, self.frequency)
         else:
             assert_time_column_valid(df, self.time_column_name, self.frequency)
@@ -173,11 +179,11 @@ class TimeseriesPreparator:
         """
         if self.max_timeseries_length == 42:
             print(H2G2)
-        if len(self.timeseries_identifiers_names) == 0:
+        if not (self.timeseries_identifiers_names or []):
             return df.tail(self.max_timeseries_length)
         else:
             return (
-                df.groupby(self.timeseries_identifiers_names)
+                df.groupby((self.timeseries_identifiers_names or []))
                 .apply(lambda x: x.tail(self.max_timeseries_length))
                 .reset_index(drop=True)
             )
@@ -221,7 +227,9 @@ class TimeseriesPreparator:
 
     def _count_duplicate_dates(self, df):
         """Return total number of duplicates dates within all timeseries"""
-        return df.duplicated(subset=self.timeseries_identifiers_names + [self.time_column_name], keep=False).sum()
+        return df.duplicated(
+            subset=(self.timeseries_identifiers_names or []) + [self.time_column_name], keep=False
+        ).sum()
 
     def _check_not_empty_dataframe(self, df):
         if len(df.index) == 0:
@@ -229,22 +237,23 @@ class TimeseriesPreparator:
 
     def _check_timeseries_identifiers_columns_types(self, df):
         """Raises ValueError if a timeseries identifiers column is not numerical or string"""
-        invalid_columns = []
-        for column_name in self.timeseries_identifiers_names:
-            if not is_numeric_dtype(df[column_name]) and not is_string_dtype(df[column_name]):
-                invalid_columns += [column_name]
-        if len(invalid_columns) > 0:
-            raise ValueError(
-                f"Time series identifiers columns '{invalid_columns}' must be of string or numeric type. Please change the type in a Prepare recipe."
-            )
+        if self.timeseries_identifiers_names:
+            invalid_columns = []
+            for column_name in self.timeseries_identifiers_names:
+                if not is_numeric_dtype(df[column_name]) and not is_string_dtype(df[column_name]):
+                    invalid_columns += [column_name]
+            if len(invalid_columns) > 0:
+                raise ValueError(
+                    f"Time series identifiers columns '{invalid_columns}' must be of string or numeric type. Please change the type in a Prepare recipe."
+                )
 
     def _check_no_missing_values(self, df):
         invalid_columns = []
         for column_name in (
             [self.time_column_name]
-            + self.target_columns_names
-            + self.timeseries_identifiers_names
-            + self.external_features_columns_names
+            + (self.target_columns_names or [])
+            + (self.timeseries_identifiers_names or [])
+            + (self.external_features_columns_names or [])
         ):
             if df[column_name].isnull().values.any():
                 invalid_columns += [column_name]
@@ -255,7 +264,7 @@ class TimeseriesPreparator:
 
     def _log_timeseries_lengths(self, df, log_message_prefix=None):
         """Log the number and sizes of time series and whether it's after sampling or not"""
-        if len(self.timeseries_identifiers_names) == 0:
+        if not self.timeseries_identifiers_names:
             timeseries_lengths = [len(df.index)]
         else:
             timeseries_lengths = list(df.groupby(self.timeseries_identifiers_names).size())
