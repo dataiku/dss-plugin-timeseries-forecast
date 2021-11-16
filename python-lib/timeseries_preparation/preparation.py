@@ -124,18 +124,17 @@ class TimeseriesPreparator:
             dataframe[self.timeseries_identifiers_names].drop_duplicates().to_dict("records")
         )
         if (
-            len(self.timeseries_identifiers_values) != len(historical_timeseries_identifiers_values)
-            or len(
+            len(
                 [
                     identifiers_dict
-                    for identifiers_dict in self.timeseries_identifiers_values
-                    if identifiers_dict not in historical_timeseries_identifiers_values
+                    for identifiers_dict in historical_timeseries_identifiers_values
+                    if identifiers_dict not in self.timeseries_identifiers_values
                 ]
             )
             > 0
         ):
             raise ValueError(
-                f"Dataset of historical data must contain exactly the same timeseries identifiers values as the training dataset.\n"
+                f"Dataset of historical data must only contain timeseries identifiers values that were used during training.\n"
                 + f"Historical data contains: {historical_timeseries_identifiers_values}.\n"
                 + f"Training data contains: {self.timeseries_identifiers_values}."
             )

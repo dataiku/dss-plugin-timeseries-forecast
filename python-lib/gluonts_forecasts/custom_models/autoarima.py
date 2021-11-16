@@ -3,7 +3,7 @@ from gluonts.model.forecast import SampleForecast
 from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
-from gluonts_forecasts.custom_models.utils import cast_kwargs
+from gluonts_forecasts.custom_models.utils import cast_kwargs, get_model_key
 from dku_constants import TIMESERIES_KEYS
 from pmdarima.arima.utils import nsdiffs
 import pmdarima as pm
@@ -46,8 +46,8 @@ class AutoARIMAPredictor(RepresentablePredictor):
             SampleForecast of predictions.
         """
         logger.info("Predicting time series ...")
-        for i, item in tqdm(enumerate(dataset)):
-            yield self.predict_item(item, self.trained_models[i])
+        for item in tqdm(dataset):
+            yield self.predict_item(item, self.trained_models[get_model_key(item)])
 
     def predict_item(self, item, trained_model):
         """Compute quantiles using the confidence intervals of autoarima.
@@ -65,7 +65,9 @@ class AutoARIMAPredictor(RepresentablePredictor):
 
         samples = []
         for alpha in np.arange(0.02, 1.01, 0.02):
-            confidence_intervals = trained_model.predict(n_periods=self.prediction_length, X=prediction_external_features, return_conf_int=True, alpha=alpha)[1]
+            confidence_intervals = trained_model.predict(
+                n_periods=self.prediction_length, X=prediction_external_features, return_conf_int=True, alpha=alpha
+            )[1]
             samples += [confidence_intervals[:, 0], confidence_intervals[:, 1]]
 
         return SampleForecast(samples=np.stack(samples), start_date=start_date, freq=self.freq)
@@ -87,7 +89,9 @@ class AutoARIMAEstimator(Estimator):
         self.kwargs = cast_kwargs(kwargs)
         self.thread_limit = 1
         if "m" in kwargs:
-            raise ValueError("Keyword argument 'm' is not writable for AutoARIMA, please use the Season length parameter")
+            raise ValueError(
+                "Keyword argument 'm' is not writable for AutoARIMA, please use the Season length parameter"
+            )
         self.season_length = season_length if season_length is not None else 1
 
     def train(self, training_data, validation_data=None):
@@ -100,7 +104,7 @@ class AutoARIMAEstimator(Estimator):
         Returns:
             Predictor containing the trained model.
         """
-        trained_models = []
+        trained_models = {}
         logger.info("Training one AutoARIMA model per time series ...")
         for item in tqdm(training_data):
             if self.season_length > 1:
@@ -109,11 +113,15 @@ class AutoARIMAEstimator(Estimator):
 
             with threadpool_limits(limits=self.thread_limit, user_api="blas"):
                 # calls to blas implementation will be limited to use only one thread
-                model = pm.auto_arima(item[TIMESERIES_KEYS.TARGET], X=external_features, m=self.season_length, **self.kwargs)
+                model = pm.auto_arima(
+                    item[TIMESERIES_KEYS.TARGET], X=external_features, m=self.season_length, **self.kwargs
+                )
 
-            trained_models += [model]
+            trained_models[get_model_key(item)] = model
 
-        return AutoARIMAPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
+        return AutoARIMAPredictor(
+            prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models
+        )
 
     def _check_season_length(self, season_length, target, kwargs):
         """Check if season_length is a working value for seasonality by performing the same test of seasonality pm.auto_arima does.
@@ -135,7 +143,9 @@ class AutoARIMAEstimator(Estimator):
                 **kwargs.get("seasonal_test_args", dict()),
             )
         except Exception as e:
-            raise ValueError(f"Seasonality of AutoARIMA can't be set to {season_length}. Error when testing seasonality with nsdiffs: {e}")
+            raise ValueError(
+                f"Seasonality of AutoARIMA can't be set to {season_length}. Error when testing seasonality with nsdiffs: {e}"
+            )
 
     def _set_external_features(self, kwargs, item):
         external_features = None
