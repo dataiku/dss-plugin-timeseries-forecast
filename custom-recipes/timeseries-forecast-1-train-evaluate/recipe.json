@@ -3,6 +3,7 @@
         "label": "1. Train and evaluate forecasting models",
         "description": "Train forecasting models and evaluate their performance on historical data",
         "icon": "icon-calendar",
+        "iconColor": "green",
         "displayOrderRank": 1
     },
     "kind": "PYTHON",
