@@ -3,6 +3,7 @@ import os
 from dku_io_utils.utils import read_from_folder
 from dku_constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
+from timeseries_preparation.preparation import TimeseriesPreparator
 
 
 class ModelSelectionError(ValueError):
@@ -90,9 +91,13 @@ class ModelSelection:
         return gluon_train_dataset
 
     def get_timeseries_preparator(self):
-        timeseries_preparator_path = os.path.join(self.session_path, "timeseries_preparator.pk.gz")
+        timeseries_preparator_path = os.path.join(self.session_path, "timeseries_preparator.json")
         try:
-            timeseries_preparator = read_from_folder(self.folder, timeseries_preparator_path, ObjectType.PICKLE_GZ)
+            timeseries_preparator_serialized = read_from_folder(
+                self.folder, timeseries_preparator_path, ObjectType.JSON
+            )
+            timeseries_preparator = TimeseriesPreparator.deserialize(timeseries_preparator_serialized)
+
         except ValueError as e:
             raise ModelSelectionError(
                 f"Unable to retrieve training timeseries metadata at path '{timeseries_preparator_path}'"

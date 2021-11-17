@@ -92,27 +92,6 @@ class TimeseriesPreparator:
 
         return dataframe_prepared
 
-    def _check_identifiers_values(self, dataframe):
-        historical_timeseries_identifiers_values = (
-            dataframe[self.timeseries_identifiers_names].drop_duplicates().to_dict("records")
-        )
-        if (
-            len(self.timeseries_identifiers_values) != len(historical_timeseries_identifiers_values)
-            or len(
-                [
-                    identifiers_dict
-                    for identifiers_dict in self.timeseries_identifiers_values
-                    if identifiers_dict not in historical_timeseries_identifiers_values
-                ]
-            )
-            > 0
-        ):
-            raise ValueError(
-                f"Dataset of historical data must contain exactly the same timeseries identifiers values as the training dataset.\n"
-                + f"Historical data contains: {historical_timeseries_identifiers_values}.\n"
-                + f"Training data contains: {self.timeseries_identifiers_values}."
-            )
-
     def check_schema_from_dataset(self, dataset_schema):
         dataset_columns = [column["name"] for column in dataset_schema]
         expected_columns = (
@@ -123,6 +102,42 @@ class TimeseriesPreparator:
         )
         if not set(expected_columns).issubset(set(dataset_columns)):
             raise ValueError(f"Dataset of historical data must contain the following columns: {expected_columns}")
+
+    def serialize(self):
+        return dict(
+            time_column_name=self.time_column_name,
+            frequency=self.frequency,
+            target_columns_names=self.target_columns_names,
+            timeseries_identifiers_names=self.timeseries_identifiers_names,
+            external_features_columns_names=self.external_features_columns_names,
+            max_timeseries_length=self.max_timeseries_length,
+            timeseries_identifiers_values=self.timeseries_identifiers_values,
+            prediction_length=self.prediction_length,
+        )
+
+    @classmethod
+    def deserialize(cls, parameters):
+        return cls(**parameters)
+
+    def _check_identifiers_values(self, dataframe):
+        historical_timeseries_identifiers_values = (
+            dataframe[self.timeseries_identifiers_names].drop_duplicates().to_dict("records")
+        )
+        if (
+            len(
+                [
+                    identifiers_dict
+                    for identifiers_dict in historical_timeseries_identifiers_values
+                    if identifiers_dict not in self.timeseries_identifiers_values
+                ]
+            )
+            > 0
+        ):
+            raise ValueError(
+                f"Dataset of historical data must only contain timeseries identifiers values that were used during training.\n"
+                + f"Historical data contains: {historical_timeseries_identifiers_values}.\n"
+                + f"Training data contains: {self.timeseries_identifiers_values}."
+            )
 
     def _check_data(self, df):
         self._check_not_empty_dataframe(df)

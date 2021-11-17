@@ -58,7 +58,7 @@ class TestAutoARIMATrain:
         estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, max_D=3, season_length=4)
         predictor = estimator.train(gluon_dataset)
 
-        assert predictor.trained_models[0].seasonal_order[3] == 4  # seasonality is 4
+        assert predictor.trained_models[None].seasonal_order[3] == 4  # seasonality is 4
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)

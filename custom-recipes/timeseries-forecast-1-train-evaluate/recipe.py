@@ -98,8 +98,8 @@ def run():
     gluon_train_dataset_path = f"{training_session.session_path}/gluon_train_dataset.pk.gz"
     write_to_folder(training_session.full_list_dataset, model_folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
 
-    timeseries_preparator_path = f"{training_session.session_path}/timeseries_preparator.pk.gz"
-    write_to_folder(timeseries_preparator, model_folder, timeseries_preparator_path, ObjectType.PICKLE_GZ)
+    timeseries_preparator_path = f"{training_session.session_path}/timeseries_preparator.json"
+    write_to_folder(timeseries_preparator.serialize(), model_folder, timeseries_preparator_path, ObjectType.JSON)
 
     logger.info("Completed training session {} in {:.2f} seconds".format(session_name, perf_counter() - start))
 
