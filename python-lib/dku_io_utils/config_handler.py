@@ -195,7 +195,33 @@ def add_train_evaluate_config(dku_config, config, file_manager):
             ],
         )
 
-    dku_config.add_param(name="evaluation_strategy", value="split")
+    dku_config.add_param(
+        name="timeseries_cross_validation",
+        value=config.get("evaluation_strategy", "split") == "cross_validation",
+    )
+
+    if dku_config.timeseries_cross_validation:
+        dku_config.add_param(
+            name="rolling_windows_number",
+            label="Number of rolling windows",
+            value=config.get("rolling_windows_number", 1),
+            checks=[
+                {"type": "sup_eq", "op": 1},
+            ],
+        )
+        dku_config.add_param(
+            name="cutoff_period",
+            label="Cutoff period",
+            value=config.get("cutoff_period", -1),
+            checks=[
+                {"type": "sup_eq", "op": -1},
+                {"type": "not_in", "op": [0]},
+            ],
+        )
+    else:
+        dku_config.add_param(name="rolling_windows_number", value=1)
+        dku_config.add_param(name="cutoff_period", value=-1)
+
     dku_config.add_param(name="evaluation_only", value=False)
 
 

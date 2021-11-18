@@ -41,28 +41,26 @@ class GluonDataset:
                                         Defaults to None means it creates only one timeseries with no cut.
 
         Returns:
-            List of gluonts.dataset.common.ListDataset with extra keys for each timeseries
+            Dict of gluonts.dataset.common.ListDataset (value) by cut_length (key) with extra keys for each timeseries
         """
         if cut_lengths is None:
             cut_lengths = [0]
-        multivariate_timeseries_per_cut_length = [[] for cut_length in cut_lengths]
+        multivariate_timeseries_by_cut_length = {cut_length: [] for cut_length in cut_lengths}
         if self.timeseries_identifiers_names:
             for identifiers_values, identifiers_df in dataframe.groupby(self.timeseries_identifiers_names):
-                for cut_length_index, cut_length in enumerate(cut_lengths):
-                    multivariate_timeseries_per_cut_length[
-                        cut_length_index
-                    ] += self._create_gluon_multivariate_timeseries(
+                for cut_length in cut_lengths:
+                    multivariate_timeseries_by_cut_length[cut_length] += self._create_gluon_multivariate_timeseries(
                         identifiers_df, cut_length, identifiers_values=identifiers_values
                     )
         else:
-            for cut_length_index, cut_length in enumerate(cut_lengths):
-                multivariate_timeseries_per_cut_length[cut_length_index] += self._create_gluon_multivariate_timeseries(
+            for cut_length in cut_lengths:
+                multivariate_timeseries_by_cut_length[cut_length] += self._create_gluon_multivariate_timeseries(
                     dataframe, cut_length
                 )
-        gluon_list_dataset_per_cut_length = []
-        for multivariate_timeseries in multivariate_timeseries_per_cut_length:
-            gluon_list_dataset_per_cut_length += [ListDataset(multivariate_timeseries, freq=self.frequency)]
-        return gluon_list_dataset_per_cut_length
+        gluon_list_dataset_by_cut_length = {}
+        for cut_length, multivariate_timeseries in multivariate_timeseries_by_cut_length.items():
+            gluon_list_dataset_by_cut_length[cut_length] = ListDataset(multivariate_timeseries, freq=self.frequency)
+        return gluon_list_dataset_by_cut_length
 
     def _create_gluon_multivariate_timeseries(self, dataframe, cut_length, identifiers_values=None):
         """Create a list of timeseries dictionaries for each target column
@@ -141,7 +139,12 @@ class GluonDataset:
         if cut_length:
             min_length += cut_length
         if len(dataframe.index) < min_length:
-            raise ValueError(f"Time series must have at least {min_length} values")
+            raise ValueError(
+                f"""
+                Time series must have at least {min_length} values.
+                If timeseries cross-validation is selected, check that the number of windows and the cutoff period are not too high.
+                """
+            )
 
 
 def remove_unused_external_features(list_dataset, frequency):
