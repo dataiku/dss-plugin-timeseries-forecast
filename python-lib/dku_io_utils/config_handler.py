@@ -233,9 +233,7 @@ def add_predict_config(dku_config, config, file_manager):
     check_only_one_read_partition(dku_config.partition_root, file_manager.model_folder)
     check_only_one_read_partition(dku_config.partition_root, file_manager.external_features_future_dataset)
 
-    dku_config.add_param(
-        name="manual_selection", value=True if config.get("model_selection_mode") == "manual" else False
-    )
+    dku_config.add_param(name="manual_selection", value=config.get("model_selection_mode") == "manual")
 
     dku_config.add_param(name="performance_metric", value=config.get("performance_metric"))
 

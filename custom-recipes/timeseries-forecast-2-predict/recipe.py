@@ -4,12 +4,14 @@ from dku_io_utils.checks_utils import external_features_check
 from dku_io_utils.model_selection import ModelSelection
 from dku_io_utils.config_handler import create_dku_config
 from dku_io_utils.dku_file_manager import DkuFileManager
-from dku_constants import RECIPE
+from dku_constants import METRICS_DATASET, RECIPE
+from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
 from gluonts_forecasts.gluon_dataset import GluonDataset
 from safe_logger import SafeLogger
 from time import perf_counter
+import pandas as pd
 
 
 def create_dku_file_manager():
@@ -32,17 +34,12 @@ def run():
 
     model_selection = ModelSelection(
         folder=file_manager.model_folder,
+        manual_selection=dku_config.manual_selection,
+        performance_metric=dku_config.performance_metric,
+        session_name=dku_config.selected_session,
+        model_label=dku_config.selected_model_label,
         partition_root=dku_config.partition_root,
     )
-
-    if dku_config.manual_selection:
-        model_selection.set_manual_selection_parameters(
-            session_name=dku_config.selected_session, model_label=dku_config.selected_model_label
-        )
-    else:
-        model_selection.set_auto_selection_parameters(performance_metric=dku_config.performance_metric)
-
-    predictor = model_selection.get_model_predictor()
 
     if file_manager.historical_dataset:
         # note: because dataframe is sorted in preparation according to identifiers and time column, order is maintained if same timeseries identifiers identifiers
@@ -69,32 +66,46 @@ def run():
     else:
         gluon_train_list_dataset = model_selection.get_gluon_train_list_dataset()
 
+    predictors = model_selection.get_model_predictors()
+
     external_features = external_features_check(gluon_train_list_dataset, file_manager.external_features_future_dataset)
 
     if external_features:
         external_features_future_df = file_manager.external_features_future_dataset.get_dataframe()
         gluon_train_list_dataset = add_future_external_features(
-            gluon_train_list_dataset, external_features_future_df, predictor.prediction_length, predictor.freq
+            gluon_train_list_dataset,
+            external_features_future_df,
+            model_selection.get_prediction_length(),
+            model_selection.get_frequency(),
         )
 
     trained_model = TrainedModel(
-        predictor=predictor,
         gluon_dataset=gluon_train_list_dataset,
-        prediction_length=dku_config.prediction_length,
+        prediction_length=model_selection.get_prediction_length(),
         quantiles=dku_config.quantiles,
-        include_history=dku_config.include_history,
-        history_length_limit=dku_config.history_length_limit,
-        model_name=model_selection.get_model_name(),
     )
 
-    trained_model.predict()
+    forecasts_df = pd.DataFrame()
 
-    logger.info("Forecasting future values: Done in {:.2f} seconds".format(perf_counter() - start))
+    for model_label, predictor in predictors.items():
 
-    forecasts_df = trained_model.get_forecasts_df(session=model_selection.get_session_name())
+        single_forecasts_df = trained_model.predict(model_label, predictor)
+
+        logger.info(f"Forecasting future values of model '{model_label}': Done in {perf_counter() - start:.2f} seconds")
+
+        forecasts_df = forecasts_df.append(single_forecasts_df)
+
+    if dku_config.include_history:
+        forecasts_df = trained_model.append_history_to_forecasts(
+            forecasts_df,
+            history_length_limit=dku_config.history_length_limit,
+        )
+
+    forecasts_df = trained_model.format_forecasts_df_for_display(forecasts_df, model_selection.get_session_name())
+
     file_manager.output_dataset.write_with_schema(forecasts_df)
 
-    column_descriptions = trained_model.create_forecasts_column_description()
+    column_descriptions = trained_model.create_forecasts_column_description(forecasts_df)
     set_column_description(file_manager.output_dataset, column_descriptions)
 
 

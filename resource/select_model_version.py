@@ -3,6 +3,7 @@ import re
 import dataiku
 from dku_constants import TIMESTAMP_REGEX_PATTERN
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
+from dku_io_utils.model_selection import ModelSelection
 
 
 def do(payload, config, plugin_config, inputs):
@@ -25,12 +26,10 @@ def do(payload, config, plugin_config, inputs):
                 choices += [{"label": session, "value": session}]
 
     elif payload.get("parameterName") == "manually_selected_model_label":
-        all_paths = input_folder.list_paths_in_partition()
-        for model_label in ModelConfigRegistry().list_available_models_labels():
-            for path in all_paths:
-                if bool(re.search(f"({model_label})(/model.pk.gz)", path)):
-                    choices += [{"label": model_label, "value": model_label}]
-                    break
+        model_labels = ModelSelection.find_all_models_labels_from_folder(input_folder)
+        choices = [{"label": "All models", "value": "all_models"}]
+        for model_label in model_labels:
+            choices += [{"label": model_label, "value": model_label}]
 
     elif payload.get("parameterName") == "model_selection_mode":
         choices = [{"label": "Automatic", "value": "auto"}, {"label": "Manual", "value": "manual"}]
