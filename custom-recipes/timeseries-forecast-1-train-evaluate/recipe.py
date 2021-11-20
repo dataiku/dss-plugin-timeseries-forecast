@@ -90,7 +90,7 @@ def run():
         write_to_folder(training_session.get_metrics_df(), model_folder, metrics_path, ObjectType.CSV)
 
         for model in training_session.models:
-            model_label = ModelConfigRegistry().get_model(model.model_name).get_label()
+            model_label = ModelConfigRegistry().get_model_label_from_name(model.model_name)
 
             model_path = f"{training_session.session_path}/{model_label}/model.pk.gz"
             write_to_folder(model.predictor, model_folder, model_path, ObjectType.PICKLE_GZ)

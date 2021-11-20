@@ -82,7 +82,10 @@ def run():
     trained_model = TrainedModel(
         gluon_dataset=gluon_train_list_dataset,
         prediction_length=model_selection.get_prediction_length(),
+        frequency=model_selection.get_frequency(),
         quantiles=dku_config.quantiles,
+        include_history=dku_config.include_history,
+        history_length_limit=dku_config.history_length_limit,
     )
 
     forecasts_df = pd.DataFrame()
@@ -95,13 +98,7 @@ def run():
 
         forecasts_df = forecasts_df.append(single_forecasts_df)
 
-    if dku_config.include_history:
-        forecasts_df = trained_model.append_history_to_forecasts(
-            forecasts_df,
-            history_length_limit=dku_config.history_length_limit,
-        )
-
-    forecasts_df = trained_model.format_forecasts_df_for_display(forecasts_df, model_selection.get_session_name())
+    forecasts_df = trained_model.get_forecasts_df_for_display(forecasts_df, model_selection.get_session_name())
 
     file_manager.output_dataset.write_with_schema(forecasts_df)
 
