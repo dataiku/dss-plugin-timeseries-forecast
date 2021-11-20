@@ -1,6 +1,5 @@
 from gluonts_forecasts.training_session import TrainingSession
-from gluonts_forecasts.model_config_registry import ModelConfigRegistry
-from dku_constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
+from dku_constants import METRICS_DATASET
 from datetime import datetime
 import pandas as pd
 
