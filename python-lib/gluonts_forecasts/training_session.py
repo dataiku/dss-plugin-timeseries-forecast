@@ -86,7 +86,7 @@ class TrainingSession:
         self.mxnet_context = mxnet_context
 
     def init(self, session_name, partition_root=None):
-        """Create the session_path. Check types of target, external features and timeseries identifiers columns.
+        """Create the session_path.
 
         Args:
             session_name (Timestamp)
@@ -98,13 +98,10 @@ class TrainingSession:
         else:
             self.session_path = os.path.join(partition_root, session_name)
 
-        self._check_target_columns_types()
-        self._check_external_features_columns_types()
-
     def create_gluon_list_datasets(self):
         """Create train and test gluon list datasets.
         The last prediction_length time steps are removed from each timeseries of the train dataset.
-        Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
+        Compute optimal num_batches_per_epoch value based on the train dataset size.
         """
 
         gluon_dataset = DkuGluonDataset(
@@ -268,19 +265,6 @@ class TrainingSession:
         for column in EVALUATION_METRICS_DESCRIPTIONS:
             column_descriptions[column.lower()] = EVALUATION_METRICS_DESCRIPTIONS[column]
         return column_descriptions
-
-    def _check_target_columns_types(self):
-        """Raises ValueError if a target column is not numerical"""
-        for column_name in self.target_columns_names:
-            if not is_numeric_dtype(self.training_df[column_name]):
-                raise ValueError(f"Target column '{column_name}' must be of numeric type")
-
-    def _check_external_features_columns_types(self):
-        """Raises ValueError if an external feature column is not numerical"""
-        if self.external_features_columns_names:
-            for column_name in self.external_features_columns_names:
-                if not is_numeric_dtype(self.training_df[column_name]):
-                    raise ValueError(f"External feature '{column_name}' must be of numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
         """Compute the optimal value of num batches per epoch to scale to the training data size.
