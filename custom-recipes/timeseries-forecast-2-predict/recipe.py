@@ -7,7 +7,7 @@ from dku_io_utils.dku_file_manager import DkuFileManager
 from dku_constants import RECIPE, MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from safe_logger import SafeLogger
 from time import perf_counter
 
@@ -53,7 +53,7 @@ def run():
 
         prepared_dataframe = timeseries_preparator.prepare_timeseries_dataframe(historical_dataset_dataframe)
 
-        gluon_dataset = GluonDataset(
+        gluon_dataset = DkuGluonDataset(
             time_column_name=timeseries_preparator.time_column_name,
             frequency=timeseries_preparator.frequency,
             target_columns_names=timeseries_preparator.target_columns_names,

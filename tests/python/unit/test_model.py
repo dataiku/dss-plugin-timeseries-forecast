@@ -1,6 +1,6 @@
 from gluonts_forecasts.model import Model
 from gluonts_forecasts.trained_model import TrainedModel
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
@@ -21,7 +21,7 @@ class TestModel:
             }
         )
         self.df["date"] = pd.to_datetime(self.df["date"]).dt.tz_localize(tz=None)
-        self.gluon_dataset = GluonDataset(
+        self.gluon_dataset = DkuGluonDataset(
             time_column_name="date",
             frequency="D",
             target_columns_names=["volume", "revenue"],
@@ -154,7 +154,7 @@ class TestExternalFeaturesSimpleFeedForward:
 
         self.frequency = "D"
 
-        gluon_dataset = GluonDataset(
+        gluon_dataset = DkuGluonDataset(
             time_column_name="date",
             frequency=self.frequency,
             target_columns_names=["target"],

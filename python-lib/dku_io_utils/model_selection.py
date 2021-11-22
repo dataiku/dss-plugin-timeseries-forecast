@@ -85,7 +85,7 @@ class ModelSelection:
         return model
 
     def get_gluon_train_list_dataset(self):
-        """Retrieve the GluonDataset object with training data that was saved in the model folder during training"""
+        """Retrieve the DkuGluonDataset object with training data that was saved in the model folder during training"""
         gluon_train_dataset_path = f"{self.session_path}/gluon_train_dataset.pk.gz"
         gluon_train_dataset = read_from_folder(self.folder, gluon_train_dataset_path, ObjectType.PICKLE_GZ)
         return gluon_train_dataset

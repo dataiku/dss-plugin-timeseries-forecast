@@ -28,7 +28,7 @@ class METRICS_DATASET:
 
 
 class TIMESERIES_KEYS:
-    """Class of constants with labels for the keys used in the timeseries of the GluonDataset class"""
+    """Class of constants with labels for the keys used in the timeseries of the DkuGluonDataset class"""
 
     START = FieldName.START
     TARGET = FieldName.TARGET

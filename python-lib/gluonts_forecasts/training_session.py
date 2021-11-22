@@ -10,7 +10,7 @@ from dku_constants import (
     EVALUATION_METRICS_DESCRIPTIONS,
     ROW_ORIGIN,
 )
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
@@ -107,7 +107,7 @@ class TrainingSession:
         Compute optimal num_batches_per_epoch value based on the train dataset size._check_target_columns_types
         """
 
-        gluon_dataset = GluonDataset(
+        gluon_dataset = DkuGluonDataset(
             time_column_name=self.time_column_name,
             frequency=self.frequency,
             target_columns_names=self.target_columns_names,

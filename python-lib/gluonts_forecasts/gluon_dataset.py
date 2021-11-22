@@ -2,7 +2,7 @@ from gluonts.dataset.common import ListDataset
 from dku_constants import TIMESERIES_KEYS, MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO, MINIMUM_FORECASTING_HORIZON
 
 
-class GluonDataset:
+class DkuGluonDataset:
     """
     Wrapper class to generate a GluonTS ListDataset with multiple time series based on the target and identifiers columns
     Each timeseries stores information about its target(s), time and external features column names as well as its identifiers values
