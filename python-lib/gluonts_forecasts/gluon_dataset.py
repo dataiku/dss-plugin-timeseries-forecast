@@ -1,5 +1,5 @@
 from gluonts.dataset.common import ListDataset
-from dku_constants import TIMESERIES_KEYS
+from dku_constants import TIMESERIES_KEYS, MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO, MINIMUM_FORECASTING_HORIZON
 
 
 class GluonDataset:
@@ -8,12 +8,12 @@ class GluonDataset:
     Each timeseries stores information about its target(s), time and external features column names as well as its identifiers values
 
     Attributes:
-        dataframe (DataFrame)
         time_column_name (list)
         frequency (str): Pandas timeseries frequency (e.g. '3M')
         target_columns_names (list): List of column names to predict
         timeseries_identifiers_names (list, optional): Columns to identify multiple time series when data is in long format
         external_features_columns_names (list, optional): List of columns with dynamic real features over time
+        min_length (int, optional): Minimum number of time steps for each timeseries
     """
 
     def __init__(
@@ -23,7 +23,7 @@ class GluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
-        min_length=2,
+        min_length=MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO * MINIMUM_FORECASTING_HORIZON,
     ):
         self.time_column_name = time_column_name
         self.frequency = frequency

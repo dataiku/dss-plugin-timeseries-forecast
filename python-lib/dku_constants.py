@@ -110,3 +110,8 @@ class GPU_CONFIGURATION:
     NO_GPU = "no_gpu"
     CONTAINER_GPU = "container_gpu"
     CUDA_VERSION = "{CUDA_VERSION}"
+
+
+# Training timeseries must be at least twice as long as the forecasting horizon (or some models will fail at training)
+MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO = 2
+MINIMUM_FORECASTING_HORIZON = 1
