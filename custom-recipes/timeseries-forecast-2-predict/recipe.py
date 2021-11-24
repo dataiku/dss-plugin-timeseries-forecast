@@ -4,7 +4,7 @@ from dku_io_utils.checks_utils import external_features_check
 from dku_io_utils.model_selection import ModelSelection
 from dku_io_utils.config_handler import create_dku_config
 from dku_io_utils.dku_file_manager import DkuFileManager
-from dku_constants import RECIPE, MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO
+from dku_constants import RECIPE, MIN_TRAIN_TO_TEST_LENGTH_RATIO
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
 from gluonts_forecasts.gluon_dataset import DkuGluonDataset
@@ -59,7 +59,7 @@ def run():
             target_columns_names=timeseries_preparator.target_columns_names,
             timeseries_identifiers_names=timeseries_preparator.timeseries_identifiers_names,
             external_features_columns_names=timeseries_preparator.external_features_columns_names,
-            min_length=MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO
+            min_length=MIN_TRAIN_TO_TEST_LENGTH_RATIO
             * (timeseries_preparator.prediction_length if timeseries_preparator.prediction_length else 1),
         )
 
