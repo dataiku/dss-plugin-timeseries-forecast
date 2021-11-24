@@ -79,8 +79,9 @@ class TestTrainingSession:
             model_config_registry.get_model("mqcnn").get_label(),
             model_config_registry.get_model("trivial_identity").get_label(),
         ]
-        # (2 timeseries * 2 targets * 3 models + 3 aggregated metrics (1 per model)) * 2 (rolling window #0 and aggregated rolling windows)
-        assert len(self.training_session.metrics_df.index) == 30
+        # metrics has 27 rows = (3 models * 2 timeseries * 2 targets * 1 rolling windows)
+        # + 3 models * 1 overall aggregated row + 3 models * 2 timeseries * 2 targets * 1 rolling windows aggregated row
+        assert len(self.training_session.metrics_df.index) == 27
         assert set(self.training_session.metrics_df.columns) == set(expected_metrics_columns)
         assert set(metrics_models) == set(expected_metrics_models)
 

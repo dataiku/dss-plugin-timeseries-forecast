@@ -307,10 +307,6 @@ class TrainingSession:
             ],
             metrics_df[
                 (metrics_df[METRICS_DATASET.ROLLING_WINDOWS] != METRICS_DATASET.AGGREGATED_ROW)
-                & (metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW)
-            ],
-            metrics_df[
-                (metrics_df[METRICS_DATASET.ROLLING_WINDOWS] != METRICS_DATASET.AGGREGATED_ROW)
                 & (metrics_df[METRICS_DATASET.TARGET_COLUMN] != METRICS_DATASET.AGGREGATED_ROW)
             ],
         ]

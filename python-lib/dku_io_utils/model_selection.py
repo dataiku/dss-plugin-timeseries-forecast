@@ -135,11 +135,6 @@ class ModelSelection:
             if (df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW).any():
                 df = df[df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
 
-            # important for compatibility with models trained before the implementation of the cross-validation
-            if METRICS_DATASET.ROLLING_WINDOWS in df.columns:
-                if (df[METRICS_DATASET.ROLLING_WINDOWS] == METRICS_DATASET.AGGREGATED_ROW).any():
-                    df = df[df[METRICS_DATASET.ROLLING_WINDOWS] == METRICS_DATASET.AGGREGATED_ROW]
-
             assert df[METRICS_DATASET.MODEL_COLUMN].nunique() == len(df.index), "More than one row per model"
             model_label = df.loc[df[self.performance_metric].idxmin()][
                 METRICS_DATASET.MODEL_COLUMN

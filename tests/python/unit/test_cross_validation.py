@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 
 
-class TestTrainingSession:
+class TestCrossValidation:
     def setup_class(self):
         self.df = pd.DataFrame(
             {
@@ -73,18 +73,22 @@ class TestTrainingSession:
 
     def test_metrics_df(self):
         metrics_df = self.training_session.get_evaluation_metrics_to_display()
-        assert metrics_df.shape == (12, 15)
-        metrics_df = metrics_df[metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW]
+        # metrics has 9 rows = 1 model * 1 overall aggregated rows + 1 model * 2 timeseries * 1 rolling windows aggregated row
+        # + 1 model * 2 timeseries * 3 rolling windows
+        assert metrics_df.shape == (9, 15)
+        assert len(metrics_df[metrics_df[METRICS_DATASET.TARGET_COLUMN] == METRICS_DATASET.AGGREGATED_ROW].index) == 1
 
-        aggregated_rolling_windows_metrics = metrics_df[
-            metrics_df[METRICS_DATASET.ROLLING_WINDOWS] == METRICS_DATASET.AGGREGATED_ROW
-        ]
-        assert len(aggregated_rolling_windows_metrics.index) == 1
         rolling_windows_metrics = metrics_df[
             metrics_df[METRICS_DATASET.ROLLING_WINDOWS] != METRICS_DATASET.AGGREGATED_ROW
         ]
         assert set(rolling_windows_metrics[METRICS_DATASET.ROLLING_WINDOWS].unique()) == set((0, 1, 2))
 
-        assert round(rolling_windows_metrics["mape"].mean(), 4) == round(
-            aggregated_rolling_windows_metrics["mape"].iloc[0], 4
-        )
+        for identifier in [1, 2]:
+            identifier_df = metrics_df[metrics_df["item"] == identifier]
+            aggregation = identifier_df[
+                identifier_df[METRICS_DATASET.ROLLING_WINDOWS] == METRICS_DATASET.AGGREGATED_ROW
+            ]["mape"].iloc[0]
+            average = identifier_df[identifier_df[METRICS_DATASET.ROLLING_WINDOWS] != METRICS_DATASET.AGGREGATED_ROW][
+                "mape"
+            ].mean()
+            assert round(aggregation, 4) == round(average, 4)
