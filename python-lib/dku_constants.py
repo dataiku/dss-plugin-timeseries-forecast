@@ -115,5 +115,5 @@ class GPU_CONFIGURATION:
 
 
 # Training timeseries must be at least twice as long as the forecasting horizon (or some models will fail at training)
-MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO = 2
+MIN_TRAIN_TO_TEST_LENGTH_RATIO = 2
 MINIMUM_FORECASTING_HORIZON = 1

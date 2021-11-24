@@ -1,5 +1,5 @@
 from gluonts.dataset.common import ListDataset
-from dku_constants import TIMESERIES_KEYS, MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO, MINIMUM_FORECASTING_HORIZON
+from dku_constants import TIMESERIES_KEYS, MIN_TRAIN_TO_TEST_LENGTH_RATIO, MINIMUM_FORECASTING_HORIZON
 
 
 class DkuGluonDataset:
@@ -23,7 +23,7 @@ class DkuGluonDataset:
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
-        min_length=MINIMUM_TIMESERIES_LENGTH_TO_HORIZON_RATIO * MINIMUM_FORECASTING_HORIZON,
+        min_length=MIN_TRAIN_TO_TEST_LENGTH_RATIO * MINIMUM_FORECASTING_HORIZON,
     ):
         self.time_column_name = time_column_name
         self.frequency = frequency
