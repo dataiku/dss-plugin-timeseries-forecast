@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import math
-from pandas.api.types import is_numeric_dtype
 from gluonts_forecasts.model import Model
 from dku_constants import (
     METRICS_DATASET,
@@ -10,7 +9,7 @@ from dku_constants import (
     EVALUATION_METRICS_DESCRIPTIONS,
     ROW_ORIGIN,
 )
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from gluonts_forecasts.utils import add_row_origin
 from safe_logger import SafeLogger
@@ -92,7 +91,7 @@ class TrainingSession:
         self.cutoff_period = cutoff_period
 
     def init(self, session_name, partition_root=None):
-        """Create the session_path. Check types of target, external features and timeseries identifiers columns.
+        """Create the session_path.
 
         Args:
             session_name (Timestamp)
@@ -104,15 +103,13 @@ class TrainingSession:
         else:
             self.session_path = os.path.join(partition_root, session_name)
 
-        self._check_target_columns_types()
-        self._check_external_features_columns_types()
-
     def create_gluon_list_datasets(self):
-        """Create the train and test gluon list datasets for each rolling window.
-        Compute optimal num_batches_per_epoch value based on the shortest train dataset.
+        """Create train and test gluon list datasets.
+        The last prediction_length time steps are removed from each timeseries of the train dataset.
+        Compute optimal num_batches_per_epoch value based on the train dataset size.
         """
 
-        gluon_dataset = GluonDataset(
+        gluon_dataset = DkuGluonDataset(
             time_column_name=self.time_column_name,
             frequency=self.frequency,
             target_columns_names=self.target_columns_names,
@@ -384,19 +381,6 @@ class TrainingSession:
         for column in EVALUATION_METRICS_DESCRIPTIONS:
             column_descriptions[column.lower()] = EVALUATION_METRICS_DESCRIPTIONS[column]
         return column_descriptions
-
-    def _check_target_columns_types(self):
-        """Raises ValueError if a target column is not numerical"""
-        for column_name in self.target_columns_names:
-            if not is_numeric_dtype(self.training_df[column_name]):
-                raise ValueError(f"Target column '{column_name}' must be of numeric type")
-
-    def _check_external_features_columns_types(self):
-        """Raises ValueError if an external feature column is not numerical"""
-        if self.external_features_columns_names:
-            for column_name in self.external_features_columns_names:
-                if not is_numeric_dtype(self.training_df[column_name]):
-                    raise ValueError(f"External feature '{column_name}' must be of numeric type")
 
     def _compute_optimal_num_batches_per_epoch(self):
         """Compute the optimal value of num batches per epoch to scale to the training data size.

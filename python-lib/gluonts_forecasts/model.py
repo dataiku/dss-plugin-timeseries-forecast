@@ -131,8 +131,8 @@ class Model:
         """Train Model on train_list_dataset and evaluate it on test_list_dataset. Then retrain on test_list_dataset if retrain=True.
 
         Args:
-            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
-            test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
+            test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
             make_forecasts (bool, optional): Whether to make the evaluation forecasts and return them. Defaults to False.
             retrain (bool, optional): Whether to retrain model on test_list_dataset after the evaluation. Defaults to False.
 
@@ -175,7 +175,7 @@ class Model:
 
         Args:
             predictor (gluonts.model.predictor.Predictor): Trained object used to make forecasts.
-            test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            test_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
 
         Returns:
             Dictionary of aggregated metrics over all timeseries.
@@ -201,7 +201,7 @@ class Model:
         Args:
             agg_metrics (dict): Dictionary of aggregated metrics over all timeseries.
             item_metrics (DataFrame): [description]
-            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
 
         Returns:
             DataFrame of metrics, model name, target column and identifiers columns.
@@ -251,7 +251,7 @@ class Model:
         or directly get the existing gluonTS predictor (e.g. for models that don't need training like trivial.identity)
 
         Args:
-            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
 
         Returns:
             gluonts.model.predictor.Predictor
@@ -300,7 +300,7 @@ class Model:
 
         Args:
             forecasts_list (list): List of gluonts.model.forecast.Forecast (objects storing the predicted distributions as samples).
-            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+            train_list_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
 
         Returns:
             Dictionary of list of forecasts timeseries (value) by identifiers (key). Key is None if no identifiers.

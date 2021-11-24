@@ -142,6 +142,8 @@ class TimeseriesPreparator:
     def _check_data(self, df):
         self._check_not_empty_dataframe(df)
         self._check_timeseries_identifiers_columns_types(df)
+        self._check_target_columns_types(df)
+        self._check_external_features_columns_types(df)
         self._check_no_missing_values(df)
 
     def _truncate_dates(self, df):
@@ -283,6 +285,20 @@ class TimeseriesPreparator:
                 raise ValueError(
                     f"Time series identifiers columns '{invalid_columns}' must be of string or numeric type. Please change the type in a Prepare recipe."
                 )
+
+    def _check_target_columns_types(self, df):
+        """Raises ValueError if a target column is not numerical"""
+        if self.target_columns_names:
+            for column_name in self.target_columns_names:
+                if not is_numeric_dtype(df[column_name]):
+                    raise ValueError(f"Target column '{column_name}' must be of numeric type")
+
+    def _check_external_features_columns_types(self, df):
+        """Raises ValueError if an external feature column is not numerical"""
+        if self.external_features_columns_names:
+            for column_name in self.external_features_columns_names:
+                if not is_numeric_dtype(df[column_name]):
+                    raise ValueError(f"External feature '{column_name}' must be of numeric type")
 
     def _check_no_missing_values(self, df):
         invalid_columns = []

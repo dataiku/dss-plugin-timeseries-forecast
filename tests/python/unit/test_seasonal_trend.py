@@ -72,3 +72,27 @@ class TestSeasonalTrendTrain:
         evaluator = Evaluator()
         agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(gluon_dataset))
         assert agg_metrics["MSE"] is not None
+
+    def test_training_long_format(self):
+        prediction_length = 2
+        frequency = "3M"
+        self.timeseries[0][TIMESERIES_KEYS.IDENTIFIERS] = {"country": "uk"}
+        self.timeseries[1][TIMESERIES_KEYS.IDENTIFIERS] = {"country": "usa"}
+
+        gluon_dataset = ListDataset(self.timeseries, freq=frequency)
+        kwargs = {"model": ARIMA, "model_kwargs": {"order": (2, 1, 1)}}
+        estimator = SeasonalTrendEstimator(
+            prediction_length=prediction_length, freq=frequency, season_length=4, **kwargs
+        )
+        predictor = estimator.train(gluon_dataset)
+
+        assert frozenset({"country": "usa"}.items()) in predictor.trained_models
+        assert frozenset({"country": "uk"}.items()) in predictor.trained_models
+
+        forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
+        timeseries = list(ts_it)
+        forecasts = list(forecast_it)
+        assert forecasts[0].samples.shape == (100, 2)
+        evaluator = Evaluator()
+        agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(gluon_dataset))
+        assert agg_metrics["MSE"] is not None
