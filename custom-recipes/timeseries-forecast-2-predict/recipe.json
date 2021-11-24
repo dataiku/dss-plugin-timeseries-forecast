@@ -20,8 +20,8 @@
         },
         {
             "name": "historical_dataset",
-            "label": "Optional - Dataset of historical data after which to forecast",
-            "description": "If not specified, the recipe will forecast right after the training data of the \"Train and evaluate forecasting models\"",
+            "label": "Optional - Dataset to forecast, if not provided, use the training data",
+            "description": "The recipe will forecast values after this dataset",
             "arity": "UNARY",
             "required": false,
             "acceptsDataset": true,
