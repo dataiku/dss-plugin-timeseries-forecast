@@ -31,7 +31,7 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
     First check that all timeseries are valid (regular time steps of the chosen frequency and they all have the same start date).
 
     Args:
-        gluon_train_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+        gluon_train_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
         external_features_future_df (DataFrame): Dataframe of future (dated after timeseries of gluon_train_dataset) external features.
         prediction_length (int): To check that external_features_future_df has the right length.
         frequency (str): To check that the time column has the right frequency and values.

@@ -670,7 +670,7 @@
             "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Evaluate on the last \"Forecasting horizon\" values",
+            "description": "Evaluate on the last \"Forecasting horizon\" values or on rolling windows",
             "selectChoices": [
                 {
                     "value": "split",

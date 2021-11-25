@@ -40,7 +40,6 @@ def run():
     )
     start = perf_counter()
 
-    # TODO only retrieve the needed columns
     training_df = file_manager.input_dataset.get_dataframe()
 
     timeseries_preparator = TimeseriesPreparator(

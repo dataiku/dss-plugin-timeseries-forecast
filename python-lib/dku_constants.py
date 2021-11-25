@@ -29,7 +29,7 @@ class METRICS_DATASET:
 
 
 class TIMESERIES_KEYS:
-    """Class of constants with labels for the keys used in the timeseries of the GluonDataset class"""
+    """Class of constants with labels for the keys used in the timeseries of the DkuGluonDataset class"""
 
     START = FieldName.START
     TARGET = FieldName.TARGET
@@ -112,3 +112,8 @@ class GPU_CONFIGURATION:
     NO_GPU = "no_gpu"
     CONTAINER_GPU = "container_gpu"
     CUDA_VERSION = "{CUDA_VERSION}"
+
+
+# Training timeseries must be at least twice as long as the forecasting horizon (or some models will fail at training)
+MIN_TRAIN_TO_TEST_LENGTH_RATIO = 2
+MINIMUM_FORECASTING_HORIZON = 1

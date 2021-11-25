@@ -1,4 +1,4 @@
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from dku_constants import TIMESERIES_KEYS
 import pandas as pd
 import numpy as np
@@ -20,7 +20,7 @@ class TestGluonDataset:
         self.df["date"] = pd.to_datetime(self.df["date"]).dt.tz_localize(tz=None)
 
     def setup_method(self):
-        self.gluon_dataset = GluonDataset(
+        self.gluon_dataset = DkuGluonDataset(
             time_column_name="date",
             frequency="D",
             target_columns_names=["volume", "revenue"],

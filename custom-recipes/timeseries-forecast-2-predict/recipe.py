@@ -4,11 +4,10 @@ from dku_io_utils.checks_utils import external_features_check
 from dku_io_utils.model_selection import ModelSelection
 from dku_io_utils.config_handler import create_dku_config
 from dku_io_utils.dku_file_manager import DkuFileManager
-from dku_constants import METRICS_DATASET, RECIPE
-from gluonts_forecasts.model_config_registry import ModelConfigRegistry
+from dku_constants import RECIPE, MIN_TRAIN_TO_TEST_LENGTH_RATIO
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from safe_logger import SafeLogger
 from time import perf_counter
 import pandas as pd
@@ -42,8 +41,6 @@ def run():
     )
 
     if file_manager.historical_dataset:
-        # note: because dataframe is sorted in preparation according to identifiers and time column, order is maintained if same timeseries identifiers identifiers
-
         timeseries_preparator = model_selection.get_timeseries_preparator()
 
         timeseries_preparator.check_schema_from_dataset(file_manager.historical_dataset.read_schema())
@@ -52,13 +49,14 @@ def run():
 
         prepared_dataframe = timeseries_preparator.prepare_timeseries_dataframe(historical_dataset_dataframe)
 
-        gluon_dataset = GluonDataset(
+        gluon_dataset = DkuGluonDataset(
             time_column_name=timeseries_preparator.time_column_name,
             frequency=timeseries_preparator.frequency,
             target_columns_names=timeseries_preparator.target_columns_names,
             timeseries_identifiers_names=timeseries_preparator.timeseries_identifiers_names,
             external_features_columns_names=timeseries_preparator.external_features_columns_names,
-            min_length=2 * (timeseries_preparator.prediction_length if timeseries_preparator.prediction_length else 1),
+            min_length=MIN_TRAIN_TO_TEST_LENGTH_RATIO
+            * (timeseries_preparator.prediction_length if timeseries_preparator.prediction_length else 1),
         )
 
         gluon_train_list_dataset = gluon_dataset.create_list_datasets(prepared_dataframe)[0]
@@ -68,9 +66,11 @@ def run():
 
     predictors = model_selection.get_model_predictors()
 
-    external_features = external_features_check(gluon_train_list_dataset, file_manager.external_features_future_dataset)
+    has_external_features = external_features_check(
+        gluon_train_list_dataset, file_manager.external_features_future_dataset
+    )
 
-    if external_features:
+    if has_external_features:
         external_features_future_df = file_manager.external_features_future_dataset.get_dataframe()
         gluon_train_list_dataset = add_future_external_features(
             gluon_train_list_dataset,
