@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import math
 from gluonts_forecasts.model import Model
@@ -276,7 +277,7 @@ class TrainingSession:
             evaluation_metrics: "mean" for evaluation_metrics in EVALUATION_METRICS_DESCRIPTIONS
         }
 
-        rolling_windows_aggregations_dict[METRICS_DATASET.TRAINING_TIME] = "sum"
+        rolling_windows_aggregations_dict[METRICS_DATASET.TRAINING_TIME] = lambda x: x.sum() or np.nan
         rolling_windows_aggregations_dict[METRICS_DATASET.MODEL_PARAMETERS] = "min"
         rolling_windows_aggregations_dict[METRICS_DATASET.ROLLING_WINDOWS] = lambda x: METRICS_DATASET.AGGREGATED_ROW
 
