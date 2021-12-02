@@ -3,6 +3,7 @@ from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import TIMESERIES_KEYS, METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS, ROW_ORIGIN
 from datetime import datetime
 import pandas as pd
+import numpy as np
 
 
 class TestCrossValidation:
@@ -81,7 +82,7 @@ class TestCrossValidation:
         rolling_windows_metrics = metrics_df[
             metrics_df[METRICS_DATASET.ROLLING_WINDOWS] != METRICS_DATASET.AGGREGATED_ROW
         ]
-        assert set(rolling_windows_metrics[METRICS_DATASET.ROLLING_WINDOWS].unique()) == set((0, 1, 2))
+        assert np.array_equal(rolling_windows_metrics[METRICS_DATASET.ROLLING_WINDOWS], [0, 0, 1, 1, 2, 2])
 
         for identifier in [1, 2]:
             identifier_df = metrics_df[metrics_df["item"] == identifier]
