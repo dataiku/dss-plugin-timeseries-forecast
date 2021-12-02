@@ -410,13 +410,10 @@ class TrainingSession:
         3. cut lengths pair (2, 0) => train: [1, 2, 3, 4], test: [1, 2, 3, 4, 5, 6]
         """
         self.cutoff_period = self.prediction_length // 2 if self.cutoff_period == -1 else self.cutoff_period
-        if self.timeseries_cross_validation:
-            return [
-                (self.prediction_length + (i - 1) * self.cutoff_period, (i - 1) * self.cutoff_period)
-                for i in range(self.rolling_windows_number, 0, -1)
-            ]
-        else:
-            return [(self.prediction_length, 0)]
+        return [
+            (self.prediction_length + (i - 1) * self.cutoff_period, (i - 1) * self.cutoff_period)
+            for i in range(self.rolling_windows_number, 0, -1)
+        ]
 
     def _compute_rolling_windows_unique_cut_lengths(self, rolling_windows_cut_lengths_pairs):
         """Compute unique rolling windows cut lengths from the list of train/test cut lengths pairs.
