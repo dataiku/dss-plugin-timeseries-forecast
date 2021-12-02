@@ -153,7 +153,58 @@ class TrainingSession:
                 )
             )
 
-    def train_evaluate_on_window(self, rolling_window_index, train_cut_length, test_cut_length, model, retrain=False):
+    def train_evaluate_models(self, retrain=False):
+        """
+        Evaluate all the selected models (then retrain on complete data if specified),
+        get the metrics dataframe and create the forecasts dataframe if make_forecasts=True.
+        """
+        metrics_df = pd.DataFrame()
+        forecasts_df = pd.DataFrame()
+        identifiers_columns = self.timeseries_identifiers_names or []
+
+        for model in self.models:
+
+            if self.make_forecasts:
+                rolling_windows_forecasts_df = pd.DataFrame()
+
+            for rolling_window_index, (train_cut_length, test_cut_length) in enumerate(
+                self.rolling_windows_cut_lengths_train_test_pairs
+            ):  # loop over the rolling windows
+                item_metrics, single_window_forecasts_df = self._train_evaluate_on_window(
+                    rolling_window_index, train_cut_length, test_cut_length, model, retrain
+                )
+
+                metrics_df = metrics_df.append(item_metrics)
+
+                if self.make_forecasts:
+                    rolling_windows_forecasts_df = rolling_windows_forecasts_df.append(single_window_forecasts_df)
+
+            if self.make_forecasts:
+                if forecasts_df.empty:
+                    forecasts_df = rolling_windows_forecasts_df
+                else:
+                    forecasts_df = forecasts_df.merge(
+                        rolling_windows_forecasts_df,
+                        on=[self.time_column_name] + identifiers_columns + [METRICS_DATASET.ROLLING_WINDOWS],
+                    )
+
+        # aggregate metrics over rolling windows
+        rolling_window_aggregations = self._aggregate_rolling_windows(metrics_df, identifiers_columns)
+        metrics_df = metrics_df.append(rolling_window_aggregations)
+
+        metrics_df[METRICS_DATASET.SESSION] = self.session_name
+        self.metrics_df = self._reorder_metrics_df(metrics_df)
+
+        if self.make_forecasts:
+            evaluation_forecasts_df = self.training_df.merge(
+                forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True
+            )
+
+            self.evaluation_forecasts_df = self._prepare_evaluation_forecasts_df(
+                evaluation_forecasts_df, identifiers_columns
+            )
+
+    def _train_evaluate_on_window(self, rolling_window_index, train_cut_length, test_cut_length, model, retrain=False):
         """Train and evaluate the model on the given rolling window.
 
         Args:
@@ -189,57 +240,6 @@ class TrainingSession:
             forecasts_df[METRICS_DATASET.ROLLING_WINDOWS] = rolling_window_index
 
         return item_metrics, forecasts_df
-
-    def train_evaluate_models(self, retrain=False):
-        """
-        Evaluate all the selected models (then retrain on complete data if specified),
-        get the metrics dataframe and create the forecasts dataframe if make_forecasts=True.
-        """
-        metrics_df = pd.DataFrame()
-        forecasts_df = pd.DataFrame()
-        identifiers_columns = self.timeseries_identifiers_names or []
-
-        for model in self.models:
-
-            if self.make_forecasts:
-                rolling_windows_forecasts_df = pd.DataFrame()
-
-            for rolling_window_index, (train_cut_length, test_cut_length) in enumerate(
-                self.rolling_windows_cut_lengths_train_test_pairs
-            ):  # loop over the rolling windows
-                item_metrics, single_window_forecasts_df = self.train_evaluate_on_window(
-                    rolling_window_index, train_cut_length, test_cut_length, model, retrain
-                )
-
-                metrics_df = metrics_df.append(item_metrics)
-
-                if self.make_forecasts:
-                    rolling_windows_forecasts_df = rolling_windows_forecasts_df.append(single_window_forecasts_df)
-
-            if self.make_forecasts:
-                if forecasts_df.empty:
-                    forecasts_df = rolling_windows_forecasts_df
-                else:
-                    forecasts_df = forecasts_df.merge(
-                        rolling_windows_forecasts_df,
-                        on=[self.time_column_name] + identifiers_columns + [METRICS_DATASET.ROLLING_WINDOWS],
-                    )
-
-        # aggregate metrics over rolling windows
-        rolling_window_aggregations = self._aggregate_rolling_windows(metrics_df, identifiers_columns)
-        metrics_df = metrics_df.append(rolling_window_aggregations)
-
-        metrics_df[METRICS_DATASET.SESSION] = self.session_name
-        self.metrics_df = self._reorder_metrics_df(metrics_df)
-
-        if self.make_forecasts:
-            evaluation_forecasts_df = self.training_df.merge(
-                forecasts_df, on=[self.time_column_name] + identifiers_columns, how="left", indicator=True
-            )
-
-            self.evaluation_forecasts_df = self._prepare_evaluation_forecasts_df(
-                evaluation_forecasts_df, identifiers_columns
-            )
 
     def get_full_list_dataset(self):
         return self.gluon_list_datasets_by_cut_length[0]
