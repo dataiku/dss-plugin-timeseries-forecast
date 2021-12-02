@@ -689,6 +689,7 @@
             "description": "Number of splits used in the training set. Higher values increase runtime.",
             "type": "INT",
             "defaultValue": 1,
+            "minI": 1,
             "mandatory": false,
             "visibilityCondition": "model.evaluation_strategy == 'cross_validation'"
         },
@@ -698,6 +699,7 @@
             "description": "Number of time steps between each split. If -1, Horizon / 2 is used.",
             "type": "INT",
             "defaultValue": -1,
+            "minI": -1,
             "mandatory": false,
             "visibilityCondition": "model.evaluation_strategy == 'cross_validation'"
         },

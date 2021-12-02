@@ -90,6 +90,8 @@ class TrainingSession:
         self.timeseries_cross_validation = timeseries_cross_validation
         self.rolling_windows_number = rolling_windows_number if timeseries_cross_validation else 1
         self.cutoff_period = cutoff_period
+        self.gluon_list_datasets_by_cut_length = None
+        self.rolling_windows_cut_lengths_train_test_pairs = None
 
     def init(self, session_name, partition_root=None):
         """Create the session_path.
@@ -151,44 +153,7 @@ class TrainingSession:
                 )
             )
 
-    def train_evaluate_on_window(self, rolling_window_index, train_cut_length, test_cut_length, model, retrain=False):
-        """Train and evaluate the model on the given rolling window.
-
-        Args:
-            rolling_window_index (int): Index of the rolling window
-            train_cut_length (int): Cut length for the train dataset
-            test_cut_length (int): Cut length for the test dataset
-            model (Model): Model to train and evaluate
-            retrain (bool, optional): If True, retrain the model on the last rolling window. Defaults to False.
-        """
-
-        train_list_dataset = self.gluon_list_datasets_by_cut_length[train_cut_length]
-        test_list_dataset = self.gluon_list_datasets_by_cut_length[test_cut_length]
-
-        last_window = rolling_window_index == len(self.rolling_windows_cut_lengths_train_test_pairs) - 1
-
-        if self.timeseries_cross_validation:
-            logger.info(
-                f"Training and evaluating on rolling window #{rolling_window_index} - (train, test) cut lengths: ({train_cut_length}, {test_cut_length})"
-            )
-
-        item_metrics, forecasts_df = model.train_evaluate(
-            train_list_dataset,
-            test_list_dataset,
-            make_forecasts=self.make_forecasts,
-            retrain=retrain and last_window,
-        )
-
-        item_metrics.insert(0, METRICS_DATASET.ROLLING_WINDOWS, rolling_window_index)
-
-        if self.make_forecasts:
-            forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
-
-            forecasts_df[METRICS_DATASET.ROLLING_WINDOWS] = rolling_window_index
-
-        return item_metrics, forecasts_df
-
-    def train_evaluate(self, retrain=False):
+    def train_evaluate_models(self, retrain=False):
         """
         Evaluate all the selected models (then retrain on complete data if specified),
         get the metrics dataframe and create the forecasts dataframe if make_forecasts=True.
@@ -205,7 +170,7 @@ class TrainingSession:
             for rolling_window_index, (train_cut_length, test_cut_length) in enumerate(
                 self.rolling_windows_cut_lengths_train_test_pairs
             ):  # loop over the rolling windows
-                item_metrics, single_window_forecasts_df = self.train_evaluate_on_window(
+                item_metrics, single_window_forecasts_df = self._train_evaluate_on_window(
                     rolling_window_index, train_cut_length, test_cut_length, model, retrain
                 )
 
@@ -238,6 +203,43 @@ class TrainingSession:
             self.evaluation_forecasts_df = self._prepare_evaluation_forecasts_df(
                 evaluation_forecasts_df, identifiers_columns
             )
+
+    def _train_evaluate_on_window(self, rolling_window_index, train_cut_length, test_cut_length, model, retrain=False):
+        """Train and evaluate the model on the given rolling window.
+
+        Args:
+            rolling_window_index (int): Index of the rolling window
+            train_cut_length (int): Cut length for the train dataset
+            test_cut_length (int): Cut length for the test dataset
+            model (Model): Model to train and evaluate
+            retrain (bool, optional): If True, retrain the model on the last rolling window. Defaults to False.
+        """
+
+        train_list_dataset = self.gluon_list_datasets_by_cut_length[train_cut_length]
+        test_list_dataset = self.gluon_list_datasets_by_cut_length[test_cut_length]
+
+        is_last_window = rolling_window_index == self.rolling_windows_number - 1
+
+        if self.timeseries_cross_validation:
+            logger.info(
+                f"Training and evaluating on rolling window #{rolling_window_index} - (train, test) cut lengths: ({train_cut_length}, {test_cut_length})"
+            )
+
+        item_metrics, forecasts_df = model.train_evaluate(
+            train_list_dataset,
+            test_list_dataset,
+            make_forecasts=self.make_forecasts,
+            retrain=retrain and is_last_window,
+        )
+
+        item_metrics.insert(0, METRICS_DATASET.ROLLING_WINDOWS, rolling_window_index)
+
+        if self.make_forecasts:
+            forecasts_df = forecasts_df.rename(columns={"index": self.time_column_name})
+
+            forecasts_df[METRICS_DATASET.ROLLING_WINDOWS] = rolling_window_index
+
+        return item_metrics, forecasts_df
 
     def get_full_list_dataset(self):
         return self.gluon_list_datasets_by_cut_length[0]
@@ -408,13 +410,10 @@ class TrainingSession:
         3. cut lengths pair (2, 0) => train: [1, 2, 3, 4], test: [1, 2, 3, 4, 5, 6]
         """
         self.cutoff_period = self.prediction_length // 2 if self.cutoff_period == -1 else self.cutoff_period
-        if self.timeseries_cross_validation:
-            return [
-                (self.prediction_length + (i - 1) * self.cutoff_period, (i - 1) * self.cutoff_period)
-                for i in range(self.rolling_windows_number, 0, -1)
-            ]
-        else:
-            return [(self.prediction_length, 0)]
+        return [
+            (self.prediction_length + (i - 1) * self.cutoff_period, (i - 1) * self.cutoff_period)
+            for i in range(self.rolling_windows_number, 0, -1)
+        ]
 
     def _compute_rolling_windows_unique_cut_lengths(self, rolling_windows_cut_lengths_pairs):
         """Compute unique rolling windows cut lengths from the list of train/test cut lengths pairs.

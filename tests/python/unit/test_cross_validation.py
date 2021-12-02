@@ -2,6 +2,7 @@ from gluonts_forecasts.training_session import TrainingSession
 from dku_constants import METRICS_DATASET
 from datetime import datetime
 import pandas as pd
+import numpy as np
 
 
 class TestCrossValidation:
@@ -58,7 +59,7 @@ class TestCrossValidation:
         self.training_session.init(self.session_name)
         self.training_session.create_gluon_list_datasets()
         self.training_session.instantiate_models()
-        self.training_session.train_evaluate()
+        self.training_session.train_evaluate_models()
 
     def test_cut_lengths_train_test_pairs(self):
         expected_cut_lengths_train_test_pairs = [(4, 2), (3, 1), (2, 0)]
@@ -80,7 +81,7 @@ class TestCrossValidation:
         rolling_windows_metrics = metrics_df[
             metrics_df[METRICS_DATASET.ROLLING_WINDOWS] != METRICS_DATASET.AGGREGATED_ROW
         ]
-        assert set(rolling_windows_metrics[METRICS_DATASET.ROLLING_WINDOWS].unique()) == set((0, 1, 2))
+        assert np.array_equal(rolling_windows_metrics[METRICS_DATASET.ROLLING_WINDOWS], [0, 0, 1, 1, 2, 2])
 
         for identifier in [1, 2]:
             identifier_df = metrics_df[metrics_df["item"] == identifier]

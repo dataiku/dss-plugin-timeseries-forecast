@@ -139,12 +139,14 @@ class DkuGluonDataset:
         if cut_length:
             min_length += cut_length
         if len(dataframe.index) < min_length:
-            raise ValueError(
-                f"""
-                Time series must have at least {min_length} values.
-                If timeseries cross-validation is selected, check that the number of windows and the cutoff period are not too high.
+            error_message = f"Each time series must have at least {min_length} values."
+            if cut_length:
+                error_message += f"""
+                Forecast models needs at least {self.min_length} values per time series to be able to train.
+                To create the train dataset in the evaluation process, the last {cut_length} values of each time series are removed.
+                If time series cross-validation is selected, decreasing the number of windows and the cutoff period can increase the size of the train dataset.
                 """
-            )
+            raise ValueError(error_message)
 
 
 def remove_unused_external_features(list_dataset, frequency):
