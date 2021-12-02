@@ -218,7 +218,7 @@ class TrainingSession:
         train_list_dataset = self.gluon_list_datasets_by_cut_length[train_cut_length]
         test_list_dataset = self.gluon_list_datasets_by_cut_length[test_cut_length]
 
-        is_last_window = rolling_window_index == len(self.rolling_windows_number) - 1
+        is_last_window = rolling_window_index == self.rolling_windows_number - 1
 
         if self.timeseries_cross_validation:
             logger.info(
