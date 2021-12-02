@@ -90,6 +90,8 @@ class TrainingSession:
         self.timeseries_cross_validation = timeseries_cross_validation
         self.rolling_windows_number = rolling_windows_number if timeseries_cross_validation else 1
         self.cutoff_period = cutoff_period
+        self.gluon_list_datasets_by_cut_length = None
+        self.rolling_windows_cut_lengths_train_test_pairs = None
 
     def init(self, session_name, partition_root=None):
         """Create the session_path.
