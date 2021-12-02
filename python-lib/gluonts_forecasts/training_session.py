@@ -190,7 +190,7 @@ class TrainingSession:
 
         return item_metrics, forecasts_df
 
-    def train_evaluate(self, retrain=False):
+    def train_evaluate_models(self, retrain=False):
         """
         Evaluate all the selected models (then retrain on complete data if specified),
         get the metrics dataframe and create the forecasts dataframe if make_forecasts=True.

@@ -79,7 +79,7 @@ def run():
 
     training_session.instantiate_models()
 
-    training_session.train_evaluate(retrain=(not dku_config.evaluation_only))
+    training_session.train_evaluate_models(retrain=(not dku_config.evaluation_only))
 
     logger.info("Completed training and evaluation of all models")
 

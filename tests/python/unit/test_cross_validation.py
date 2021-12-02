@@ -60,7 +60,7 @@ class TestCrossValidation:
         self.training_session.init(self.session_name)
         self.training_session.create_gluon_list_datasets()
         self.training_session.instantiate_models()
-        self.training_session.train_evaluate()
+        self.training_session.train_evaluate_models()
 
     def test_cut_lengths_train_test_pairs(self):
         expected_cut_lengths_train_test_pairs = [(4, 2), (3, 1), (2, 0)]
