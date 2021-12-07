@@ -3,6 +3,7 @@
         "label": "2. Forecast future values",
         "description": "Use trained forecasting models to predict future values after your historical dataset",
         "icon": "icon-signal",
+        "iconColor": "green",
         "displayOrderRank": 2
     },
     "kind": "PYTHON",
