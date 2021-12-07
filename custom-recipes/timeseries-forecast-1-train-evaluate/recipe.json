@@ -671,14 +671,38 @@
             "label": "Splitting strategy",
             "type": "SELECT",
             "mandatory": true,
-            "description": "Only supported method - Evaluate on the last \"Forecasting horizon\" values",
+            "description": "Evaluate on the last \"Forecasting horizon\" values or on rolling windows",
             "selectChoices": [
                 {
                     "value": "split",
                     "label": "Time-based Split"
+                },
+                {
+                    "value": "cross_validation",
+                    "label": "Time series cross-validation"
                 }
             ],
             "defaultValue": "split"
+        },
+        {
+            "name": "rolling_windows_number",
+            "label": "Number of rolling windows",
+            "description": "Number of splits used in the training set. Higher values increase runtime.",
+            "type": "INT",
+            "defaultValue": 1,
+            "minI": 1,
+            "mandatory": false,
+            "visibilityCondition": "model.evaluation_strategy == 'cross_validation'"
+        },
+        {
+            "name": "cutoff_period",
+            "label": "Cutoff period",
+            "description": "Number of time steps between each split. If -1, Horizon / 2 is used.",
+            "type": "INT",
+            "defaultValue": -1,
+            "minI": -1,
+            "mandatory": false,
+            "visibilityCondition": "model.evaluation_strategy == 'cross_validation'"
         },
         {
             "name": "advanced_options_separator",

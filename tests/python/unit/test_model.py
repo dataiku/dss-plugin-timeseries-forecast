@@ -46,7 +46,7 @@ class TestModel:
             batch_size=16,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+        metrics, forecasts_df = model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True
         )
 
@@ -66,7 +66,7 @@ class TestModel:
             batch_size=64,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+        metrics, forecasts_df = model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True
         )
 
@@ -86,7 +86,7 @@ class TestModel:
             batch_size=32,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+        metrics, forecasts_df = model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True
         )
 
@@ -165,8 +165,8 @@ class TestExternalFeaturesSimpleFeedForward:
 
         self.prediction_length = 2
         gluon_list_datasets = gluon_dataset.create_list_datasets(df, cut_lengths=[self.prediction_length, 0])
-        self.train_list_dataset = gluon_list_datasets[0]
-        self.test_list_dataset = gluon_list_datasets[1]
+        self.train_list_dataset = gluon_list_datasets[self.prediction_length]
+        self.test_list_dataset = gluon_list_datasets[0]
 
         self.model_name = "simplefeedforward"
         self.model = Model(
@@ -181,7 +181,7 @@ class TestExternalFeaturesSimpleFeedForward:
         )
 
     def test_simplefeedforward_external_features_training(self):
-        metrics, identifiers_columns, forecasts_df = self.model.train_evaluate(
+        _, forecasts_df = self.model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True, retrain=True
         )
         assert len(forecasts_df.index) == 4

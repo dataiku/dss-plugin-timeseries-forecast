@@ -53,15 +53,15 @@ class TestTrainingSession:
         self.training_session.instantiate_models()
 
     def test_gluon_list_datasets(self):
-        test_timeseries_length = len(self.training_session.full_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET])
+        test_timeseries_length = len(self.training_session.get_full_list_dataset().list_data[0][TIMESERIES_KEYS.TARGET])
         train_timeseries_length = len(
-            self.training_session.evaluation_train_list_dataset.list_data[0][TIMESERIES_KEYS.TARGET]
+            self.training_session.get_shortest_list_dataset().list_data[0][TIMESERIES_KEYS.TARGET]
         )
         assert test_timeseries_length == train_timeseries_length + self.training_session.prediction_length
         assert self.training_session.num_batches_per_epoch == 50
 
     def test_evaluation_metrics(self):
-        self.training_session.train_evaluate()
+        self.training_session.train_evaluate_models()
         expected_metrics_columns = ["store", "item"]
         expected_metrics_columns += [
             METRICS_DATASET.TARGET_COLUMN,
@@ -69,6 +69,7 @@ class TestTrainingSession:
             METRICS_DATASET.MODEL_PARAMETERS,
             METRICS_DATASET.TRAINING_TIME,
             METRICS_DATASET.SESSION,
+            METRICS_DATASET.ROLLING_WINDOWS,
         ]
         expected_metrics_columns += list(EVALUATION_METRICS_DESCRIPTIONS.keys())
         metrics_models = self.training_session.metrics_df[METRICS_DATASET.MODEL_COLUMN].unique()
@@ -78,12 +79,14 @@ class TestTrainingSession:
             model_config_registry.get_model("mqcnn").get_label(),
             model_config_registry.get_model("trivial_identity").get_label(),
         ]
-        assert len(self.training_session.metrics_df.index) == 15
+        # metrics has 27 rows = (3 models * 2 timeseries * 2 targets * 1 rolling windows)
+        # + 3 models * 1 overall aggregated row + 3 models * 2 timeseries * 2 targets * 1 rolling windows aggregated row
+        assert len(self.training_session.metrics_df.index) == 27
         assert set(self.training_session.metrics_df.columns) == set(expected_metrics_columns)
         assert set(metrics_models) == set(expected_metrics_models)
 
     def test_evaluation_forecasts(self):
-        self.training_session.train_evaluate(retrain=True)
+        self.training_session.train_evaluate_models(retrain=True)
         expected_evaluation_forecasts_columns = [
             "date",
             "volume",
@@ -100,6 +103,7 @@ class TestTrainingSession:
             "trivial_identity_revenue",
             METRICS_DATASET.SESSION,
             ROW_ORIGIN.COLUMN_NAME,
+            METRICS_DATASET.ROLLING_WINDOWS,
         ]
         not_nan_count = self.training_session.evaluation_forecasts_df.count()
         assert len(self.training_session.evaluation_forecasts_df.index) == 6
@@ -107,4 +111,4 @@ class TestTrainingSession:
         assert not_nan_count["volume"] == 6 and not_nan_count["deepar_volume"] == 2
 
     def test_retrain(self):
-        self.training_session.train_evaluate(retrain=True)
+        self.training_session.train_evaluate_models(retrain=True)

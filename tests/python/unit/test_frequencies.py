@@ -25,7 +25,7 @@ def test_minute_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-15 13:00:00")
 
     trained_model = TrainedModel(
@@ -60,7 +60,7 @@ def test_hours_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-15 18:00:00")
 
     trained_model = TrainedModel(
@@ -95,7 +95,7 @@ def test_day_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-18")
 
     trained_model = TrainedModel(
@@ -130,7 +130,7 @@ def test_business_day_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-15")
 
     trained_model = TrainedModel(
@@ -165,7 +165,7 @@ def test_week_sunday_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-24")
 
     trained_model = TrainedModel(
@@ -200,7 +200,7 @@ def test_week_tuesday_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-01-26")
 
     trained_model = TrainedModel(
@@ -217,7 +217,7 @@ def test_week_tuesday_frequency():
 
 
 def test_month_frequency():
-    """This test covers all month frequencies (quarter=3M, semester=6M, year=12M) """
+    """This test covers all month frequencies (quarter=3M, semester=6M, year=12M)"""
     prediction_length = 1
     timeseries = {
         TIMESERIES_KEYS.START: "2021-01-31 00:00:00",
@@ -236,7 +236,7 @@ def test_month_frequency():
         batch_size=8,
         num_batches_per_epoch=5,
     )
-    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[2]
+    evaluation_forecasts_df = model.train_evaluate(gluon_dataset, gluon_dataset, make_forecasts=True, retrain=True)[1]
     assert evaluation_forecasts_df["index"].iloc[0] == pd.Timestamp("2021-05-31")
 
     trained_model = TrainedModel(
