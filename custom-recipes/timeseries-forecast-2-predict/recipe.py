@@ -9,8 +9,6 @@ from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.trained_model import TrainedModel, predict_multiple_models
 from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from safe_logger import SafeLogger
-from time import perf_counter
-import pandas as pd
 
 
 def create_dku_file_manager():
@@ -24,7 +22,6 @@ def create_dku_file_manager():
 
 def run():
     logger = SafeLogger("Forecast plugin")
-    start = perf_counter()
     logger.info("Forecasting future values...")
 
     recipe_config = get_recipe_config()
@@ -64,8 +61,6 @@ def run():
     else:
         gluon_train_list_dataset = model_selection.get_gluon_train_list_dataset()
 
-    predictors = model_selection.get_model_predictors()
-
     has_external_features = external_features_check(
         gluon_train_list_dataset, file_manager.external_features_future_dataset
     )
@@ -88,7 +83,7 @@ def run():
         history_length_limit=dku_config.history_length_limit,
     )
 
-    forecasts_df = predict_multiple_models(trained_model, predictors)
+    forecasts_df = predict_multiple_models(trained_model, model_selection.get_model_predictors())
 
     forecasts_df = trained_model.get_forecasts_df_for_display(forecasts_df, model_selection.get_session_name())
 

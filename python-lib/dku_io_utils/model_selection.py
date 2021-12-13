@@ -4,6 +4,9 @@ from dku_io_utils.utils import read_from_folder
 from dku_constants import METRICS_DATASET, TIMESTAMP_REGEX_PATTERN, ObjectType
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from timeseries_preparation.preparation import TimeseriesPreparator
+from safe_logger import SafeLogger
+
+logger = SafeLogger("Forecast plugin")
 
 
 class ModelSelectionError(ValueError):
@@ -42,22 +45,24 @@ class ModelSelection:
         else:
             self.model_label = self._get_best_model(performance_metric)
 
-        self.predictors = None
+        self.predictors = {}
+        if self.model_label == "all_models":
+            models_labels = self.find_all_models_labels_from_folder(self.folder, self.session_path, error_if_empty=True)
+            for model_label in models_labels:
+                self.predictors[model_label] = self._get_model_predictor(model_label)
+        else:
+            self.predictors[self.model_label] = self._get_model_predictor(self.model_label)
+
+        self._prediction_length = self.get_first_value(self.predictors).prediction_length
+        self._frequency = self.get_first_value(self.predictors).freq
 
     def get_session_name(self):
         return self.session_name
 
     def get_model_predictors(self):
-        self.predictors = {}
-        if self.model_label == "all_models":
-            models_labels = self.find_all_models_labels_from_folder(self.folder, self.session_path)
-            for model_label in models_labels:
-                self.predictors[model_label] = self.get_model_predictor(model_label)
-        else:
-            self.predictors[self.model_label] = self.get_model_predictor(self.model_label)
         return self.predictors
 
-    def get_model_predictor(self, model_label):
+    def _get_model_predictor(self, model_label):
         """Retrieve the GluonTS Predictor object obtained during training and saved into the model folder"""
         model_path = os.path.join(self.session_path, model_label, "model.pk.gz")
         try:
@@ -93,10 +98,10 @@ class ModelSelection:
         return timeseries_preparator
 
     def get_prediction_length(self):
-        return next(iter(self.predictors.values())).prediction_length
+        return self._prediction_length
 
     def get_frequency(self):
-        return next(iter(self.predictors.values())).freq
+        return self._frequency
 
     def _get_last_session(self):
         """Retrieve the last training session using name of subfolders and append the partition root path.
@@ -138,7 +143,7 @@ class ModelSelection:
         return model_label
 
     @staticmethod
-    def find_all_models_labels_from_folder(folder, session_path=None):
+    def find_all_models_labels_from_folder(folder, session_path=None, error_if_empty=False):
         model_labels = []
         all_paths = folder.list_paths_in_partition()
         for model_label in ModelConfigRegistry().list_available_models_labels():
@@ -149,4 +154,18 @@ class ModelSelection:
                 if path.endswith(f"{model_label}/model.pk.gz"):
                     model_labels += [model_label]
                     break
+        if len(model_labels) == 0:
+            error_message = "No trained model found in in the Trained model folder"
+            if session_path:
+                error_message += f" at path: {session_path}"
+            logger.warning(error_message)
+            if error_if_empty:
+                raise ModelSelectionError(error_message)
         return model_labels
+
+    def get_first_value(self, dict):
+        """Retrieve the first value of a dictionary"""
+        try:
+            return next(iter(dict.values()))
+        except StopIteration:
+            raise ModelSelectionError(f"No model found in session '{self.session_name}'")

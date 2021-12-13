@@ -27,9 +27,10 @@ def do(payload, config, plugin_config, inputs):
 
     elif payload.get("parameterName") == "manually_selected_model_label":
         model_labels = ModelSelection.find_all_models_labels_from_folder(input_folder)
-        choices = [{"label": "All models", "value": "all_models"}]
-        for model_label in model_labels:
-            choices += [{"label": model_label, "value": model_label}]
+        if len(model_labels) > 0:
+            choices = [{"label": "All models", "value": "all_models"}]
+            for model_label in model_labels:
+                choices += [{"label": model_label, "value": model_label}]
 
     elif payload.get("parameterName") == "model_selection_mode":
         choices = [{"label": "Automatic", "value": "auto"}, {"label": "Manual", "value": "manual"}]
