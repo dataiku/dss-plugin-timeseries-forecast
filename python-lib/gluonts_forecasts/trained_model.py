@@ -106,10 +106,10 @@ class TrainedModel:
         return forecasts_df[[self.time_column_name] + self.identifiers_columns + forecasts_columns]
 
     def get_forecasts_df_for_display(self, forecasts_df, session=None):
-        """Format the forecasts dataframe to be displayed to users and add history is needed
+        """Format the forecasts dataframe to be displayed to users and add history if needed
 
         Args:
-            session (Timstamp, optional)
+            session (Timestamp, optional)
         """
         if self.include_history:
             forecasts_df = self.append_history_to_forecasts(
@@ -133,7 +133,7 @@ class TrainedModel:
         Args:
             frequency (str): Used to reconstruct the date range (because a gluon ListDataset only store the start date).
             history_length_limit (int, optional): Maximum number of values to retrieve from historical data per timeseries. Default to None which means all.
-            session (Timstamp, optional)
+            session (Timestamp, optional)
 
         Returns:
             DataFrame containing both the historical data and the forecasted values.
