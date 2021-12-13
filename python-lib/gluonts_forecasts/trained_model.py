@@ -16,6 +16,7 @@ from dku_constants import (
 )
 from gluonts.model.forecast import QuantileForecast
 from safe_logger import SafeLogger
+from time import perf_counter
 
 logger = SafeLogger("Forecast plugin")
 
@@ -127,13 +128,12 @@ class TrainedModel:
 
         return forecasts_df
 
-    def append_history_to_forecasts(self, forecasts_df, history_length_limit=None, session=None):
+    def append_history_to_forecasts(self, forecasts_df, history_length_limit=None):
         """Include the historical data on which the model was trained to the forecasts dataframe.
 
         Args:
-            frequency (str): Used to reconstruct the date range (because a gluon ListDataset only store the start date).
+            forecasts_df (DataFrame): Dataframe with the future forecasts
             history_length_limit (int, optional): Maximum number of values to retrieve from historical data per timeseries. Default to None which means all.
-            session (Timestamp, optional)
 
         Returns:
             DataFrame containing both the historical data and the forecasted values.
@@ -331,3 +331,27 @@ class TrainedModel:
                 f"The output confidence interval is not centered around the median. Lower and upper quantiles are [{lower_quantile}, {upper_quantile}]"
             )
         return confidence_interval
+
+
+def predict_multiple_models(trained_model, predictors):
+    """Use parameters of a TrainedModel object and multiple predictors to forecast multiple models.
+
+    Args:
+        trained_model (TrainedModel)
+        predictors (dict): Dict of GluonTS Predictor objects (value) by model label (key)
+
+    Returns:
+        Pandas dataframe containing the predictions of all models stack on each other.
+    """    
+    forecasts_df = pd.DataFrame()
+    start = perf_counter()
+
+    for model_label, predictor in predictors.items():
+
+        single_forecasts_df = trained_model.predict(model_label, predictor)
+
+        logger.info(f"Forecasting future values of model '{model_label}': Done in {perf_counter() - start:.2f} seconds")
+
+        forecasts_df = forecasts_df.append(single_forecasts_df)
+
+    return forecasts_df

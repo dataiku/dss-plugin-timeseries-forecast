@@ -6,7 +6,7 @@ from dku_io_utils.config_handler import create_dku_config
 from dku_io_utils.dku_file_manager import DkuFileManager
 from dku_constants import RECIPE, MIN_TRAIN_TO_TEST_LENGTH_RATIO
 from gluonts_forecasts.utils import add_future_external_features
-from gluonts_forecasts.trained_model import TrainedModel
+from gluonts_forecasts.trained_model import TrainedModel, predict_multiple_models
 from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from safe_logger import SafeLogger
 from time import perf_counter
@@ -88,15 +88,7 @@ def run():
         history_length_limit=dku_config.history_length_limit,
     )
 
-    forecasts_df = pd.DataFrame()
-
-    for model_label, predictor in predictors.items():
-
-        single_forecasts_df = trained_model.predict(model_label, predictor)
-
-        logger.info(f"Forecasting future values of model '{model_label}': Done in {perf_counter() - start:.2f} seconds")
-
-        forecasts_df = forecasts_df.append(single_forecasts_df)
+    forecasts_df = predict_multiple_models(trained_model, predictors)
 
     forecasts_df = trained_model.get_forecasts_df_for_display(forecasts_df, model_selection.get_session_name())
 
