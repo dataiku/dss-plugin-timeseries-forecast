@@ -53,8 +53,9 @@ class ModelSelection:
         else:
             self.predictors[self.model_label] = self._get_model_predictor(self.model_label)
 
-        self._prediction_length = self.get_first_value(self.predictors).prediction_length
-        self._frequency = self.get_first_value(self.predictors).freq
+        first_predictor = self.get_first_predictor()
+        self._prediction_length = first_predictor.prediction_length
+        self._frequency = first_predictor.freq
 
     def get_session_name(self):
         return self.session_name
@@ -163,9 +164,8 @@ class ModelSelection:
                 raise ModelSelectionError(error_message)
         return model_labels
 
-    def get_first_value(self, dict):
-        """Retrieve the first value of a dictionary"""
-        try:
-            return next(iter(dict.values()))
-        except StopIteration:
+    def get_first_predictor(self):
+        """Retrieve the first predictor of the predictors dictionary"""
+        if len(self.predictors) == 0:
             raise ModelSelectionError(f"No model found in session '{self.session_name}'")
+        return next(iter(self.predictors.values()))
