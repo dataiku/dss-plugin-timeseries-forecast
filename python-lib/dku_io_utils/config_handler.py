@@ -233,14 +233,26 @@ def add_predict_config(dku_config, config, file_manager):
     check_only_one_read_partition(dku_config.partition_root, file_manager.model_folder)
     check_only_one_read_partition(dku_config.partition_root, file_manager.external_features_future_dataset)
 
-    dku_config.add_param(
-        name="manual_selection", value=True if config.get("model_selection_mode") == "manual" else False
-    )
+    dku_config.add_param(name="manual_selection", value=config.get("model_selection_mode") == "manual")
 
     dku_config.add_param(name="performance_metric", value=config.get("performance_metric"))
 
-    dku_config.add_param(name="selected_session", value=config.get("manually_selected_session", "latest_session"))
-    dku_config.add_param(name="selected_model_label", value=config.get("manually_selected_model_label"))
+    if dku_config.manual_selection:
+        dku_config.add_param(
+            name="selected_session",
+            value=config.get("manually_selected_session"),
+            label="Training session",
+            required=True,
+        )
+        dku_config.add_param(
+            name="selected_model_label",
+            value=config.get("manually_selected_model_label"),
+            label="Model name",
+            required=True,
+        )
+    else:
+        dku_config.add_param(name="selected_session", value=None)
+        dku_config.add_param(name="selected_model_label", value=None)
 
     dku_config.add_param(name="prediction_length", value=config.get("prediction_length", -1))
     dku_config.add_param(name="confidence_interval", value=config.get("confidence_interval", 95))

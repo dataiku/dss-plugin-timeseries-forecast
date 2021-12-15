@@ -203,13 +203,14 @@ class TestExternalFeaturesSimpleFeedForward:
         )
 
         trained_model = TrainedModel(
-            model_name=self.model_name,
-            predictor=self.model.predictor,
             gluon_dataset=gluon_dataset,
             prediction_length=self.prediction_length,
+            frequency=self.frequency,
             quantiles=[0.1, 0.5, 0.9],
             include_history=True,
         )
-        trained_model.predict()
-        forecasts_df = trained_model.get_forecasts_df(session="1234")
+        forecasts_df = trained_model.predict(
+            ModelConfigRegistry().get_model_label_from_name(self.model_name), self.model.predictor
+        )
+        forecasts_df = trained_model.get_forecasts_df_for_display(forecasts_df, session="1234")
         assert len(forecasts_df.index) == 13
