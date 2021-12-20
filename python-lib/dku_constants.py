@@ -25,10 +25,11 @@ class METRICS_DATASET:
     MODEL_PARAMETERS = "model_params"
     SESSION = "training_session"
     TRAINING_TIME = "run_time"
+    ROLLING_WINDOWS = "rolling_windows_index"
 
 
 class TIMESERIES_KEYS:
-    """Class of constants with labels for the keys used in the timeseries of the GluonDataset class"""
+    """Class of constants with labels for the keys used in the timeseries of the DkuGluonDataset class"""
 
     START = FieldName.START
     TARGET = FieldName.TARGET
@@ -68,6 +69,7 @@ METRICS_COLUMNS_DESCRIPTIONS = {
     METRICS_DATASET.TARGET_COLUMN: "Aggregated and per-time-series metrics",
     METRICS_DATASET.TRAINING_TIME: "Time elapsed during model training and evaluation (in seconds)",
     ROW_ORIGIN.COLUMN_NAME: "Row origin",
+    METRICS_DATASET.ROLLING_WINDOWS: "Cross-validation rolling window index",
 }
 
 # regex pattern to match the timestamps used for training sessions
@@ -110,3 +112,8 @@ class GPU_CONFIGURATION:
     NO_GPU = "no_gpu"
     CONTAINER_GPU = "container_gpu"
     CUDA_VERSION = "{CUDA_VERSION}"
+
+
+# Training timeseries must be at least twice as long as the forecasting horizon (or some models will fail at training)
+MIN_TRAIN_TO_TEST_LENGTH_RATIO = 2
+MINIMUM_FORECASTING_HORIZON = 1

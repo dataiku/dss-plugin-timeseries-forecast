@@ -1,6 +1,6 @@
 from gluonts_forecasts.model import Model
 from gluonts_forecasts.trained_model import TrainedModel
-from gluonts_forecasts.gluon_dataset import GluonDataset
+from gluonts_forecasts.gluon_dataset import DkuGluonDataset
 from gluonts_forecasts.utils import add_future_external_features
 from gluonts_forecasts.model_config_registry import ModelConfigRegistry
 from dku_constants import METRICS_DATASET, EVALUATION_METRICS_DESCRIPTIONS
@@ -21,8 +21,7 @@ class TestModel:
             }
         )
         self.df["date"] = pd.to_datetime(self.df["date"]).dt.tz_localize(tz=None)
-        self.gluon_dataset = GluonDataset(
-            dataframe=self.df,
+        self.gluon_dataset = DkuGluonDataset(
             time_column_name="date",
             frequency="D",
             target_columns_names=["volume", "revenue"],
@@ -31,7 +30,7 @@ class TestModel:
             min_length=2,
         )
         self.prediction_length = 1
-        gluon_list_datasets = self.gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
+        gluon_list_datasets = self.gluon_dataset.create_list_datasets(self.df, cut_lengths=[self.prediction_length, 0])
         self.train_list_dataset = gluon_list_datasets[0]
         self.test_list_dataset = gluon_list_datasets[1]
 
@@ -47,7 +46,7 @@ class TestModel:
             batch_size=16,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+        metrics, forecasts_df = model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True
         )
 
@@ -67,7 +66,7 @@ class TestModel:
             batch_size=64,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+        metrics, forecasts_df = model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True
         )
 
@@ -87,7 +86,7 @@ class TestModel:
             batch_size=32,
             num_batches_per_epoch=50,
         )
-        metrics, identifiers_columns, forecasts_df = model.train_evaluate(
+        metrics, forecasts_df = model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True
         )
 
@@ -155,8 +154,7 @@ class TestExternalFeaturesSimpleFeedForward:
 
         self.frequency = "D"
 
-        gluon_dataset = GluonDataset(
-            dataframe=df,
+        gluon_dataset = DkuGluonDataset(
             time_column_name="date",
             frequency=self.frequency,
             target_columns_names=["target"],
@@ -166,9 +164,9 @@ class TestExternalFeaturesSimpleFeedForward:
         )
 
         self.prediction_length = 2
-        gluon_list_datasets = gluon_dataset.create_list_datasets(cut_lengths=[self.prediction_length, 0])
-        self.train_list_dataset = gluon_list_datasets[0]
-        self.test_list_dataset = gluon_list_datasets[1]
+        gluon_list_datasets = gluon_dataset.create_list_datasets(df, cut_lengths=[self.prediction_length, 0])
+        self.train_list_dataset = gluon_list_datasets[self.prediction_length]
+        self.test_list_dataset = gluon_list_datasets[0]
 
         self.model_name = "simplefeedforward"
         self.model = Model(
@@ -183,7 +181,7 @@ class TestExternalFeaturesSimpleFeedForward:
         )
 
     def test_simplefeedforward_external_features_training(self):
-        metrics, identifiers_columns, forecasts_df = self.model.train_evaluate(
+        _, forecasts_df = self.model.train_evaluate(
             self.train_list_dataset, self.test_list_dataset, make_forecasts=True, retrain=True
         )
         assert len(forecasts_df.index) == 4
@@ -205,13 +203,14 @@ class TestExternalFeaturesSimpleFeedForward:
         )
 
         trained_model = TrainedModel(
-            model_name=self.model_name,
-            predictor=self.model.predictor,
             gluon_dataset=gluon_dataset,
             prediction_length=self.prediction_length,
+            frequency=self.frequency,
             quantiles=[0.1, 0.5, 0.9],
             include_history=True,
         )
-        trained_model.predict()
-        forecasts_df = trained_model.get_forecasts_df(session="1234")
+        forecasts_df = trained_model.predict(
+            ModelConfigRegistry().get_model_label_from_name(self.model_name), self.model.predictor
+        )
+        forecasts_df = trained_model.get_forecasts_df_for_display(forecasts_df, session="1234")
         assert len(forecasts_df.index) == 13

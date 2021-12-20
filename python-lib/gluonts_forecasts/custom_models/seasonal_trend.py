@@ -3,7 +3,7 @@ from gluonts.model.forecast import SampleForecast
 from gluonts.model.predictor import RepresentablePredictor
 from gluonts.support.pandas import frequency_add
 from gluonts.core.component import validated
-from gluonts_forecasts.custom_models.utils import cast_kwargs
+from gluonts_forecasts.custom_models.utils import cast_kwargs, get_model_key
 from dku_constants import TIMESERIES_KEYS
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
@@ -46,8 +46,8 @@ class SeasonalTrendPredictor(RepresentablePredictor):
             SampleForecast of predictions.
         """
         logger.info("Training models and predicting time series ...")
-        for i, item in tqdm(enumerate(dataset)):
-            yield self.predict_item(item, self.trained_models[i])
+        for item in tqdm(dataset):
+            yield self.predict_item(item, self.trained_models[get_model_key(item)])
 
     def predict_item(self, item, trained_model):
         """Compute quantiles using the confidence intervals of autoarima.
@@ -64,7 +64,9 @@ class SeasonalTrendPredictor(RepresentablePredictor):
 
         samples = []
         for alpha in np.arange(0.02, 1.01, 0.02):
-            predictions = trained_model.get_prediction(start=target_length, end=target_length + self.prediction_length - 1)
+            predictions = trained_model.get_prediction(
+                start=target_length, end=target_length + self.prediction_length - 1
+            )
             confidence_intervals = predictions.conf_int(alpha=alpha)
             samples += [confidence_intervals["lower"].values, confidence_intervals["upper"].values]
 
@@ -79,7 +81,9 @@ class SeasonalTrendEstimator(Estimator):
         self.freq = freq
         self.kwargs = cast_kwargs(kwargs)
         if "period" in self.kwargs:
-            raise ValueError("Keyword argument 'period' is not writable for SeasonalTrend, please use the Season length parameter")
+            raise ValueError(
+                "Keyword argument 'period' is not writable for SeasonalTrend, please use the Season length parameter"
+            )
         if "model" not in self.kwargs:
             self.kwargs["model"] = ETSModel
 
@@ -92,7 +96,9 @@ class SeasonalTrendEstimator(Estimator):
             logger.info(f"Setting trend parameter of ETSModel to: '{self.kwargs['model_kwargs']['trend']}'")
 
         if season_length < 2:
-            raise ValueError("SeasonalTrend model must have a Season length higher than 2, please change the Season length parameter or unselect the model")
+            raise ValueError(
+                "SeasonalTrend model must have a Season length higher than 2, please change the Season length parameter or unselect the model"
+            )
         self.season_length = season_length
 
     def train(self, training_data):
@@ -104,11 +110,13 @@ class SeasonalTrendEstimator(Estimator):
         Returns:
             Predictor containing the trained STL models.
         """
-        trained_models = []
+        trained_models = {}
         logger.info("Creating one SeasonalTrend model per time series ...")
         for item in tqdm(training_data):
             model = STLForecast(endog=pd.Series(item[TIMESERIES_KEYS.TARGET]), period=self.season_length, **self.kwargs)
             trained_model = model.fit()
-            trained_models += [trained_model]
+            trained_models[get_model_key(item)] = trained_model
 
-        return SeasonalTrendPredictor(prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models)
+        return SeasonalTrendPredictor(
+            prediction_length=self.prediction_length, freq=self.freq, trained_models=trained_models
+        )

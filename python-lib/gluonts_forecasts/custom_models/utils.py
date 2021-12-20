@@ -1,3 +1,18 @@
+from dku_constants import TIMESERIES_KEYS
+
+
+def get_model_key(item):
+    """Return a unique hashable key for a model that trains on item based on its timeseries identifiers
+
+    Args:
+        item (dict): Univariate timeseries dictionary
+    """
+    if TIMESERIES_KEYS.IDENTIFIERS in item:
+        return frozenset(item[TIMESERIES_KEYS.IDENTIFIERS].items())
+    else:
+        return None
+
+
 def cast_kwargs(kwargs):
     kwargs_copy = kwargs.copy()
     for arg, value in kwargs_copy.items():

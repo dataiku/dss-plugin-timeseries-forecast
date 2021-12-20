@@ -19,3 +19,11 @@ def test_run_timeseries_sql_forecast_regular(user_dss_clients):
 
 def test_run_timeseries_sql_forecast_partition(user_dss_clients):
     dss_scenario.run(user_dss_clients, project_key=TEST_PROJECT_KEY, scenario_id="SQLPartitions")
+
+
+def test_run_timeseries_forecast_on_new_data(user_dss_clients):
+    dss_scenario.run(user_dss_clients, project_key=TEST_PROJECT_KEY, scenario_id="FORECASTNEWDATA")
+
+
+def test_run_timeseries_cross_validation(user_dss_clients):
+    dss_scenario.run(user_dss_clients, project_key=TEST_PROJECT_KEY, scenario_id="CROSSVALIDATION")

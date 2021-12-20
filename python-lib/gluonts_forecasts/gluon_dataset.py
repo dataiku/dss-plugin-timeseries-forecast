@@ -1,33 +1,30 @@
 from gluonts.dataset.common import ListDataset
-from dku_constants import TIMESERIES_KEYS
-import numpy as np
+from dku_constants import TIMESERIES_KEYS, MIN_TRAIN_TO_TEST_LENGTH_RATIO, MINIMUM_FORECASTING_HORIZON
 
 
-class GluonDataset:
+class DkuGluonDataset:
     """
     Wrapper class to generate a GluonTS ListDataset with multiple time series based on the target and identifiers columns
     Each timeseries stores information about its target(s), time and external features column names as well as its identifiers values
 
     Attributes:
-        dataframe (DataFrame)
         time_column_name (list)
         frequency (str): Pandas timeseries frequency (e.g. '3M')
         target_columns_names (list): List of column names to predict
-        timeseries_identifiers_names (list): Columns to identify multiple time series when data is in long format
-        external_features_columns_names (list): List of columns with dynamic real features over time
+        timeseries_identifiers_names (list, optional): Columns to identify multiple time series when data is in long format
+        external_features_columns_names (list, optional): List of columns with dynamic real features over time
+        min_length (int, optional): Minimum number of time steps for each timeseries
     """
 
     def __init__(
         self,
-        dataframe,
         time_column_name,
         frequency,
         target_columns_names,
         timeseries_identifiers_names=None,
         external_features_columns_names=None,
-        min_length=None,
+        min_length=MIN_TRAIN_TO_TEST_LENGTH_RATIO * MINIMUM_FORECASTING_HORIZON,
     ):
-        self.dataframe = dataframe
         self.time_column_name = time_column_name
         self.frequency = frequency
         self.target_columns_names = target_columns_names
@@ -35,29 +32,35 @@ class GluonDataset:
         self.external_features_columns_names = external_features_columns_names
         self.min_length = min_length
 
-    def create_list_datasets(self, cut_lengths=[]):
+    def create_list_datasets(self, dataframe, cut_lengths=None):
         """Create timeseries for each identifier tuple and each target.
 
         Args:
-            cut_length (int, optional): Remove the last cut_length time steps of each timeseries. Defaults to empty list.
+            dataframe (DataFrame): Timeseries dataframe.
+            cut_lengths (list[int], optional): Remove the last cut_length time steps of each timeseries.
+                                        Defaults to None means it creates only one timeseries with no cut.
 
         Returns:
-            List of gluonts.dataset.common.ListDataset with extra keys for each timeseries
+            Dict of gluonts.dataset.common.ListDataset (value) by cut_length (key) with extra keys for each timeseries
         """
-        multivariate_timeseries_per_cut_length = [[] for cut_length in cut_lengths]
+        if cut_lengths is None:
+            cut_lengths = [0]
+        multivariate_timeseries_by_cut_length = {cut_length: [] for cut_length in cut_lengths}
         if self.timeseries_identifiers_names:
-            for identifiers_values, identifiers_df in self.dataframe.groupby(self.timeseries_identifiers_names):
-                for cut_length_index, cut_length in enumerate(cut_lengths):
-                    multivariate_timeseries_per_cut_length[cut_length_index] += self._create_gluon_multivariate_timeseries(
+            for identifiers_values, identifiers_df in dataframe.groupby(self.timeseries_identifiers_names):
+                for cut_length in cut_lengths:
+                    multivariate_timeseries_by_cut_length[cut_length] += self._create_gluon_multivariate_timeseries(
                         identifiers_df, cut_length, identifiers_values=identifiers_values
                     )
         else:
-            for cut_length_index, cut_length in enumerate(cut_lengths):
-                multivariate_timeseries_per_cut_length[cut_length_index] += self._create_gluon_multivariate_timeseries(self.dataframe, cut_length)
-        gluon_list_dataset_per_cut_length = []
-        for multivariate_timeseries in multivariate_timeseries_per_cut_length:
-            gluon_list_dataset_per_cut_length += [ListDataset(multivariate_timeseries, freq=self.frequency)]
-        return gluon_list_dataset_per_cut_length
+            for cut_length in cut_lengths:
+                multivariate_timeseries_by_cut_length[cut_length] += self._create_gluon_multivariate_timeseries(
+                    dataframe, cut_length
+                )
+        gluon_list_dataset_by_cut_length = {}
+        for cut_length, multivariate_timeseries in multivariate_timeseries_by_cut_length.items():
+            gluon_list_dataset_by_cut_length[cut_length] = ListDataset(multivariate_timeseries, freq=self.frequency)
+        return gluon_list_dataset_by_cut_length
 
     def _create_gluon_multivariate_timeseries(self, dataframe, cut_length, identifiers_values=None):
         """Create a list of timeseries dictionaries for each target column
@@ -73,7 +76,9 @@ class GluonDataset:
         self._check_minimum_length(dataframe, cut_length)
         multivariate_timeseries = []
         for target_column_name in self.target_columns_names:
-            multivariate_timeseries.append(self._create_gluon_univariate_timeseries(dataframe, target_column_name, cut_length, identifiers_values))
+            multivariate_timeseries.append(
+                self._create_gluon_univariate_timeseries(dataframe, target_column_name, cut_length, identifiers_values)
+            )
         return multivariate_timeseries
 
     def _create_gluon_univariate_timeseries(self, dataframe, target_column_name, cut_length, identifiers_values=None):
@@ -103,11 +108,18 @@ class GluonDataset:
             TIMESERIES_KEYS.TIME_COLUMN_NAME: self.time_column_name,
         }
         if self.external_features_columns_names:
-            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] = dataframe[self.external_features_columns_names].iloc[:length].values.T
-            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES] = self.external_features_columns_names
+            univariate_timeseries[TIMESERIES_KEYS.FEAT_DYNAMIC_REAL] = (
+                dataframe[self.external_features_columns_names].iloc[:length].values.T
+            )
+            univariate_timeseries[
+                TIMESERIES_KEYS.FEAT_DYNAMIC_REAL_COLUMNS_NAMES
+            ] = self.external_features_columns_names
         if identifiers_values is not None:
             if len(self.timeseries_identifiers_names) > 1:
-                identifiers_map = {self.timeseries_identifiers_names[i]: identifier_value for i, identifier_value in enumerate(identifiers_values)}
+                identifiers_map = {
+                    self.timeseries_identifiers_names[i]: identifier_value
+                    for i, identifier_value in enumerate(identifiers_values)
+                }
             else:
                 identifiers_map = {self.timeseries_identifiers_names[0]: identifiers_values}
             univariate_timeseries[TIMESERIES_KEYS.IDENTIFIERS] = identifiers_map
@@ -127,7 +139,14 @@ class GluonDataset:
         if cut_length:
             min_length += cut_length
         if len(dataframe.index) < min_length:
-            raise ValueError(f"Time series must have at least {min_length} values")
+            error_message = f"Each time series must have at least {min_length} values."
+            if cut_length:
+                error_message += f"""
+                Forecast models needs at least {self.min_length} values per time series to be able to train.
+                To create the train dataset in the evaluation process, the last {cut_length} values of each time series are removed.
+                If time series cross-validation is selected, decreasing the number of windows and the cutoff period can increase the size of the train dataset.
+                """
+            raise ValueError(error_message)
 
 
 def remove_unused_external_features(list_dataset, frequency):
@@ -139,7 +158,7 @@ def remove_unused_external_features(list_dataset, frequency):
 
     Returns:
         A ListDataset without FEAT_DYNAMIC_REAL fields
-    """    
+    """
     new_list_dataset = []
     for data in list_dataset.list_data:
         new_data = data.copy()

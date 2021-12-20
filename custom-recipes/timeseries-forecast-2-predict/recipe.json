@@ -3,6 +3,7 @@
         "label": "2. Forecast future values",
         "description": "Use trained forecasting models to predict future values after your historical dataset",
         "icon": "icon-signal",
+        "iconColor": "green",
         "displayOrderRank": 2
     },
     "kind": "PYTHON",
@@ -17,6 +18,15 @@
             "required": true,
             "acceptsDataset": false,
             "acceptsManagedFolder": true
+        },
+        {
+            "name": "historical_dataset",
+            "label": "Optional - Dataset to forecast, if not provided, use the training data",
+            "description": "The recipe will forecast values after this dataset",
+            "arity": "UNARY",
+            "required": false,
+            "acceptsDataset": true,
+            "acceptsManagedFolder": false
         },
         {
             "name": "external_features_future_dataset",

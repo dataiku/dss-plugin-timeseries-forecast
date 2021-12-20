@@ -31,7 +31,7 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
     First check that all timeseries are valid (regular time steps of the chosen frequency and they all have the same start date).
 
     Args:
-        gluon_train_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the GluonDataset class.
+        gluon_train_dataset (gluonts.dataset.common.ListDataset): ListDataset created with the DkuGluonDataset class.
         external_features_future_df (DataFrame): Dataframe of future (dated after timeseries of gluon_train_dataset) external features.
         prediction_length (int): To check that external_features_future_df has the right length.
         frequency (str): To check that the time column has the right frequency and values.
@@ -46,13 +46,16 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
     if isinstance(to_offset(frequency), CUSTOMISABLE_FREQUENCIES_OFFSETS):
         frequency = gluon_train_dataset.process.trans[0].freq
 
-    start_date, periods = None, None
     for i, timeseries in enumerate(gluon_train_dataset):
         if TIMESERIES_KEYS.IDENTIFIERS in timeseries:
             # filter the dataframe to only get rows with the right identifiers
             timeseries_identifiers = timeseries[TIMESERIES_KEYS.IDENTIFIERS]
             conditions = [external_features_future_df[k] == v for k, v in timeseries_identifiers.items()]
             timeseries_external_features_future_df = apply_filter_conditions(external_features_future_df, conditions)
+            if len(timeseries_external_features_future_df.index) == 0:
+                raise ValueError(
+                    f"No future values of external features were provided for timeseries with identifiers values: {timeseries_identifiers}"
+                )
         else:
             timeseries_external_features_future_df = external_features_future_df
 
@@ -64,12 +67,16 @@ def add_future_external_features(gluon_train_dataset, external_features_future_d
             time_column_name=time_column_name,
             frequency=frequency,
         )
-        timeseries_external_features_future_df = timeseries_preparator.prepare_timeseries_dataframe(timeseries_external_features_future_df)
+        timeseries_external_features_future_df = timeseries_preparator.prepare_timeseries_dataframe(
+            timeseries_external_features_future_df
+        )
 
         feat_dynamic_real_future = timeseries_external_features_future_df[feat_dynamic_real_columns_names].values.T
 
         if feat_dynamic_real_future.shape[1] != prediction_length:
-            raise ValueError(f"Please provide {prediction_length} future values of external features, as this was the forecasting horizon used for training")
+            raise ValueError(
+                f"Please provide {prediction_length} future values of external features, as this was the forecasting horizon used for training"
+            )
 
         feat_dynamic_real_appended = np.append(feat_dynamic_real_train, feat_dynamic_real_future, axis=1)
 

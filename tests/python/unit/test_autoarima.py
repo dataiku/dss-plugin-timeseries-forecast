@@ -58,7 +58,7 @@ class TestAutoARIMATrain:
         estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, max_D=3, season_length=4)
         predictor = estimator.train(gluon_dataset)
 
-        assert predictor.trained_models[0].seasonal_order[3] == 4  # seasonality is 4
+        assert predictor.trained_models[None].seasonal_order[3] == 4  # seasonality is 4
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
@@ -83,6 +83,29 @@ class TestAutoARIMATrain:
             prediction_length=prediction_length, freq=frequency, season_length=4, use_feat_dynamic_real=True
         )
         predictor = estimator.train(gluon_dataset)
+
+        forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
+        timeseries = list(ts_it)
+        forecasts = list(forecast_it)
+        assert forecasts[1].samples.shape == (100, 2)
+        evaluator = Evaluator()
+        agg_metrics, item_metrics = evaluator(iter(timeseries), iter(forecasts), num_series=len(gluon_dataset))
+        assert agg_metrics["MAPE"] is not None
+
+    def test_training_long_format(self):
+        prediction_length = 2
+        frequency = "3M"
+        self.timeseries[0][TIMESERIES_KEYS.IDENTIFIERS] = {"store": 0, "item": 1}
+        self.timeseries[1][TIMESERIES_KEYS.IDENTIFIERS] = {"store": 0, "item": 0}
+
+        gluon_dataset = ListDataset(self.timeseries, freq=frequency)
+        estimator = AutoARIMAEstimator(
+            prediction_length=prediction_length, freq=frequency, season_length=4, use_feat_dynamic_real=True
+        )
+        predictor = estimator.train(gluon_dataset)
+
+        assert frozenset({"store": 0, "item": 0}.items()) in predictor.trained_models
+        assert frozenset({"store": 0, "item": 1}.items()) in predictor.trained_models
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
