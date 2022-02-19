@@ -8,9 +8,12 @@ def get_model_key(item):
         item (dict): Univariate timeseries dictionary
     """
     if TIMESERIES_KEYS.IDENTIFIERS in item:
-        return frozenset(item[TIMESERIES_KEYS.IDENTIFIERS].items())
+        d = item[TIMESERIES_KEYS.IDENTIFIERS].copy()
     else:
-        return None
+        d = {}
+    d[TIMESERIES_KEYS.TARGET_NAME] = item[TIMESERIES_KEYS.TARGET_NAME]
+
+    return frozenset(d.items())
 
 
 def cast_kwargs(kwargs):
