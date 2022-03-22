@@ -86,8 +86,8 @@ class TestSeasonalTrendTrain:
         )
         predictor = estimator.train(gluon_dataset)
 
-        assert frozenset({"country": "usa"}.items()) in predictor.trained_models
-        assert frozenset({"country": "uk"}.items()) in predictor.trained_models
+        assert frozenset({"country": "uk", TIMESERIES_KEYS.TARGET_NAME: "target_1"}.items()) in predictor.trained_models
+        assert frozenset({"country": "usa", TIMESERIES_KEYS.TARGET_NAME: "target_2"}.items()) in predictor.trained_models
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)

@@ -58,7 +58,7 @@ class TestAutoARIMATrain:
         estimator = AutoARIMAEstimator(prediction_length=prediction_length, freq=frequency, max_D=3, season_length=4)
         predictor = estimator.train(gluon_dataset)
 
-        assert predictor.trained_models[None].seasonal_order[3] == 4  # seasonality is 4
+        assert predictor.trained_models[frozenset({TIMESERIES_KEYS.TARGET_NAME: "target_1"}.items())].seasonal_order[3] == 4  # seasonality is 4
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
@@ -104,8 +104,8 @@ class TestAutoARIMATrain:
         )
         predictor = estimator.train(gluon_dataset)
 
-        assert frozenset({"store": 0, "item": 0}.items()) in predictor.trained_models
-        assert frozenset({"store": 0, "item": 1}.items()) in predictor.trained_models
+        assert frozenset({"store": 0, "item": 1, TIMESERIES_KEYS.TARGET_NAME: "target_1"}.items()) in predictor.trained_models
+        assert frozenset({"store": 0, "item": 0, TIMESERIES_KEYS.TARGET_NAME: "target_2"}.items()) in predictor.trained_models
 
         forecast_it, ts_it = make_evaluation_predictions(dataset=gluon_dataset, predictor=predictor, num_samples=100)
         timeseries = list(ts_it)
