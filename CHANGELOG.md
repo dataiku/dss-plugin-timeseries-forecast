@@ -1,5 +1,8 @@
 # Changelog
 
+## [Version 1.2.1](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.2.1) - Deprecation release - 2022-08
+- ⚠️ The plugin is made deprecated
+
 ## [Version 1.2.0](https://github.com/dataiku/dss-plugin-timeseries-forecast/releases/tag/v1.2.0) - New feature release - 2021-12
 - 🔥 Use a previoulsy trained model to forecast after a new dataset not used during training 
 - 😎 Evaluate models with timeseries k-fold cross-validation

@@ -1,10 +1,10 @@
 {
     "id": "timeseries-forecast",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "meta": {
-        "label": "Forecast",
+        "label": "Forecast (deprecated)",
         "category": "Time Series",
-        "description": "Forecast multivariate time series from year to minute frequency with Deep Learning and statistical models",
+        "description": "Forecast multivariate time series from year to minute frequency with Deep Learning and statistical models. ⚠️ This plugin is now \"decprecated\", we recommend using the native [time series forecasting](https://doc.dataiku.com/dss/latest/machine-learning/time-series-forecasting/index.html) features instead.",
         "author": "Dataiku",
         "icon": "icon-signal",
         "licenseInfo": "Apache Software License v2",
