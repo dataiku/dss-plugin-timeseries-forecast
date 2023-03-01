@@ -1,4 +1,4 @@
-mxnet==1.7.0.post1
+mxnet==1.9.1
 gluonts==0.8.1
 dill==0.3.3
 pmdarima==1.8.3
