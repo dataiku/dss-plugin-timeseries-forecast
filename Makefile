@@ -41,7 +41,7 @@ endif
 		plugin_id_gpu="${PLUGIN_ID}-gpu-cuda${CUDA_VERSION}"; \
 		echo "Modifying a few files to make the plugin GPU-ready. Fasten your seatbelt."; \
 		sed -i "" "s/${PLUGIN_ID}/$${plugin_id_gpu}/g" plugin.json; \
-		sed -i "" "s/]/,\"GPU\"]/g" plugin.json; \
+		sed -i "" "s/: \[/: \[\"GPU\",/g" plugin.json; \
 		sed -i "" "s/\"label\": \"Forecast\"/\"label\": \"Forecast (GPU - CUDA ${CUDA_VERSION})\"/g" plugin.json; \
 		cat plugin.json | json_pp > /dev/null; \
 		sed -i "" "s/mxnet.*/mxnet-cu${CUDA_VERSION}==${MXNET_VERSION}/g" code-env/python/spec/requirements.txt; \
