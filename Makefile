@@ -41,8 +41,8 @@ endif
 		plugin_id_gpu="${PLUGIN_ID}-gpu-cuda${CUDA_VERSION}"; \
 		echo "Modifying a few files to make the plugin GPU-ready. Fasten your seatbelt."; \
 		sed -i "" "s/${PLUGIN_ID}/$${plugin_id_gpu}/g" plugin.json; \
-		sed -i "" "s/]/,\"GPU\"]/g" plugin.json; \
-		sed -i "" "s/\"label\": \"Forecast\"/\"label\": \"Forecast (GPU - CUDA ${CUDA_VERSION})\"/g" plugin.json; \
+		sed -i "" "s/: \[/: \[\"GPU\",/g" plugin.json; \
+		sed -i "" "s/\"label\": \"Forecast (deprecated)\"/\"label\": \"Forecast (GPU - CUDA ${CUDA_VERSION} - deprecated)\"/g" plugin.json; \
 		cat plugin.json | json_pp > /dev/null; \
 		sed -i "" "s/mxnet.*/mxnet-cu${CUDA_VERSION}==${MXNET_VERSION}/g" code-env/python/spec/requirements.txt; \
 		sed -i "" "s/'cpu'/'gpu'/g" custom-recipes/${PLUGIN_ID}-1-train-evaluate/recipe.json; \
@@ -50,7 +50,7 @@ endif
 		git mv custom-recipes/${PLUGIN_ID}-1-train-evaluate custom-recipes/$${plugin_id_gpu}-1-train-evaluate; \
 		git mv custom-recipes/${PLUGIN_ID}-2-predict custom-recipes/$${plugin_id_gpu}-2-predict; \
 		sed -i "" "s/cpu_devices/gpu_devices/g" resource/select_gpu_devices.py; \
-		sed -i "" "s/{CUDA_VERSION}/${CUDA_VERSION}/g" python-lib/constants.py; \
+		sed -i "" "s/{CUDA_VERSION}/${CUDA_VERSION}/g" python-lib/dku_constants.py; \
 		git_stash=`git stash create` && echo "Stached modifications to $${git_stash:-HEAD}"; \
 		rm -rf dist && mkdir dist; \
 		archive_file_name_gpu="dss-plugin-$${plugin_id_gpu}-${plugin_version}.zip"; \
